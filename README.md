@@ -10,8 +10,8 @@ NIM  : [ NIM Temen Lu ]
 Nama : Muhamad Afif Aji Putra
 NIM  : L0124134
 
-Nama : [ Nama Temen Lu ]
-NIM  : [ NIM Temen Lu ]
+Nama : [ Valentino Joan Cesar ]
+NIM  : [ L0124121 ]
 
 
 ## 📖 Deskripsi Proyek
