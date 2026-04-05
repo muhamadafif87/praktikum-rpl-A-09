@@ -4,8 +4,8 @@
 Nama : [ Nama Lu ]
 NIM  : [ NIM Lu ]
 
-Nama : [ Nama Temen Lu ]
-NIM  : [ NIM Temen Lu ]
+Nama : Aerio Ade Putra
+NIM  : L0124128
 
 Nama : [ Nama Temen Lu ]
 NIM  : [ NIM Temen Lu ]
