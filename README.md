@@ -1,8 +1,8 @@
 # Project RPL - [ Nama Project Kalian ]
 
 #
-Nama : [ Nama Lu ]
-NIM  : [ NIM Lu ]
+Nama : Muhammad Daffa Ade Nugraha
+NIM  : L0124127
 
 Nama : [ Nama Temen Lu ]
 NIM  : [ NIM Temen Lu ]
