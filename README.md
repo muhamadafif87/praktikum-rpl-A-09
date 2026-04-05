@@ -1,4 +1,4 @@
-# Project RPL - [ Nama Project Kalian ]
+# Project RPL - [KostHUB]
 
 #
 Nama : Muhammad Daffa Ade Nugraha
