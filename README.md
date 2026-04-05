@@ -10,8 +10,8 @@ NIM  : L0124128
 Nama : Muhamad Afif Aji Putra
 NIM  : L0124134
 
-Nama : [ Valentino Joan Cesar ]
-NIM  : [ L0124121 ]
+Nama : Valentino Joan Cesar
+NIM  : L0124121
 
 
 ## 📖 Deskripsi Proyek

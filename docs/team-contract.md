@@ -1,4 +1,4 @@
-# Team Contract - [Nama Projek]
+# Team Contract - [KostHUB]
 
 Kontrak kerja ini disepakati oleh seluruh anggota tim pada tanggal **5 April 2026**.
 
