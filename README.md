@@ -4,8 +4,8 @@
 Nama : Muhammad Daffa Ade Nugraha
 NIM  : L0124127
 
-Nama : [ Nama Temen Lu ]
-NIM  : [ NIM Temen Lu ]
+Nama : Aerio Ade Putra
+NIM  : L0124128
 
 Nama : Muhamad Afif Aji Putra
 NIM  : L0124134
