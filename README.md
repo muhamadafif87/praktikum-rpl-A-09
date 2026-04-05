@@ -10,8 +10,8 @@ NIM  : [ NIM Temen Lu ]
 Nama : [ Nama Temen Lu ]
 NIM  : [ NIM Temen Lu ]
 
-Nama : [ Nama Temen Lu ]
-NIM  : [ NIM Temen Lu ]
+Nama : [ Valentino Joan Cesar ]
+NIM  : [ L0124121 ]
 
 
 ## 📖 Deskripsi Proyek
