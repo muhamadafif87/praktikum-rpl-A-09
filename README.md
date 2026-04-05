@@ -7,11 +7,11 @@ NIM  : [ NIM Lu ]
 Nama : [ Nama Temen Lu ]
 NIM  : [ NIM Temen Lu ]
 
-Nama : [ Nama Temen Lu ]
-NIM  : [ NIM Temen Lu ]
-
 Nama : Muhamad Afif Aji Putra
 NIM  : L0124134
+
+Nama : [ Nama Temen Lu ]
+NIM  : [ NIM Temen Lu ]
 
 
 ## 📖 Deskripsi Proyek
@@ -32,4 +32,4 @@ NIM  : L0124134
 ### Langkah Instalasi
 1. **Clone Repository**
    ```bash
-   git clone [https://github.com/](https://github.com/)[username-github]/[nama-repo].git
+   git clone https://github.com/daffaade/praktikum-rpl-A-9.git
