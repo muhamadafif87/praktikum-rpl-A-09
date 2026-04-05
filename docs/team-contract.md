@@ -39,7 +39,7 @@ Pertemuan rutin dilakukan untuk sinkronisasi progress:
 
 * **Komunikasi Harian**: WhatsApp Group untuk koordinasi cepat dan pengumuman penting.
 * **Diskusi Teknis**: Discord atau Zoom untuk diskusi mendalam terkait pengembangan dan permasalahan teknis.
-* **Manajemen Tugas**: Spreadsheet Google Sheets untuk tracking progress, dan deadline.
+* **Manajemen Tugas**: ClickUP untuk tracking progress, dan deadline.
 
 ## 4. Standar Pesan Commit (Commit Message Standards)
 
