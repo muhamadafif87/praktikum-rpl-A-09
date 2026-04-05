@@ -1,17 +1,17 @@
 # Project RPL - [ Nama Project Kalian ]
 
 #
-Nama : [ Nama Lu ]
-NIM  : [ NIM Lu ]
+Nama : Muhammad Daffa Ade Nugraha
+NIM  : L0124127
 
-Nama : [ Nama Temen Lu ]
-NIM  : [ NIM Temen Lu ]
+Nama : Aerio Ade Putra
+NIM  : L0124128
 
-Nama : [ Nama Temen Lu ]
-NIM  : [ NIM Temen Lu ]
+Nama : Muhamad Afif Aji Putra
+NIM  : L0124134
 
-Nama : [ Nama Temen Lu ]
-NIM  : [ NIM Temen Lu ]
+Nama : [ Valentino Joan Cesar ]
+NIM  : [ L0124121 ]
 
 
 ## 📖 Deskripsi Proyek
@@ -32,4 +32,4 @@ NIM  : [ NIM Temen Lu ]
 ### Langkah Instalasi
 1. **Clone Repository**
    ```bash
-   git clone [https://github.com/](https://github.com/)[username-github]/[nama-repo].git
+   git clone https://github.com/daffaade/praktikum-rpl-A-9.git
