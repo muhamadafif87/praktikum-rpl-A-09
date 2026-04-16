@@ -3,22 +3,20 @@
 Dokumen ini berisi identifikasi aktor dan daftar *user stories* untuk platform KostHub, lengkap dengan *Acceptance Criteria* menggunakan format **Given-When-Then**.
 
 ## 1. Identifikasi Aktor
-| No | Aktor | Deskripsi |
-|:---|:---|:---|
-| 1 | **Customer** | Penghuni kos yang mencari dan memesan layanan jasa. |
-| 2 | **Provider** | Penyedia jasa/mitra yang menawarkan layanan di platform. |
-| 3 | **Admin** | Pengelola sistem yang memverifikasi mitra dan memantau transaksi. |
+1. **Customer** : Penghuni kos yang mencari dan memesan layanan jasa.
+2. **Provider** : Penyedia jasa/mitra yang menawarkan layanan di platform.
+3. **Admin** : Pengelola sistem yang memverifikasi mitra dan memantau transaksi.
 
 ---
 
 ## 2. Daftar User Stories
 
 ### US01: Pemesanan Jasa (Customer)
-* **Story:** Sebagai Customer, saya ingin memesan layanan melalui aplikasi, sehingga saya tidak perlu pergi ke luar kos untuk mencari layanan jasa.
+* **Story:** Sebagai Customer, saya ingin memesan layanan laundry antar-jemput melalui aplikasi, sehingga saya dapat menghemat waktu dengan tanpa datang ke tempat laundry secara langsung.
 * **Acceptance Criteria:**
-    * **Given:** Customer mengakses halaman detail layanan Mitra.
-    * **When:** Customer menekan tombol "Pesan" pada layanan yang dituju dan mengonfirmasi lokasi kos.
-    * **Then:** Sistem membuat ID pesanan dan mengirimkan notifikasi kepada Provider.
+    * **Given:** Customer mengakses menu layanan jasa laundry di aplikasi KostHub.
+    * **When:** Customer memilih mitra yang menyediakan layanan jasa laundry lalu menekan tombol "Pesan" pada layanan yang dituju. Kemudian Customer perlu mengisikan beberapa informasi seperti titik lokasi Customer, dan beberapa informasi tambahan seperti nomor kamar Kost, foto kost tampak depan, dan catatan tambahan untuk mitra. Setelah customer selesai mengisi informasi pesanan, selanjutnya customer akan diarahkan ke halaman payment di mana customer akan memilih metode pembayaran (COD/Transfer). Kemudian setelah selesai memilih metode pembayaran, user dapat melakukan konfirmasi pesanan dengan menekan tombol "Buat Pesanan".
+    * **Then:** Sistem membuat ID pesanan dan mengirimkan notifikasi pesanan kepada Provider(Mitra) terkait untuk diproses.
 
 ### US02: Pencarian Kategori (Customer)
 * **Story:** Sebagai Customer, saya ingin memfilter jasa berdasarkan kategori, sehingga saya dapat menemukan layanan yang spesifik sesuai kebutuhan saya (misal: Laundry saja) dengan cepat.
