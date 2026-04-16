@@ -68,3 +68,11 @@ Dokumen ini berisi identifikasi aktor dan daftar *user stories* untuk platform K
     * **Given:** Pesanan sudah masuk status "Selesai".
     * **When:** Customer mengirimkan bintang dan komentar.
     * **Then:** Rating rata-rata pada profil Mitra otomatis terupdate di halaman publik.
+
+    ### US09: Pembatalan Pesanan (Customer)
+* **Story:** Sebagai Customer, saya ingin membatalkan pesanan yang sudah dibuat, agar saya tidak terjebak dalam pesanan yang tidak lagi saya butuhkan.
+* **Acceptance Criteria:**
+    * **Given:** Customer memiliki pesanan dengan status "Menunggu Konfirmasi" (belum diterima Provider).
+    * **When:** Customer menekan tombol "Batalkan Pesanan" dan memilih alasan pembatalan.
+    * **Then:** Status pesanan berubah menjadi "Dibatalkan", Provider menerima notifikasi pembatalan, dan riwayat pesanan tercatat di histori Customer.
+ 
