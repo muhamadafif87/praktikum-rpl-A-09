@@ -1,0 +1,121 @@
+@startuml KostHub_ClassDiagram
+
+skinparam classAttributeIconSize 0
+skinparam classBorderColor #1B3F6E
+skinparam classHeaderBackgroundColor #2D6099
+skinparam classBackgroundColor #EEF4FA
+skinparam classFontColor #0D2340
+skinparam classFontSize 13
+skinparam classFontStyle bold
+skinparam classAttributeFontSize 12
+skinparam classAttributeFontColor #1B3F6E
+skinparam arrowColor #1B3F6E
+skinparam arrowThickness 1.5
+skinparam noteBackgroundColor #FFF8DC
+skinparam noteBorderColor #C8A800
+skinparam linetype ortho
+
+class users {
+  + id_user       : INTEGER <<PK, UQ>>
+  --
+  + nama_lengkap  : VARCHAR <<NN>>
+  + email         : VARCHAR <<UQ, NN>>
+  + password      : VARCHAR <<NN>>
+  + nomor_telepon : VARCHAR <<UQ, NN>>
+  + alamat_kost   : TEXT <<NN>>
+  + created_at    : TIMESTAMP
+}
+
+class admin {
+  + id_admin       : INTEGER <<PK, UQ>>
+  --
+  + nama_admin     : VARCHAR <<NN>>
+  + email          : VARCHAR <<UQ, NN>>
+  + password       : VARCHAR <<NN>>
+  + nomor_telepon  : VARCHAR <<UQ, NN>>
+  + created_at     : TIMESTAMP
+}
+
+class mitra {
+  + id_mitra          : INTEGER <<PK, UQ>>
+  --
+  + nama_mitra        : VARCHAR <<NN>>
+  + jenis_jasa        : VARCHAR <<NN>>
+  + alamat_mitra      : TEXT <<NN>>
+  + status_verifikasi : BOOLEAN <<default: 0>>
+  + id_admin          : INTEGER <<FK>>
+  + verified_at       : TIMESTAMP
+}
+
+class layanan {
+  + id_layanan    : INTEGER <<PK, UQ>>
+  --
+  + id_mitra      : INTEGER <<FK, NN>>
+  + nama_layanan  : VARCHAR <<NN>>
+  + harga         : DECIMAL <<NN>>
+  + satuan        : VARCHAR <<NN>>
+}
+
+class pesanan {
+  + id_pesanan        : INTEGER <<PK, UQ>>
+  --
+  + id_user           : INTEGER <<FK, NN>>
+  + id_mitra          : INTEGER <<FK, NN>>
+  + id_layanan        : INTEGER <<FK, NN>>
+  + total_bayar       : DECIMAL <<NN>>
+  + status_pesanan    : ENUM <<default: 'pending'>>
+  + status_pembayaran : ENUM <<default: 'belum_bayar'>>
+  + tgl_pesan         : TIMESTAMP
+}
+
+note right of pesanan
+  status_pesanan:
+    'pending' | 'diproses'
+    'selesai' | 'dibatalkan'
+  ----
+  status_pembayaran:
+    'belum_bayar'
+    'menunggu_verifikasi'
+    'sudah_bayar'
+end note
+
+class ulasan {
+  + id_ulasan   : INTEGER <<PK, UQ>>
+  --
+  + id_pesanan  : INTEGER <<FK, UQ>>
+  + rating      : INTEGER <<NN>>
+  + komentar    : TEXT
+  + created_at  : TIMESTAMP
+}
+
+class pembayaran {
+  + id_pembayaran      : INTEGER <<PK, UQ>>
+  --
+  + id_pesanan         : INTEGER <<FK, UQ>>
+  + metode_pembayaran  : ENUM <<default: 'cod'>>
+  + jumlah_bayar       : DECIMAL <<NN>>
+  + status_pembayaran  : ENUM <<default: 'pending'>>
+  + bukti_pembayaran   : VARCHAR
+  + id_transaksi       : VARCHAR
+  + tgl_bayar          : TIMESTAMP
+}
+
+note right of pembayaran
+  metode_pembayaran:
+    'cod' | 'transfer_bank'
+    'qris' | 'e-wallet'
+  ----
+  status_pembayaran:
+    'pending' | 'lunas'
+    'gagal' | 'refund'
+end note
+
+admin "1" --o{ mitra : verifies
+mitra "1" --o{ layanan : has
+users "1" --o{ pesanan : makes
+mitra "1" --o{ pesanan : receives
+layanan "1" --o{ pesanan : used in
+pesanan "1" --o| ulasan : reviewed by
+pesanan "1" --o| pembayaran : paid via
+
+@enduml
