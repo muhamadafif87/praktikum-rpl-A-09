@@ -1,0 +1,67 @@
+@startuml KostHub_UseCaseDiagram
+
+skinparam ActorStyle awesome
+skinparam usecase {
+  BackgroundColor #EDE9FE
+  BorderColor #7C3AED
+  FontColor #3B1F8C
+}
+skinparam actor {
+  BackgroundColor #F3F4F6
+  BorderColor #6B7280
+}
+skinparam ArrowColor #6B7280
+skinparam linetype ortho
+
+title Use Case Diagram - KostHub
+
+' ===== ACTORS =====
+actor "Customer" as C
+actor "Provider" as P
+actor "Admin"    as A
+
+' ===== SYSTEM BOUNDARY =====
+rectangle "KostHub System" {
+
+  ' --- Customer Use Cases ---
+  usecase "Pesan layanan"            as UC1
+  usecase "Cari berdasarkan kategori" as UC2
+  usecase "Batalkan pesanan"          as UC9
+  usecase "Beri rating & ulasan"      as UC8
+
+  ' --- Sub Use Case (include) ---
+  usecase "Pilih metode pembayaran"   as UC_PAY
+
+  ' --- Provider Use Cases ---
+  usecase "Konfirmasi / tolak pesanan" as UC4
+  usecase "Atur status operasional"    as UC3
+  usecase "Update status pekerjaan"    as UC7
+
+  ' --- Extend Use Case ---
+  usecase "Kirim notifikasi ke customer" as UC_NOTIF
+
+  ' --- Admin Use Cases ---
+  usecase "Verifikasi mitra baru"    as UC5
+  usecase "Monitor transaksi global" as UC6
+}
+
+' ===== ASSOCIATIONS =====
+C --> UC1
+C --> UC2
+C --> UC9
+C --> UC8
+
+P --> UC4
+P --> UC3
+P --> UC7
+
+A --> UC5
+A --> UC6
+
+' ===== INCLUDE =====
+UC1 .> UC_PAY : <<include>>`
+
+' ===== EXTEND =====
+UC7 .> UC_NOTIF : <<extend>>
+
+@enduml
