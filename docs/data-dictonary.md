@@ -8,238 +8,91 @@ Dokumen ini berisikan detail teknis terkait entitas data yang digunakan dalam pl
 Berikut adalah daftar tabel yang akan diimplementasikan:
 
 ## users
-*   Nama kolom:id_user
-    Tipe data:integer
-    Constraint:primary key, unique
-    Keterangan:ID unik pengguna
-
-*   Nama kolom:nama_lengkap
-    Tipe data:varchar
-    Constraint:not null
-    Keterangan:nama lengkap user
-
-*   Nama kolom:email
-    Tipe data:varchar
-    Constraint:unique, not null
-    Keterangan:email untuk login
-
-*   Nama kolom:password
-    Tipe data:varchar
-    Constraint:not null
-    Keterangan:password user yang dihashing
-
-*   Nama kolom:nomor_telepon
-    Tipe data:varchar
-    Constraint:unique, not null
-    Keterangan:nomor telepon user
-
-*   Nama kolom:alamat_kost
-    Tipe data:text
-    Constraint:not null
-    Keterangan:lokasi spesifik pengiriman/penjemputan
-
-*   Nama kolom:created_at
-    Tipe data:timestamp
-    Constraint: -
-    Keterangan:waktu pendaftaran akun
+| Nama Kolom | Tipe Data | Constraint | Keterangan |
+| --- | --- | --- | --- |
+| id_user | integer | primary key, unique | ID unik pengguna |
+| nama_lengkap | varchar | not null | Nama lengkap user |
+| email | varchar | unique, not null | Email untuk login |
+| password | varchar | not null | Password user (hashed) |
+| nomor_telepon | varchar | unique, not null | Nomor telepon user |
+| alamat_kost | text | not null | Lokasi kost / alamat pengiriman |
+| created_at | timestamp | - | Waktu pendaftaran akun |
 ----------------------------------------------------------------------
 ## admin
-*   Nama kolom:id_admin
-    Tipe data:integer
-    Constraint:primary key, unique
-    Keterangan:ID unik admin
-
-*   Nama kolom:nama_admin
-    Tipe data:varchar
-    Constraint:not null
-    Keterangan:Nama admin
-
-*   Nama kolom:email
-    Tipe data:varchar
-    Constraint:unique, not null
-    Keterangan:email admin
-
-*   Nama kolom:password
-    Tipe data:varchar
-    Constraint:not null
-    Keterangan:password yang dihashing
-
-*   Nama kolom:nomor_telepon
-    Tipe data:varchar
-    Constraint:not null, unique
-    Keterangan:nomor telepon admin
-
-*   Nama kolom:created_at
-    Tipe data:timestamp
-    Constraint:-
-    Keterangan:waktu pembuatan akun admin
+| Nama Kolom | Tipe Data | Constraint | Keterangan |
+| --- | --- | --- | --- |
+| id_admin | integer | primary key, unique | ID unik admin |
+| nama_admin | varchar | not null | Nama admin |
+| email | varchar | unique, not null | Email admin |
+| password | varchar | not null | Password admin (hashed) |
+| nomor_telepon | varchar | unique, not null | Nomor telepon admin |
+| created_at | timestamp | - | Waktu pembuatan akun admin |
 ----------------------------------------------------------------------
 ## mitra
-*   Nama kolom:id_mitra
-    Tipe data:integer
-    Constraint:primary key, unique
-    Keterangan:ID unik mitra
-
-*   Nama kolom:nama_mitra
-    Tipe data:varchar
-    Constraint:not null
-    Keterangan:Nama usaha mitra
-
-*   Nama kolom:jenis_jasa
-    Tipe data:varchar
-    Constraint:not null
-    Keterangan:jenis jasa yang ditawarkan mitra
-
-*   Nama kolom:alamat_mitra
-    Tipe data:text
-    Constraint:not null
-    Keterangan:lokasi tempat usaha mitra
-
-*   Nama kolom:status_verifikasi
-    Tipe data:boolean
-    Constraint:default[0]
-    Keterangan:status verifikasi yang diberikan oleh admin
-
-*   Nama kolom:id_admin
-    Tipe data:integer
-    Constraint:-
-    Keterangan:id admin yang memberikan verifikasi mitra
-
-*   Nama kolom:verified_at
-    Tipe data:timestamp
-    Constraint:-
-    Keterangan:waktu mitra diverifikasi oleh admin
+| Nama Kolom | Tipe Data | Constraint | Keterangan |
+| --- | --- | --- | --- |
+| id_mitra | integer | primary key, unique | ID unik mitra |
+| nama_mitra | varchar | not null | Nama usaha mitra |
+| jenis_jasa | varchar | - | Jenis jasa yang ditawarkan |
+| alamat_mitra | text | not null | Lokasi usaha mitra |
+| status_verifikasi | boolean | default: 0 | Status verifikasi oleh admin |
+| id_admin | integer | - | ID admin yang memverifikasi |
+| nomor_telepon | varchar | - | Nomor telepon mitra |
+| verified_at | timestamp | - | Waktu mitra diverifikasi |
+----------------------------------------------------------------------
+## mitra_login_access
+| Nama Kolom | Tipe Data | Constraint | Keterangan |
+| --- | --- | --- | --- |
+| id_mitra_user | integer | primary key | ID unik akun login mitra |
+| id_mitra | integer | not null | Foreign key ke tabel mitra |
+| email | varchar | not null, unique | Email login mitra |
+| password | varchar | not null | Password login mitra (hashed) |
 ----------------------------------------------------------------------
 ## layanan
-*   Nama kolom:id_layanan
-    Tipe data:integer
-    Constraint:primary key, unique
-    Keterangan:ID unik layanan
-
-*   Nama kolom:id_mitra
-    Tipe data:integer
-    Constraint:not null
-    Keterangan:foreign key ke tabel mitra
-
-*   Nama kolom:nama_layanan
-    Tipe data:varchar
-    Constraint:not null
-    Keterangan:nama layanan yang ditawarkan mitra
-
-*   Nama kolom:harga
-    Tipe data:decimal
-    Constraint:not null
-    Keterangan:harga per unit/kg/jam
-
-*   Nama kolom:satuan
-    Tipe data:varchar
-    Constraint:not null
-    Keterangan:kg/jam/unit
+| Nama Kolom | Tipe Data | Constraint | Keterangan |
+| --- | --- | --- | --- |
+| id_layanan | integer | primary key, unique | ID unik layanan |
+| id_mitra | integer | not null | Foreign key ke tabel mitra |
+| nama_layanan | varchar | not null | Nama layanan |
+| harga | decimal | not null | Harga layanan |
+| satuan | varchar | not null | Satuan (kg/jam/unit) |
 ----------------------------------------------------------------------
 ## pesanan
-*   Nama kolom:id_pesanan
-    Tipe data:integer
-    Constraint:primary key, unique
-    Keterangan:ID unik pesanan
-
-*   Nama kolom:id_user
-    Tipe data:integer
-    Constraint:not null
-    Keterangan:id user yang melakukan pemesanan
-
-*   Nama kolom:id_mitra
-    Tipe data:integer
-    Constraint:not null
-    Keterangan:id mitra yang menerima pesanan
-
-*   Nama kolom:id_layanan
-    Tipe data:integer
-    Constraint:not null
-    Keterangan:id layanan yang dipilih
-
-*   Nama kolom:total_bayar
-    Tipe data:decimal
-    Constraint:not null
-    Keterangan:total harga setelah kalkulasi
-
-*   Nama kolom:status_pesanan
-    Tipe data:enum ['pending', 'diproses', 'selesai', 'dibatalkan']
-    Constraint:default['pending']
-    Keterangan:status dari pesanan
-
-*   Nama kolom:status_pembayaran
-    Tipe data:enum ['belum_bayar', 'menunggu_verifikasi', 'sudah_bayar']
-    Constraint:default['belum_bayar']
-    Keterangan:status pembayaran dari pesanan
-
-*   Nama kolom:tgl_pesan
-    Tipe data:timestamp
-    Constraint:-
-    Keterangan:waktu pesanan dibuat
+| Nama Kolom | Tipe Data | Constraint | Keterangan |
+| --- | --- | --- | --- |
+| id_pesanan | integer | primary key, unique | ID unik pesanan |
+| id_user | integer | not null | Foreign key ke tabel users |
+| id_mitra | integer | not null | Foreign key ke tabel mitra |
+| status_pesanan | enum | default: 'pending' | Status pesanan |
+| tgl_pesan | timestamp | - | Waktu pesanan dibuat |
+----------------------------------------------------------------------
+## detail_pesanan
+| Nama Kolom | Tipe Data | Constraint | Keterangan |
+| --- | --- | --- | --- |
+| id_detail_pesanan | integer | primary key | ID unik detail pesanan |
+| id_layanan | integer | not null | Foreign key ke tabel layanan |
+| id_pesanan | integer | not null | Foreign key ke tabel pesanan |
+| jumlah | integer | not null | Jumlah item layanan |
+| harga | decimal | not null | Harga per item |
+| subtotal | decimal | not null | Total harga item (jumlah × harga) |
 ----------------------------------------------------------------------
 ## ulasan
-*   Nama kolom:id_ulasan
-    Tipe data:integer
-    Constraint:primary key, unique
-    Keterangan:ID unik ulasan
-
-*   Nama kolom:id_pesanan
-    Tipe data:integer
-    Constraint:unique
-    Keterangan:foreign key ke tabel pesanan->merujuk ke transaksi pesanan secara spesifik
-
-*   Nama kolom:rating
-    Tipe data:integer
-    Constraint:not null
-    Keterangan:skor bintang->penilaian terhadap kualitas layanan
-
-*   Nama kolom:komentar
-    Tipe data:text
-    Constraint:-
-    Keterangan:catatan/ulasan dari pelanggan(user)
-
-*   Nama kolom:created_at
-    Tipe data:timestamp
-    Constraint:-
-    Keterangan:waktu ulasan dibuat
+| Nama Kolom | Tipe Data | Constraint | Keterangan |
+| --- | --- | --- | --- |
+| id_ulasan | integer | primary key, unique | ID unik ulasan |
+| id_pesanan | integer | unique | Foreign key ke tabel pesanan |
+| rating | integer | not null | Skor rating (bintang) |
+| komentar | text | - | Komentar ulasan |
+| created_at | timestamp | - | Waktu ulasan dibuat |
 ----------------------------------------------------------------------
 ## pembayaran
-*   Nama kolom:id_pembayaran
-    Tipe data:integer
-    Constraint:primary key, unique
-    Keterangan:ID unik transaksi pembayaran
-
-*   Nama kolom:id_pesanan
-    Tipe data:integer
-    Constraint:unique
-    Keterangan:foreign key ke tabel pesanan->merujuk pada pesanan secara spesifik
-
-*   Nama kolom:metode_pembayaran
-    Tipe data:enum ['cod', 'transfer_bank','qris', 'e-wallet']
-    Constraint:default['cod']
-    Keterangan:metode yang dilakukan untuk pembayaran
-
-*   Nama kolom:jumlah_bayar
-    Tipe data:decimal
-    Constraint:not null
-    Keterangan:nominal yang harus dibayarkan
-
-*   Nama kolom:status_pembayaran
-    Tipe data:enum ['pending', 'lunas', 'gagal', 'refund']
-    Constraint:default['pending']
-    Keterangan:status dari transaksi pembayaran
-
-*   Nama kolom:bukti_pembayaran
-    Tipe data:varchar
-    Constraint:-
-    Keterangan:nama file/url gambar (untuk transfer bank manual)
-
-*   Nama kolom:id_transaksi
-    Tipe data:varchar
-    Constraint:-
-    Keterangan:ID reference dari payment gateway yang digunakan
-
-*   Nama kolom:tgl_bayar
-    Tipe data:timestamp
-    Constraint:-
-    Keterangan:waktu transaksi dilakukan
+| Nama Kolom | Tipe Data | Constraint | Keterangan |
+| --- | --- | --- | --- |
+| id_pembayaran | integer | primary key, unique | ID unik pembayaran |
+| id_pesanan | integer | unique | Foreign key ke tabel pesanan |
+| metode_pembayaran | enum | default: 'cod' | Metode pembayaran |
+| jumlah_bayar | decimal | not null | Nominal pembayaran |
+| status_pembayaran | enum | default: 'pending' | Status pembayaran |
+| bukti_pembayaran | varchar | - | File/URL bukti pembayaran |
+| id_transaksi | varchar | - | ID transaksi dari gateway |
+| tgl_bayar | timestamp | - | Waktu pembayaran dilakukan |
