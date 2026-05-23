@@ -1,15 +1,12 @@
-# Core Dependencies
 /vendor
 /node_modules
 
-# Environment & Credentials
 .env
 .env.backup
 .env.production
 auth.json
 storage/*.key
 
-# Laravel Specific
 /public/hot
 /public/storage
 /public/build
@@ -17,12 +14,10 @@ storage/*.key
 /storage/framework/cache/data/*
 /bootstrap/compiled.php
 
-# Testing & Logs
 .phpunit.result.cache
 npm-debug.log
 yarn-error.log
 
-# IDE / Editor Specific (Optional but Recommended)
 .idea/
 .vscode/
 .DS_Store
