@@ -1,0 +1,661 @@
+/* =============================================
+   KostHUB Registration Page — Standard CSS
+   Design System: Material Design 3 Tokens
+   ============================================= */
+
+/* ── CSS Custom Properties (Design Tokens) ── */
+:root {
+    --color-primary: #00685f;
+    --color-primary-container: #008378;
+    --color-primary-container-10: rgba(0, 131, 120, 0.1);
+    --color-primary-container-20: rgba(0, 131, 120, 0.2);
+    --color-primary-fixed-dim: #6bd8cb;
+    --color-primary-fixed-dim-10: rgba(107, 216, 203, 0.1);
+    --color-on-primary: #ffffff;
+    --color-on-primary-fixed: #00201d;
+
+    --color-secondary: #565e74;
+    --color-secondary-container: #dae2fd;
+    --color-secondary-container-10: rgba(218, 226, 253, 0.1);
+    --color-secondary-container-20: rgba(218, 226, 253, 0.2);
+    --color-on-secondary-container: #5c647a;
+
+    --color-tertiary: #924628;
+    --color-tertiary-container: #b05e3d;
+
+    --color-surface: #f5faf8;
+    --color-surface-dim: #d6dbd9;
+    --color-surface-container: #eaefed;
+    --color-surface-container-low: #f0f5f2;
+    --color-surface-container-high: #e4e9e7;
+    --color-surface-container-lowest: #ffffff;
+    --color-surface-variant: #dee4e1;
+
+    --color-on-surface: #171d1c;
+    --color-on-surface-variant: #3d4947;
+    --color-on-background: #171d1c;
+    --color-background: #f5faf8;
+
+    --color-outline: #6d7a77;
+    --color-outline-variant: #bcc9c6;
+
+    --color-error: #ba1a1a;
+    --color-error-container: #ffdad6;
+    --color-on-error-container: #93000a;
+
+    --radius-default: 0.25rem;
+    --radius-lg: 0.5rem;
+    --radius-xl: 0.75rem;
+    --radius-full: 9999px;
+
+    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* ── Page Root ── */
+.register-page {
+    font-family: var(--font-family);
+    background-color: var(--color-surface);
+    color: var(--color-on-surface);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.register-page .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* ── Auth Wrapper (Two-Panel Layout) ── */
+.register-wrapper {
+    width: 100%;
+    max-width: 1280px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    min-height: 600px;
+}
+
+@media (min-width: 1024px) {
+    .register-wrapper {
+        flex-direction: row;
+        min-height: 800px;
+    }
+}
+
+/* ═══════════════════════════════════════════
+   LEFT PANEL — Branding & Entry
+   ═══════════════════════════════════════════ */
+.register-branding {
+    background-color: var(--color-surface-container-lowest);
+    border: 1px solid var(--color-outline-variant);
+    border-radius: var(--radius-xl);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 3rem;
+    position: relative;
+    overflow: hidden;
+}
+
+@media (min-width: 1024px) {
+    .register-branding {
+        width: 40%;
+    }
+}
+
+/* ── Decorative Background Orbs ── */
+.register-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    transition: transform 0.7s ease;
+    pointer-events: none;
+}
+
+.register-branding:hover .register-orb {
+    transform: scale(1.1);
+}
+
+.register-orb--top {
+    top: -6rem;
+    left: -6rem;
+    width: 16rem;
+    height: 16rem;
+    background-color: var(--color-primary-fixed-dim-10);
+}
+
+.register-orb--bottom {
+    bottom: -6rem;
+    right: -6rem;
+    width: 24rem;
+    height: 24rem;
+    background-color: var(--color-secondary-container-20);
+}
+
+/* ── Brand Content (relative z to stay above orbs) ── */
+.register-brand-top {
+    position: relative;
+    z-index: 10;
+}
+
+.register-brand-title {
+    font-family: var(--font-family);
+    font-size: 48px;
+    line-height: 1.1;
+    font-weight: 700;
+    color: var(--color-primary);
+    letter-spacing: -0.02em;
+    margin: 0;
+}
+
+.register-brand-tagline {
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--color-on-surface-variant);
+}
+
+.register-brand-tagline .material-symbols-outlined {
+    color: var(--color-primary);
+}
+
+.register-brand-tagline-text {
+    font-family: var(--font-family);
+    font-size: 14px;
+    line-height: 1.2;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+}
+
+/* ── Middle Section (CTA) ── */
+.register-brand-middle {
+    position: relative;
+    z-index: 10;
+    margin-top: 2rem;
+}
+
+.register-brand-middle-content {
+    margin-bottom: 2rem;
+}
+
+.register-cta-heading {
+    font-family: var(--font-family);
+    font-size: 32px;
+    line-height: 1.2;
+    font-weight: 600;
+    color: var(--color-on-surface);
+    margin: 0 0 1rem 0;
+}
+
+.register-cta-description {
+    font-family: var(--font-family);
+    font-size: 18px;
+    line-height: 1.5;
+    font-weight: 400;
+    color: var(--color-on-surface-variant);
+    max-width: 24rem;
+    margin: 0;
+}
+
+.register-cta-prompt {
+    font-family: var(--font-family);
+    font-size: 16px;
+    line-height: 1.5;
+    font-weight: 400;
+    color: var(--color-on-surface-variant);
+    margin: 0 0 1rem 0;
+}
+
+.register-login-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem 2.5rem;
+    background-color: var(--color-surface-container);
+    border: 1px solid var(--color-outline-variant);
+    color: var(--color-on-surface);
+    font-family: var(--font-family);
+    font-size: 24px;
+    line-height: 1.3;
+    font-weight: 600;
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    transition: background-color 0.15s ease, transform 0.15s ease;
+    cursor: pointer;
+}
+
+.register-login-btn:hover {
+    background-color: var(--color-surface-container-high);
+}
+
+.register-login-btn:active {
+    transform: scale(0.95);
+}
+
+/* ── Stats Cards ── */
+.register-stats {
+    position: relative;
+    z-index: 10;
+    margin-top: 3rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.register-stat-card {
+    padding: 1rem;
+    border-radius: var(--radius-lg);
+}
+
+.register-stat-card--primary {
+    background-color: var(--color-primary-container-10);
+    border: 1px solid var(--color-primary-container-20);
+}
+
+.register-stat-card--secondary {
+    background-color: var(--color-secondary-container-10);
+    border: 1px solid var(--color-secondary-container-20);
+}
+
+.register-stat-value {
+    font-family: var(--font-family);
+    font-size: 14px;
+    line-height: 1.2;
+    font-weight: 700;
+    margin: 0;
+}
+
+.register-stat-value--primary {
+    color: var(--color-primary);
+}
+
+.register-stat-value--secondary {
+    color: var(--color-secondary);
+}
+
+.register-stat-label {
+    font-family: var(--font-family);
+    font-size: 12px;
+    line-height: 1.5;
+    font-weight: 400;
+    color: var(--color-on-surface-variant);
+    margin: 0;
+}
+
+/* ═══════════════════════════════════════════
+   RIGHT PANEL — Registration Form
+   ═══════════════════════════════════════════ */
+.register-form-panel {
+    background-color: var(--color-surface-container-lowest);
+    border: 1px solid var(--color-outline-variant);
+    border-radius: var(--radius-xl);
+    display: flex;
+    flex-direction: column;
+    padding: 2rem;
+    position: relative;
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+@media (min-width: 1024px) {
+    .register-form-panel {
+        width: 60%;
+        padding: 4rem;
+    }
+}
+
+/* ── Form Inner Container ── */
+.register-form-inner {
+    max-width: 28rem;
+    margin: 0 auto;
+    width: 100%;
+    position: relative;
+    z-index: 10;
+}
+
+/* ── Form Header ── */
+.register-form-header {
+    margin-bottom: 3rem;
+    text-align: center;
+}
+
+@media (min-width: 1024px) {
+    .register-form-header {
+        text-align: left;
+    }
+}
+
+.register-form-title {
+    font-family: var(--font-family);
+    font-size: 48px;
+    line-height: 1.1;
+    font-weight: 700;
+    color: var(--color-on-surface);
+    margin: 0 0 0.5rem 0;
+}
+
+.register-form-subtitle {
+    font-family: var(--font-family);
+    font-size: 16px;
+    line-height: 1.5;
+    font-weight: 400;
+    color: var(--color-on-surface-variant);
+    margin: 0;
+}
+
+/* ── Form ── */
+.register-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* ── Shared Form Group (reuse from Login) ── */
+.register-form .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.register-form .form-label {
+    font-family: var(--font-family);
+    font-size: 14px;
+    line-height: 1.2;
+    font-weight: 500;
+    color: var(--color-on-surface-variant);
+    margin-left: 0.25rem;
+}
+
+.register-form .input-wrapper {
+    position: relative;
+    border-radius: var(--radius-lg);
+    transition: box-shadow 0.2s ease;
+}
+
+.register-form .input-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-outline);
+    font-size: 20px;
+    pointer-events: none;
+}
+
+.register-form .form-input {
+    width: 100%;
+    padding: 1rem 1rem 1rem 3rem;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-outline-variant);
+    border-radius: var(--radius-lg);
+    font-family: var(--font-family);
+    font-size: 16px;
+    line-height: 1.5;
+    font-weight: 400;
+    color: var(--color-on-surface);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    box-sizing: border-box;
+}
+
+.register-form .form-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+.register-form .form-input::placeholder {
+    color: var(--color-outline);
+}
+
+.register-form .form-input--with-toggle {
+    padding-right: 3rem;
+}
+
+.register-form .password-toggle {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--color-outline);
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    transition: color 0.2s ease;
+}
+
+.register-form .password-toggle:hover {
+    color: var(--color-primary);
+}
+
+/* ── Terms Checkbox ── */
+.register-terms {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+}
+
+.register-terms-checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    height: 1.25rem;
+}
+
+.register-terms-checkbox {
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: var(--radius-default);
+    border: 1.5px solid var(--color-outline-variant);
+    accent-color: var(--color-primary);
+    cursor: pointer;
+}
+
+.register-terms-label {
+    font-family: var(--font-family);
+    font-size: 16px;
+    line-height: 1.5;
+    font-weight: 400;
+    color: var(--color-on-surface-variant);
+    cursor: pointer;
+    user-select: none;
+}
+
+/* ── Submit Button ── */
+.register-submit-btn {
+    width: 100%;
+    padding: 1.25rem;
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
+    font-family: var(--font-family);
+    font-size: 24px;
+    line-height: 1.3;
+    font-weight: 600;
+    border: none;
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+    margin-top: 1rem;
+}
+
+.register-submit-btn:hover {
+    background-color: var(--color-primary-container);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+}
+
+.register-submit-btn:active {
+    transform: scale(0.98);
+}
+
+.register-submit-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.register-submit-btn .material-symbols-outlined {
+    transition: transform 0.2s ease;
+}
+
+.register-submit-btn:hover .material-symbols-outlined {
+    transform: translateX(4px);
+}
+
+/* ── Spinner Animation ── */
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.register-spinner {
+    animation: spin 1s linear infinite;
+}
+
+/* ── Social Divider ── */
+.register-social-section {
+    margin-top: 3rem;
+}
+
+.register-divider {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.register-divider-line {
+    flex-grow: 1;
+    border: none;
+    border-top: 1px solid var(--color-outline-variant);
+    margin: 0;
+}
+
+.register-divider-text {
+    flex-shrink: 0;
+    margin: 0 1rem;
+    font-family: var(--font-family);
+    font-size: 14px;
+    line-height: 1.2;
+    font-weight: 500;
+    color: var(--color-outline);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+/* ── Social Buttons ── */
+.register-social-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.register-social-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--color-outline-variant);
+    border-radius: var(--radius-lg);
+    background: none;
+    cursor: pointer;
+    font-family: var(--font-family);
+    font-size: 14px;
+    line-height: 1.2;
+    font-weight: 500;
+    color: var(--color-on-surface);
+    transition: background-color 0.2s ease;
+}
+
+.register-social-btn:hover {
+    background-color: var(--color-surface-variant);
+}
+
+.register-social-btn img {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+.register-social-btn .material-symbols-outlined {
+    color: #1877f2;
+    font-variation-settings: 'FILL' 1;
+}
+
+/* ── Background Decoration (Apartment Icon) ── */
+.register-bg-decoration {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    opacity: 0.05;
+    pointer-events: none;
+    padding: 1rem;
+}
+
+.register-bg-decoration .material-symbols-outlined {
+    font-size: 300px;
+}
+
+/* ── Error Message ── */
+.register-error {
+    background-color: var(--color-error-container);
+    color: var(--color-on-error-container);
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-lg);
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+}
+
+/* ── Validation Error (per field) ── */
+.field-error {
+    font-size: 12px;
+    color: var(--color-error);
+    margin-top: 0.25rem;
+    margin-left: 0.25rem;
+}
+
+/* ── Responsive Adjustments ── */
+@media (max-width: 1023px) {
+    .register-branding {
+        padding: 2rem;
+    }
+
+    .register-brand-title {
+        font-size: 36px;
+    }
+
+    .register-cta-heading {
+        font-size: 24px;
+    }
+
+    .register-form-title {
+        font-size: 36px;
+    }
+
+    .register-form-panel {
+        padding: 2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .register-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .register-social-grid {
+        grid-template-columns: 1fr;
+    }
+}
