@@ -6,14 +6,9 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Tabel ini sudah ada di Supabase.
-     * Migration ini hanya dokumentasi skema — tidak drop/recreate.
-     */
     public function up(): void
     {
         if (Schema::hasTable('users')) {
-            // Tabel sudah ada, skip pembuatan
             return;
         }
 

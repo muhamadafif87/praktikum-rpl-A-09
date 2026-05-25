@@ -7,7 +7,7 @@ const Login = () => {
     const navigate = useNavigate();
 
     // ── Form State ──
-    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [rememberMe, setRememberMe] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
@@ -29,8 +29,8 @@ const Login = () => {
         setIsLoading(true);
 
         try {
-            const response = await api.post('/login', {
-                username,
+            const response = await api.post('/v1/auth/login', {
+                email,
                 password,
             });
 
@@ -53,13 +53,11 @@ const Login = () => {
             }, 800);
         } catch (err) {
             if (err.response) {
-                // Server responded with an error
                 const serverMessage =
                     err.response.data?.message ||
-                    'Login gagal. Periksa kembali username dan password Anda.';
+                    'Login gagal. Periksa kembali email dan password Anda.';
                 setError(serverMessage);
             } else if (err.request) {
-                // No response from server
                 setError('Tidak dapat terhubung ke server. Coba lagi nanti.');
             } else {
                 setError('Terjadi kesalahan. Silakan coba lagi.');
@@ -101,10 +99,10 @@ const Login = () => {
                         {error && <div className="login-error">{error}</div>}
 
                         <form className="login-form" onSubmit={handleSubmit}>
-                            {/* Username Field */}
+                            {/* Email Field */}
                             <div className="form-group">
-                                <label className="form-label" htmlFor="username">
-                                    Username
+                                <label className="form-label" htmlFor="email">
+                                    Email
                                 </label>
                                 <div className="input-wrapper">
                                     <span className="material-symbols-outlined input-icon">
@@ -112,13 +110,13 @@ const Login = () => {
                                     </span>
                                     <input
                                         className="form-input"
-                                        id="username"
-                                        name="username"
+                                        id="email"
+                                        name="email"
                                         type="text"
-                                        placeholder="Masukkan username"
+                                        placeholder="Masukkan email"
                                         required
-                                        value={username}
-                                        onChange={(e) => setUsername(e.target.value)}
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
                                     />
                                 </div>
                             </div>

@@ -10,6 +10,7 @@ const Register = () => {
     const [formData, setFormData] = useState({
         email: '',
         password: '',
+        password_confirmation: '',
         nama_lengkap: '',
         nomor_telepon: '',
         alamat_kost: '',
@@ -47,35 +48,29 @@ const Register = () => {
         setError('');
         setFieldErrors({});
 
-        // Client-side validation
         if (!termsAccepted) {
             setError('Anda harus menyetujui syarat dan ketentuan.');
+            return;
+        }
+
+        if (formData.password !== formData.password_confirmation) {
+            setFieldErrors({ password_confirmation: ['Konfirmasi password tidak cocok.'] });
             return;
         }
 
         setIsLoading(true);
 
         try {
-            const response = await api.post('/register', {
+            const response = await api.post('/v1/auth/register', {
                 nama_lengkap: formData.nama_lengkap,
                 email: formData.email,
                 password: formData.password,
+                password_confirmation: formData.password_confirmation,
                 nomor_telepon: formData.nomor_telepon,
                 alamat_kost: formData.alamat_kost,
             });
 
             const { data } = response.data;
-
-            /*
-             * Expected response shape:
-             * {
-             *   "message": "Registrasi berhasil.",
-             *   "data": {
-             *     "user": { "nama_lengkap", "email", "nomor_telepon", "alamat_kost", "id_user" },
-             *     "token": "1|Etx4E5zpgIj..."
-             *   }
-             * }
-             */
 
             // Save auth token securely to localStorage
             if (data?.token) {
@@ -247,6 +242,49 @@ const Register = () => {
                                 {fieldErrors.password && (
                                     <span className="field-error">
                                         {fieldErrors.password[0]}
+                                    </span>
+                                )}
+                            </div>
+
+                            {/* Password Confirmation Field */}
+                            <div className="form-group">
+                                <label className="form-label" htmlFor="reg-password-confirm">
+                                    Password Confirmation
+                                </label>
+                                <div className="input-wrapper">
+                                    <span className="material-symbols-outlined input-icon">
+                                        lock
+                                    </span>
+                                    <input
+                                        className="form-input form-input--with-toggle"
+                                        id="reg-password-confirm"
+                                        name="password_confirmation"
+                                        type={showPassword ? 'text' : 'password'}
+                                        placeholder="••••••••"
+                                        required
+                                        value={formData.password_confirmation}
+                                        onChange={handleChange}
+                                    />
+                                    <button
+                                        type="button"
+                                        className="password-toggle"
+                                        onClick={togglePasswordVisibility}
+                                        aria-label={
+                                            showPassword
+                                                ? 'Sembunyikan password'
+                                                : 'Tampilkan password'
+                                        }
+                                    >
+                                        <span className="material-symbols-outlined">
+                                            {showPassword
+                                                ? 'visibility_off'
+                                                : 'visibility'}
+                                        </span>
+                                    </button>
+                                </div>
+                                {fieldErrors.password_confirmation && (
+                                    <span className="field-error">
+                                        {fieldErrors.password_confirmation[0]}
                                     </span>
                                 )}
                             </div>
