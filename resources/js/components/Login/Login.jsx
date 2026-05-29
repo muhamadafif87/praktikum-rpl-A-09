@@ -7,9 +7,8 @@ const Login = () => {
     const navigate = useNavigate();
 
     // ── Form State ──
-    const [email, setEmail] = useState('');
+    const [identifier, setIdentifier] = useState('');
     const [password, setPassword] = useState('');
-    const [rememberMe, setRememberMe] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
     // ── UI State ──
@@ -30,7 +29,7 @@ const Login = () => {
 
         try {
             const response = await api.post('/v1/auth/login', {
-                email,
+                email: identifier,
                 password,
             });
 
@@ -69,161 +68,167 @@ const Login = () => {
 
     return (
         <div className="login-page">
-            <main className="login-main">
-                {/* Abstract Background Decorative Elements */}
-                <div className="login-bg-orb login-bg-orb--primary" />
-                <div className="login-bg-orb login-bg-orb--tertiary" />
-
-                {/* Login Container */}
-                <div className="login-container">
-                    {/* Brand Logo */}
-                    <div className="login-brand">
-                        <div className="login-brand-inner">
-                            <span className="material-symbols-outlined login-brand-icon">
-                                home_work
-                            </span>
-                            <span className="login-brand-text">KostHUB</span>
-                        </div>
+            <div className="login-layout">
+                {/* ═══ LEFT COLUMN — Branding & Value Prop ═══ */}
+                <div className="login-branding">
+                    {/* Top Logo */}
+                    <div className="login-branding-logo">
+                        <a className="login-logo-link" href="#">
+                            KostHub<span className="login-logo-dot">.</span>
+                        </a>
                     </div>
 
-                    {/* Login Card */}
-                    <div className="login-card">
-                        <div className="login-card-header">
-                            <h1 className="login-card-title">Login</h1>
-                            <p className="login-card-subtitle">
-                                Silakan masuk ke akun manajemen KostHUB Anda
+                    {/* Center Value Prop */}
+                    <div className="login-branding-content">
+                        <div className="login-branding-icon">
+                            <span className="material-symbols-outlined">shield</span>
+                        </div>
+                        <h1 className="login-branding-headline">
+                            Sistem Escrow: Transaksi Aman, Duit Terlindungi.
+                        </h1>
+                        <p className="login-branding-body">
+                            KostHub menjaga uangmu tetap aman di platform. Dana baru akan
+                            diteruskan ke mitra setelah kamu memberikan konfirmasi bahwa
+                            layanan sudah selesai dan clear.
+                        </p>
+                    </div>
+
+                    {/* Bottom spacer */}
+                    <div />
+                </div>
+
+                {/* ═══ RIGHT COLUMN — Login Form ═══ */}
+                <div className="login-form-panel">
+                    {/* Mobile Logo */}
+                    <div className="login-mobile-logo">
+                        <a className="login-logo-link" href="#">
+                            KostHub<span className="login-logo-dot">.</span>
+                        </a>
+                    </div>
+
+                    <div className="login-form-container">
+                        {/* Header */}
+                        <div className="login-form-header">
+                            <h1 className="login-form-title">Selamat Datang Kembali</h1>
+                            <p className="login-form-subtitle">
+                                Silakan masuk ke akun Anda
                             </p>
                         </div>
 
                         {/* Error Message */}
                         {error && <div className="login-error">{error}</div>}
 
+                        {/* Form */}
                         <form className="login-form" onSubmit={handleSubmit}>
-                            {/* Email Field */}
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="email">
-                                    Email
+                            {/* Email/WhatsApp Input */}
+                            <div className="login-field">
+                                <label
+                                    className="login-label"
+                                    htmlFor="identifier"
+                                >
+                                    Email atau Nomor WhatsApp
                                 </label>
-                                <div className="input-wrapper">
-                                    <span className="material-symbols-outlined input-icon">
-                                        person
-                                    </span>
-                                    <input
-                                        className="form-input"
-                                        id="email"
-                                        name="email"
-                                        type="text"
-                                        placeholder="Masukkan email"
-                                        required
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                    />
-                                </div>
+                                <input
+                                    className="login-input"
+                                    id="identifier"
+                                    name="identifier"
+                                    type="text"
+                                    placeholder="Masukkan email atau nomor WA"
+                                    required
+                                    value={identifier}
+                                    onChange={(e) => setIdentifier(e.target.value)}
+                                />
                             </div>
 
-                            {/* Password Field */}
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="password">
-                                    Password
-                                </label>
-                                <div className="input-wrapper">
-                                    <span className="material-symbols-outlined input-icon">
-                                        lock
-                                    </span>
+                            {/* Password Input */}
+                            <div className="login-field">
+                                <div className="login-label-row">
+                                    <label
+                                        className="login-label"
+                                        htmlFor="password"
+                                    >
+                                        Kata Sandi
+                                    </label>
+                                    <a className="login-forgot-link" href="#">
+                                        Lupa Kata Sandi?
+                                    </a>
+                                </div>
+                                <div className="login-input-wrapper">
                                     <input
-                                        className="form-input form-input--with-toggle"
+                                        className="login-input login-input--with-toggle"
                                         id="password"
                                         name="password"
                                         type={showPassword ? 'text' : 'password'}
-                                        placeholder="Masukkan password"
+                                        placeholder="Masukkan kata sandi"
                                         required
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                     />
                                     <button
                                         type="button"
-                                        className="password-toggle"
+                                        className="login-password-toggle"
                                         onClick={togglePasswordVisibility}
-                                        aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
+                                        aria-label={
+                                            showPassword
+                                                ? 'Sembunyikan password'
+                                                : 'Tampilkan password'
+                                        }
                                     >
                                         <span className="material-symbols-outlined">
-                                            {showPassword ? 'visibility_off' : 'visibility'}
+                                            {showPassword
+                                                ? 'visibility_off'
+                                                : 'visibility'}
                                         </span>
                                     </button>
                                 </div>
                             </div>
 
-                            {/* Options Row */}
-                            <div className="login-options">
-                                <label className="remember-label">
-                                    <input
-                                        className="remember-checkbox"
-                                        type="checkbox"
-                                        checked={rememberMe}
-                                        onChange={(e) => setRememberMe(e.target.checked)}
-                                    />
-                                    <span className="remember-text">Remember me</span>
-                                </label>
-                                <a className="forgot-link" href="#">
-                                    Forgot password?
-                                </a>
-                            </div>
-
                             {/* Submit Button */}
-                            <button
-                                className={`login-submit-btn ${isSuccess ? 'login-submit-btn--success' : ''}`}
-                                type="submit"
-                                disabled={isLoading}
-                            >
-                                {isLoading ? (
-                                    <span className="material-symbols-outlined login-spinner">
-                                        progress_activity
-                                    </span>
-                                ) : isSuccess ? (
-                                    <>
-                                        <span>Berhasil</span>
-                                        <span className="material-symbols-outlined">check_circle</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <span>Login</span>
-                                        <span className="material-symbols-outlined">arrow_forward</span>
-                                    </>
-                                )}
-                            </button>
+                            <div className="login-submit-wrapper">
+                                <button
+                                    className={`login-submit-btn ${isSuccess ? 'login-submit-btn--success' : ''}`}
+                                    type="submit"
+                                    disabled={isLoading}
+                                >
+                                    {isLoading ? (
+                                        <span className="material-symbols-outlined login-spinner">
+                                            progress_activity
+                                        </span>
+                                    ) : isSuccess ? (
+                                        <>
+                                            <span>Berhasil</span>
+                                            <span className="material-symbols-outlined">
+                                                check_circle
+                                            </span>
+                                        </>
+                                    ) : (
+                                        <span>Masuk Aplikasi</span>
+                                    )}
+                                </button>
+                            </div>
                         </form>
 
-                        {/* Footer Link */}
-                        <div className="login-footer">
-                            <p className="login-footer-text">
-                                Don&apos;t have an account?{' '}
-                                <Link className="login-footer-link" to="/register">
-                                    Register
+                        {/* Register Link */}
+                        <div className="login-register-link">
+                            <p className="login-register-text">
+                                Belum punya akun?{' '}
+                                <Link className="login-register-anchor" to="/register">
+                                    Daftar Akun Baru Sekarang
                                 </Link>
                             </p>
                         </div>
-                    </div>
 
-                    {/* Support Links */}
-                    <div className="login-support">
-                        <a className="login-support-link" href="#">
-                            <span className="material-symbols-outlined">help</span>
-                            Bantuan
-                        </a>
-                        <a className="login-support-link" href="#">
-                            <span className="material-symbols-outlined">language</span>
-                            Bahasa Indonesia
-                        </a>
+                        {/* Admin/Mitra Note */}
+                        <div className="login-note">
+                            <p className="login-note-text">
+                                Catatan: Untuk role Mitra &amp; Admin, silakan langsung
+                                masuk menggunakan kredensial resmi yang telah dikonfigurasi
+                                oleh tim developer pusat.
+                            </p>
+                        </div>
                     </div>
                 </div>
-            </main>
-
-            {/* Page Footer */}
-            <footer className="login-page-footer">
-                <p className="login-page-footer-text">
-                    © 2024 KostHUB Property Management Services. Semua hak dilindungi.
-                </p>
-            </footer>
+            </div>
         </div>
     );
 };
