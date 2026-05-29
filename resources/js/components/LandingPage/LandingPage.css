@@ -1,0 +1,21 @@
+/* Landing Page Specific CSS */
+
+.glass-effect {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.card-hover {
+    border-color: #c3c6d7; /* outline-variant */
+}
+
+.card-hover:hover {
+    border-color: #2563eb; /* primary-container */
+}
+
+.animate-on-scroll {
+    /* Base classes applied by JS: transition-all duration-700 */
+    /* Starting state applied by JS: opacity-0 translate-y-8 */
+    will-change: opacity, transform;
+}
