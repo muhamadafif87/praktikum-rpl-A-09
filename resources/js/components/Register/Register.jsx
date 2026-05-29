@@ -8,12 +8,11 @@ const Register = () => {
 
     // ── Form State ──
     const [formData, setFormData] = useState({
+        nama_lengkap: '',
+        nomor_telepon: '',
         email: '',
         password: '',
         password_confirmation: '',
-        nama_lengkap: '',
-        nomor_telepon: '',
-        alamat_kost: '',
     });
     const [termsAccepted, setTermsAccepted] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
@@ -54,7 +53,9 @@ const Register = () => {
         }
 
         if (formData.password !== formData.password_confirmation) {
-            setFieldErrors({ password_confirmation: ['Konfirmasi password tidak cocok.'] });
+            setFieldErrors({
+                password_confirmation: ['Konfirmasi password tidak cocok.'],
+            });
             return;
         }
 
@@ -67,7 +68,6 @@ const Register = () => {
                 password: formData.password,
                 password_confirmation: formData.password_confirmation,
                 nomor_telepon: formData.nomor_telepon,
-                alamat_kost: formData.alamat_kost,
             });
 
             const { data } = response.data;
@@ -110,340 +110,221 @@ const Register = () => {
 
     return (
         <div className="register-page">
-            <main className="register-wrapper">
-                {/* ═══ LEFT PANEL — Branding & Entry ═══ */}
-                <section className="register-branding">
-                    {/* Decorative atmospheric background */}
-                    <div className="register-orb register-orb--top" />
-                    <div className="register-orb register-orb--bottom" />
-
-                    <div className="register-brand-top">
-                        <h1 className="register-brand-title">KostHUB</h1>
-                        <div className="register-brand-tagline">
-                            <span className="material-symbols-outlined">domain</span>
-                            <span className="register-brand-tagline-text">
-                                Property Management
-                            </span>
-                        </div>
+            <main className="register-main">
+                <div className="register-container">
+                    {/* Logo */}
+                    <div className="register-logo">
+                        <a className="register-logo-link" href="#">
+                            KostHub<span className="register-logo-dot">.</span>
+                        </a>
                     </div>
 
-                    <div className="register-brand-middle">
-                        <div className="register-brand-middle-content">
-                            <h2 className="register-cta-heading">Get Started</h2>
-                            <p className="register-cta-description">
-                                Experience a new standard in property management and
-                                boarding house services with a touch of modern
-                                hospitality.
-                            </p>
-                        </div>
-                        <div>
-                            <p className="register-cta-prompt">
-                                Already have an account?
-                            </p>
-                            <Link className="register-login-btn" to="/login">
-                                Login
-                            </Link>
-                        </div>
+                    {/* Header */}
+                    <div className="register-header">
+                        <h1 className="register-title">Daftar Akun Pelanggan</h1>
+                        <p className="register-subtitle">
+                            Mulai penuhi kebutuhan kosmu dengan aman dan anti-cemas.
+                        </p>
                     </div>
 
-                    <div className="register-stats">
-                        <div className="register-stat-card register-stat-card--primary">
-                            <p className="register-stat-value register-stat-value--primary">
-                                1000+
-                            </p>
-                            <p className="register-stat-label">Units Managed</p>
-                        </div>
-                        <div className="register-stat-card register-stat-card--secondary">
-                            <p className="register-stat-value register-stat-value--secondary">
-                                4.9/5.0
-                            </p>
-                            <p className="register-stat-label">User Rating</p>
-                        </div>
-                    </div>
-                </section>
+                    {/* Global Error Message */}
+                    {error && <div className="register-error">{error}</div>}
 
-                {/* ═══ RIGHT PANEL — Registration Form ═══ */}
-                <section className="register-form-panel">
-                    <div className="register-form-inner">
-                        <div className="register-form-header">
-                            <h2 className="register-form-title">Create Account</h2>
-                            <p className="register-form-subtitle">
-                                Join our ecosystem of premium property services.
-                            </p>
-                        </div>
-
-                        {/* Global Error Message */}
-                        {error && <div className="register-error">{error}</div>}
-
-                        <form className="register-form" onSubmit={handleSubmit}>
-                            {/* Email Field */}
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="reg-email">
-                                    Email
-                                </label>
-                                <div className="input-wrapper">
-                                    <span className="material-symbols-outlined input-icon">
-                                        mail
-                                    </span>
-                                    <input
-                                        className="form-input"
-                                        id="reg-email"
-                                        name="email"
-                                        type="email"
-                                        placeholder="name@example.com"
-                                        required
-                                        value={formData.email}
-                                        onChange={handleChange}
-                                    />
-                                </div>
-                                {fieldErrors.email && (
-                                    <span className="field-error">
-                                        {fieldErrors.email[0]}
-                                    </span>
-                                )}
-                            </div>
-
-                            {/* Password Field */}
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="reg-password">
-                                    Password
-                                </label>
-                                <div className="input-wrapper">
-                                    <span className="material-symbols-outlined input-icon">
-                                        lock
-                                    </span>
-                                    <input
-                                        className="form-input form-input--with-toggle"
-                                        id="reg-password"
-                                        name="password"
-                                        type={showPassword ? 'text' : 'password'}
-                                        placeholder="••••••••"
-                                        required
-                                        value={formData.password}
-                                        onChange={handleChange}
-                                    />
-                                    <button
-                                        type="button"
-                                        className="password-toggle"
-                                        onClick={togglePasswordVisibility}
-                                        aria-label={
-                                            showPassword
-                                                ? 'Sembunyikan password'
-                                                : 'Tampilkan password'
-                                        }
-                                    >
-                                        <span className="material-symbols-outlined">
-                                            {showPassword
-                                                ? 'visibility_off'
-                                                : 'visibility'}
-                                        </span>
-                                    </button>
-                                </div>
-                                {fieldErrors.password && (
-                                    <span className="field-error">
-                                        {fieldErrors.password[0]}
-                                    </span>
-                                )}
-                            </div>
-
-                            {/* Password Confirmation Field */}
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="reg-password-confirm">
-                                    Password Confirmation
-                                </label>
-                                <div className="input-wrapper">
-                                    <span className="material-symbols-outlined input-icon">
-                                        lock
-                                    </span>
-                                    <input
-                                        className="form-input form-input--with-toggle"
-                                        id="reg-password-confirm"
-                                        name="password_confirmation"
-                                        type={showPassword ? 'text' : 'password'}
-                                        placeholder="••••••••"
-                                        required
-                                        value={formData.password_confirmation}
-                                        onChange={handleChange}
-                                    />
-                                    <button
-                                        type="button"
-                                        className="password-toggle"
-                                        onClick={togglePasswordVisibility}
-                                        aria-label={
-                                            showPassword
-                                                ? 'Sembunyikan password'
-                                                : 'Tampilkan password'
-                                        }
-                                    >
-                                        <span className="material-symbols-outlined">
-                                            {showPassword
-                                                ? 'visibility_off'
-                                                : 'visibility'}
-                                        </span>
-                                    </button>
-                                </div>
-                                {fieldErrors.password_confirmation && (
-                                    <span className="field-error">
-                                        {fieldErrors.password_confirmation[0]}
-                                    </span>
-                                )}
-                            </div>
-
-                            {/* Full Name Field */}
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="reg-fullname">
-                                    Full Name
-                                </label>
-                                <div className="input-wrapper">
-                                    <span className="material-symbols-outlined input-icon">
-                                        person
-                                    </span>
-                                    <input
-                                        className="form-input"
-                                        id="reg-fullname"
-                                        name="nama_lengkap"
-                                        type="text"
-                                        placeholder="John Doe"
-                                        required
-                                        value={formData.nama_lengkap}
-                                        onChange={handleChange}
-                                    />
-                                </div>
-                                {fieldErrors.nama_lengkap && (
-                                    <span className="field-error">
-                                        {fieldErrors.nama_lengkap[0]}
-                                    </span>
-                                )}
-                            </div>
-
-                            {/* Phone Number Field (NEW — required by backend) */}
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="reg-phone">
-                                    Phone Number
-                                </label>
-                                <div className="input-wrapper">
-                                    <span className="material-symbols-outlined input-icon">
-                                        phone
-                                    </span>
-                                    <input
-                                        className="form-input"
-                                        id="reg-phone"
-                                        name="nomor_telepon"
-                                        type="tel"
-                                        placeholder="08xxxxxxxxxx"
-                                        required
-                                        value={formData.nomor_telepon}
-                                        onChange={handleChange}
-                                    />
-                                </div>
-                                {fieldErrors.nomor_telepon && (
-                                    <span className="field-error">
-                                        {fieldErrors.nomor_telepon[0]}
-                                    </span>
-                                )}
-                            </div>
-
-                            {/* Kost Address Field (NEW — required by backend) */}
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="reg-address">
-                                    Kost Address
-                                </label>
-                                <div className="input-wrapper">
-                                    <span className="material-symbols-outlined input-icon">
-                                        location_on
-                                    </span>
-                                    <input
-                                        className="form-input"
-                                        id="reg-address"
-                                        name="alamat_kost"
-                                        type="text"
-                                        placeholder="Jl. Contoh No. 123, Kota"
-                                        required
-                                        value={formData.alamat_kost}
-                                        onChange={handleChange}
-                                    />
-                                </div>
-                                {fieldErrors.alamat_kost && (
-                                    <span className="field-error">
-                                        {fieldErrors.alamat_kost[0]}
-                                    </span>
-                                )}
-                            </div>
-
-                            {/* Terms Checkbox */}
-                            <div className="register-terms">
-                                <div className="register-terms-checkbox-wrapper">
-                                    <input
-                                        className="register-terms-checkbox"
-                                        id="terms"
-                                        type="checkbox"
-                                        checked={termsAccepted}
-                                        onChange={(e) =>
-                                            setTermsAccepted(e.target.checked)
-                                        }
-                                    />
-                                </div>
-                                <label
-                                    className="register-terms-label"
-                                    htmlFor="terms"
-                                >
-                                    I accept the terms of the agreement
-                                </label>
-                            </div>
-
-                            {/* Action Button */}
-                            <button
-                                className="register-submit-btn"
-                                type="submit"
-                                disabled={isLoading}
-                            >
-                                {isLoading ? (
-                                    <span className="material-symbols-outlined register-spinner">
-                                        progress_activity
-                                    </span>
-                                ) : (
-                                    <>
-                                        <span>Sign Up</span>
-                                        <span className="material-symbols-outlined">
-                                            arrow_forward
-                                        </span>
-                                    </>
-                                )}
-                            </button>
-                        </form>
-
-                        {/* Social Provider Alternative */}
-                        <div className="register-social-section">
-                            <div className="register-divider">
-                                <hr className="register-divider-line" />
-                                <span className="register-divider-text">
-                                    Or continue with
+                    {/* Form */}
+                    <form className="register-form" onSubmit={handleSubmit}>
+                        {/* Nama Lengkap */}
+                        <div className="register-field">
+                            <label className="register-label" htmlFor="fullName">
+                                Nama Lengkap
+                            </label>
+                            <input
+                                className="register-input"
+                                id="fullName"
+                                name="nama_lengkap"
+                                type="text"
+                                placeholder="Masukkan nama lengkap sesuai KTP..."
+                                required
+                                value={formData.nama_lengkap}
+                                onChange={handleChange}
+                            />
+                            {fieldErrors.nama_lengkap && (
+                                <span className="register-field-error">
+                                    {fieldErrors.nama_lengkap[0]}
                                 </span>
-                                <hr className="register-divider-line" />
-                            </div>
-                            <div className="register-social-grid">
-                                <button className="register-social-btn" type="button">
-                                    <img
-                                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuCRMFfEPvW9pTAZo5M_pixleAA-Ewo8NScljhkRM6nP0h-DTrE6Fy_zOIYgcSzQN06MHG4P1mJ-DuVSvzztbQzKn9-R9uEw1wdktznOUBjYiHSbsgUXNPHRxaoy85f_3TP9sGIwivxzSatxlCA2Y2Bom83pjwSiIN2JdmIFmpETzDHaSruxtlS948AsuJw9NuPD7e1FjH-PYKU_7hrW_1uP1WGW1Na-uCwjMu52NXJIwub9CPYrTDeqlf5va0iqLMU5SO2zD3u-oLM"
-                                        alt="Google"
-                                    />
-                                    Google
-                                </button>
-                                <button className="register-social-btn" type="button">
-                                    <span className="material-symbols-outlined">
-                                        social_leaderboard
-                                    </span>
-                                    Facebook
-                                </button>
-                            </div>
+                            )}
                         </div>
-                    </div>
 
-                    {/* Subtle brand background decoration */}
-                    <div className="register-bg-decoration">
-                        <span className="material-symbols-outlined">apartment</span>
+                        {/* Nomor WhatsApp Aktif */}
+                        <div className="register-field">
+                            <label className="register-label" htmlFor="whatsapp">
+                                Nomor WhatsApp Aktif
+                            </label>
+                            <input
+                                className="register-input"
+                                id="whatsapp"
+                                name="nomor_telepon"
+                                type="tel"
+                                placeholder="Contoh: 08123456789..."
+                                required
+                                value={formData.nomor_telepon}
+                                onChange={handleChange}
+                            />
+                            {fieldErrors.nomor_telepon && (
+                                <span className="register-field-error">
+                                    {fieldErrors.nomor_telepon[0]}
+                                </span>
+                            )}
+                        </div>
+
+                        {/* Email */}
+                        <div className="register-field">
+                            <label className="register-label" htmlFor="email">
+                                Email
+                            </label>
+                            <input
+                                className="register-input"
+                                id="email"
+                                name="email"
+                                type="email"
+                                placeholder="Masukkan alamat email..."
+                                required
+                                value={formData.email}
+                                onChange={handleChange}
+                            />
+                            {fieldErrors.email && (
+                                <span className="register-field-error">
+                                    {fieldErrors.email[0]}
+                                </span>
+                            )}
+                        </div>
+
+                        {/* Kata Sandi Baru */}
+                        <div className="register-field">
+                            <label className="register-label" htmlFor="password">
+                                Kata Sandi Baru
+                            </label>
+                            <div className="register-input-wrapper">
+                                <input
+                                    className="register-input register-input--with-toggle"
+                                    id="password"
+                                    name="password"
+                                    type={showPassword ? 'text' : 'password'}
+                                    placeholder="••••••••"
+                                    required
+                                    value={formData.password}
+                                    onChange={handleChange}
+                                />
+                                <button
+                                    type="button"
+                                    className="register-password-toggle"
+                                    onClick={togglePasswordVisibility}
+                                    aria-label={
+                                        showPassword
+                                            ? 'Sembunyikan password'
+                                            : 'Tampilkan password'
+                                    }
+                                >
+                                    <span className="material-symbols-outlined">
+                                        {showPassword
+                                            ? 'visibility_off'
+                                            : 'visibility'}
+                                    </span>
+                                </button>
+                            </div>
+                            {fieldErrors.password && (
+                                <span className="register-field-error">
+                                    {fieldErrors.password[0]}
+                                </span>
+                            )}
+                        </div>
+
+                        {/* Konfirmasi Kata Sandi */}
+                        <div className="register-field">
+                            <label
+                                className="register-label"
+                                htmlFor="confirmPassword"
+                            >
+                                Konfirmasi Kata Sandi
+                            </label>
+                            <div className="register-input-wrapper">
+                                <input
+                                    className="register-input register-input--with-toggle"
+                                    id="confirmPassword"
+                                    name="password_confirmation"
+                                    type={showPassword ? 'text' : 'password'}
+                                    placeholder="••••••••"
+                                    required
+                                    value={formData.password_confirmation}
+                                    onChange={handleChange}
+                                />
+                                <button
+                                    type="button"
+                                    className="register-password-toggle"
+                                    onClick={togglePasswordVisibility}
+                                    aria-label={
+                                        showPassword
+                                            ? 'Sembunyikan password'
+                                            : 'Tampilkan password'
+                                    }
+                                >
+                                    <span className="material-symbols-outlined">
+                                        {showPassword
+                                            ? 'visibility_off'
+                                            : 'visibility'}
+                                    </span>
+                                </button>
+                            </div>
+                            {fieldErrors.password_confirmation && (
+                                <span className="register-field-error">
+                                    {fieldErrors.password_confirmation[0]}
+                                </span>
+                            )}
+                        </div>
+
+                        {/* Terms Checkbox */}
+                        <div className="register-terms">
+                            <input
+                                className="register-terms-checkbox"
+                                id="terms"
+                                type="checkbox"
+                                checked={termsAccepted}
+                                onChange={(e) =>
+                                    setTermsAccepted(e.target.checked)
+                                }
+                            />
+                            <label
+                                className="register-terms-label"
+                                htmlFor="terms"
+                            >
+                                Saya menyetujui Syarat &amp; Ketentuan serta
+                                Jaminan Keamanan Escrow di KostHub.
+                            </label>
+                        </div>
+
+                        {/* Submit Button */}
+                        <button
+                            className="register-submit-btn"
+                            type="submit"
+                            disabled={isLoading}
+                        >
+                            {isLoading ? (
+                                <span className="material-symbols-outlined register-spinner">
+                                    progress_activity
+                                </span>
+                            ) : (
+                                <span>Daftar Sekarang</span>
+                            )}
+                        </button>
+                    </form>
+
+                    {/* Login Link */}
+                    <div className="register-login-link">
+                        Sudah memiliki akun?{' '}
+                        <Link className="register-login-anchor" to="/login">
+                            Masuk di sini
+                        </Link>
                     </div>
-                </section>
+                </div>
             </main>
         </div>
     );
