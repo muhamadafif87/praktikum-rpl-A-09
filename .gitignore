@@ -21,3 +21,8 @@ yarn-error.log
 .idea/
 .vscode/
 .DS_Store
+
+# Ignore local tools and test files
+composer.phar
+composer.bat
+test_db.php
