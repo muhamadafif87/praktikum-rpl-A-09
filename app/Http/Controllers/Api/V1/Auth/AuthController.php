@@ -9,6 +9,8 @@ use App\Services\AuthService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
@@ -43,14 +45,14 @@ class AuthController extends Controller
             return response()->json([
                 'message' => 'Login berhasil.',
                 'data'    => [
-                    'user'  => $result['user'],
-                    'token' => $result['token'],
+                    'guard'      => $result['guard'],
+                    'user'       => $result['user'],
+                    'token'      => $result['token']
                 ],
             ]);
+
         } catch (AuthenticationException $e) {
-            return response()->json([
-                'message' => $e->getMessage(),
-            ], 401);
+            return response()->json(['message' => $e->getMessage()], 401);
         }
     }
 
@@ -59,11 +61,10 @@ class AuthController extends Controller
      */
     public function logout(Request $request): JsonResponse
     {
-        $this->authService->logout($request->user());
+        $activeGuard = $this->resolveActiveGuard();
+        $this->authService->logout($activeGuard, $request->user());
 
-        return response()->json([
-            'message' => 'Logout berhasil.',
-        ]);
+        return response()->json(['message' => 'Logout berhasil.']);
     }
 
     /**
@@ -71,8 +72,21 @@ class AuthController extends Controller
      */
     public function me(Request $request): JsonResponse
     {
+        $activeGuard = $this->resolveActiveGuard();
+
         return response()->json([
-            'data' => $request->user(),
+            'data'  => $request->user(),
+            'guard' => $activeGuard,
         ]);
+    }
+
+    private function resolveActiveGuard(): ?string
+    {
+        foreach (['admin', 'mitra', 'web'] as $guard) {
+            if (Auth::guard($guard)->check()) {
+                return $guard;
+            }
+        }
+        return null;
     }
 }

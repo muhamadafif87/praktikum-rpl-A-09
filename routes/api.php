@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
 
-    // Public routes
+    // Public routes (admin, user, mitra)
     Route::prefix('auth')->name('auth.')->group(function () {
         Route::post('/register', [AuthController::class, 'register'])->name('register');
         Route::post('/login',    [AuthController::class, 'login'])->name('login');
@@ -18,5 +18,20 @@ Route::prefix('v1')->group(function () {
             Route::get('/me',      [AuthController::class, 'me'])->name('me');
         });
     });
+
+    //------
+    //Routes get list layanan
+    //--------
+    //semua layanan
+    //layanan tertentu
+    //layanan tertentu dengan filter kategori
+
+    //------
+    //Routes get list layanan
+    //--------
+
+    //------
+    //Routes get ulasan
+    //--------
 
 });
