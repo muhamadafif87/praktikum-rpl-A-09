@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\User;
+use App\Models\Admin;
+use App\Models\Mitra;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -25,43 +27,66 @@ class AuthService{
     }
 
     /**
+     * @throws AuthenticationException
+     */
+    public function detectGuard(string $email){
+        $guardMap = [
+            'admin' => Admin::class,
+            'mitra' => Mitra::class,
+            'web' => User::class,
+        ];
+
+        foreach ($guardMap as $guard => $model){
+            $user = $model::where('email', $email)->first();
+            if($user){
+                return ['guard' => $guard, 'model' => $user];
+            }
+        }
+
+        throw new AuthenticationException('Email atau password yang digunakan salah!');
+    }
+
+    /**
      * Attempt login and return token.
      *
      * @throws AuthenticationException
+     *
+     * @var User|Admin|Mitra
+     *
      */
-    public function login(array $credentials): array
-    {
-        if (! Auth::attempt($credentials)) {
+    public function login(array $credentials): array {
+        ['guard' => $guard] = $this->detectGuard($credentials['email']);
+
+        if (! Auth::guard($guard)->attempt($credentials)) {
             throw new AuthenticationException('Email atau password salah.');
         }
 
-        /** @var User $user */
-        $user = Auth::user();
+        $user = Auth::guard($guard)->user();
 
-        // Revoke all previous tokens (single session policy)
+        if($guard === 'mitra' && isset($user->status_verifikasi) && $user->status_verifikasi !== 'aktif'){
+            Auth::guard($guard)->logout();
+            throw new AuthenticationException(
+                match($user->status_verifikasi){
+                    'pending' => 'Akun mitra anda sedang dalam proses verifikasi',
+                    'nonaktif' => 'Akun mitra anda telah dinonaktifkan',
+                    default => 'Akun anda tidak dapat digunakan',
+                }
+            );
+        }
+
         $user->tokens()->delete();
+        $token = $user->createToken("{$guard}_token")->plainTextToken;
 
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return [
-            'user'  => $user,
-            'token' => $token,
-        ];
+        return compact('user', 'token', 'guard');
     }
 
     /**
      * Revoke current token (logout).
      */
-    public function logout(User $user): void
+    public function logout(string $guard, \Illuminate\Foundation\Auth\User $user): void
     {
-        $token = $user->currentAccessToken();
-        if ($token instanceof SanctumPersonalAccessToken) {
-            $token->delete();
-            return;
-        }
+        $user->tokens()->delete();
 
-        if (is_object($token) && method_exists($token, 'delete')) {
-            $token->delete();
-        }
+        Auth::guard($guard)->logout();
     }
 }
