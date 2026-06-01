@@ -1,5 +1,5 @@
-/vendor
-/node_modules
+vendor/
+node_modules/
 
 .env
 .env.backup
@@ -7,12 +7,12 @@
 auth.json
 storage/*.key
 
-/public/hot
-/public/storage
-/public/build
-/storage/pail
-/storage/framework/cache/data/*
-/bootstrap/compiled.php
+public/hot
+public/storage
+public/build
+storage/pail
+storage/framework/cache/data/*
+bootstrap/compiled.php
 
 .phpunit.result.cache
 npm-debug.log
