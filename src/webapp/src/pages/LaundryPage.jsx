@@ -1,11 +1,18 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DetailMitra from '../features/mitra/DetailMitra/DetailMitra';
+import AuthInterceptor from '../features/auth/AuthInterceptor/AuthInterceptor';
 
 /**
  * LaundryPage — Page-level component
  * Menghubungkan DetailMitra (daftar mitra) dengan AuthInterceptor (modal autentikasi).
- * AuthInterceptor akan ditambahkan di branch feature/landingpage-authinterceptor.
+ * 
+ * Flow:
+ * 1. User melihat daftar mitra laundry (DetailMitra)
+ * 2. User klik "Pesan Sekarang" pada salah satu mitra
+ * 3. DetailMitra cek token di localStorage (dari Laravel Sanctum + Supabase)
+ * 4. Jika belum login → trigger onOrderClick → modal AuthInterceptor muncul
+ * 5. User bisa pilih: Masuk (/login), Daftar (/register), atau Kembali (tutup modal)
  */
 const LaundryPage = () => {
     const navigate = useNavigate();
@@ -26,7 +33,10 @@ const LaundryPage = () => {
         <>
             <DetailMitra onOrderClick={handleOrderClick} />
 
-            {/* AuthInterceptor modal akan diintegrasikan di branch authinterceptor */}
+            <AuthInterceptor
+                isOpen={showAuthModal}
+                onClose={handleCloseModal}
+            />
         </>
     );
 };
