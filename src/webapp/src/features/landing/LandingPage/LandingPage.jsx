@@ -47,7 +47,7 @@ const LandingPage = () => {
                             <a className="lp-nav-link lp-nav-link--active" href="#">Home</a>
                         </li>
                         <li className="lp-nav-item">
-                            <a className="lp-nav-link" href="#">Gas &amp; Galon</a>
+                            <Link className="lp-nav-link" to="/gas-galon">Gas &amp; Galon</Link>
                         </li>
                         <li className="lp-nav-item">
                             <Link className="lp-nav-link" to="/laundry">Laundry Express</Link>
@@ -177,7 +177,7 @@ const LandingPage = () => {
                                     <span className="lp-service-badge lp-badge-1">Terpopuler</span>
                                     <h3 className="lp-service-title">Gas &amp; Galon</h3>
                                     <p className="lp-service-text">Antar cepat &amp; gratis jemput</p>
-                                    <button className="lp-service-btn">Pesan Sekarang</button>
+                                    <button className="lp-service-btn" onClick={() => navigate('/gas-galon')}>Pesan Sekarang</button>
                                 </div>
                             </div>
 

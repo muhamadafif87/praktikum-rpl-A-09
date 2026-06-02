@@ -99,7 +99,7 @@ const DetailMitra = ({ onOrderClick }) => {
                             <Link className="dm-nav-link" to="/">Home</Link>
                         </li>
                         <li className="dm-nav-item">
-                            <a className="dm-nav-link" href="#">Gas &amp; Galon</a>
+                            <Link className="dm-nav-link" to="/gas-galon">Gas &amp; Galon</Link>
                         </li>
                         <li className="dm-nav-item">
                             <Link className="dm-nav-link dm-nav-link--active" to="/laundry">Laundry Express</Link>
