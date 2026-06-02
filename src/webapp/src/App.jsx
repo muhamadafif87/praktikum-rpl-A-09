@@ -4,6 +4,7 @@ import LandingPage from './features/landing/LandingPage/LandingPage';
 import Login from './features/auth/Login/Login';
 import Register from './features/auth/Register/Register';
 import LaundryPage from './pages/LaundryPage';
+import GasGalonPage from './pages/GasGalonPage';
 
 const App = () => {
     return (
@@ -12,6 +13,7 @@ const App = () => {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/laundry" element={<LaundryPage />} />
+            <Route path="/gas-galon" element={<GasGalonPage />} />
         </Routes>
     );
 };
