@@ -105,7 +105,7 @@ const DetailMitra = ({ onOrderClick }) => {
                             <Link className="dm-nav-link dm-nav-link--active" to="/laundry">Laundry Express</Link>
                         </li>
                         <li className="dm-nav-item">
-                            <a className="dm-nav-link" href="#">Daily Cleaning</a>
+                            <Link className="dm-nav-link" to="/daily-cleaning">Daily Cleaning</Link>
                         </li>
                         <li className="dm-nav-item">
                             <a className="dm-nav-link" href="#">Tentang Kami</a>
