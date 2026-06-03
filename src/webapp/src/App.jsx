@@ -6,6 +6,7 @@ import Register from './features/auth/Register/Register';
 import LaundryPage from './pages/LaundryPage';
 import GasGalonPage from './pages/GasGalonPage';
 import DailyCleaningPage from './pages/DailyCleaningPage';
+import MitraDashboardPage from './pages/MitraDashboardPage';
 
 const App = () => {
     return (
@@ -16,6 +17,7 @@ const App = () => {
             <Route path="/laundry" element={<LaundryPage />} />
             <Route path="/gas-galon" element={<GasGalonPage />} />
             <Route path="/daily-cleaning" element={<DailyCleaningPage />} />
+            <Route path="/mitra/dashboard" element={<MitraDashboardPage />} />
         </Routes>
     );
 };
