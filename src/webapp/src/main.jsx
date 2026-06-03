@@ -1,6 +1,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
+import { LocationProvider } from './context/LocationContext';
 import App from './App';
 import './index.css';
 
@@ -12,8 +13,11 @@ if (container) {
     root.render(
         <React.StrictMode>
             <BrowserRouter>
-                <App />
+                <LocationProvider>
+                    <App />
+                </LocationProvider>
             </BrowserRouter>
         </React.StrictMode>
     );
 }
+
