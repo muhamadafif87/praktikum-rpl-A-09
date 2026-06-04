@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\Auth\AuthController;
+use App\Http\Controllers\Api\V1\Page\LandingPageController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -20,18 +21,27 @@ Route::prefix('v1')->group(function () {
     });
 
     //------
-    //Routes get list layanan
+    // Routes Landing Page - Public Access
+    //------
+    Route::prefix('landing-page')->name('landing-page.')->group(function () {
+        Route::get('/statistic', [LandingPageController::class, 'statistic'])->name('statistic');
+        Route::middleware('auth:sanctum')->group(function(){
+            Route::get('/search', [LandingPageController::class, 'searchLayanan'])->name('search');
+            Route::get('/laundry-express', [LandingPageController::class, 'laundryExpress'])->name('laundry-express');
+            Route::get('/galon-gas', [LandingPageController::class, 'galonGas'])->name('galon-gas');
+            Route::get('/daily-cleaning', [LandingPageController::class, 'dailyCleaning'])->name('daily-cleaning');
+        });
+    });
+
+    //------
+    // Routes get list layanan
     //--------
     //semua layanan
     //layanan tertentu
     //layanan tertentu dengan filter kategori
 
     //------
-    //Routes get list layanan
-    //--------
-
-    //------
-    //Routes get ulasan
+    // Routes get ulasan
     //--------
 
 });
