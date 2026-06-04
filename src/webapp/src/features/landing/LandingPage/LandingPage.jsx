@@ -1,9 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import LocationSearch from '../../location/LocationSearch/LocationSearch';
 import './LandingPage.css';
 
 const LandingPage = () => {
     const navigate = useNavigate();
+    const servicesRef = useRef(null);
 
     // Intersection Observer for scroll animations
     useEffect(() => {
@@ -28,6 +30,19 @@ const LandingPage = () => {
             animatedElements.forEach((el) => observer.unobserve(el));
         };
     }, []);
+
+    /**
+     * Smooth scroll ke section "Pilih Layanan KostHub"
+     * Dipicu saat user klik "Cari Layanan" atau Enter setelah konfirmasi lokasi.
+     */
+    const handleSearchSubmit = () => {
+        if (servicesRef.current) {
+            servicesRef.current.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start',
+            });
+        }
+    };
 
     return (
         <div className="landing-page">
@@ -86,20 +101,8 @@ const LandingPage = () => {
                             Temukan layanan harian terbaik untuk kosmu di Solo dengan jaminan keamanan 100%.
                         </p>
 
-                        {/* Search Bar Container */}
-                        <div className="lp-search-box">
-                            <div className="lp-search-input-wrapper">
-                                <span className="material-symbols-outlined lp-search-icon">location_on</span>
-                                <input 
-                                    className="lp-search-input" 
-                                    placeholder="Masukkan alamat kos atau apartemenmu di Solo..." 
-                                    type="text" 
-                                />
-                            </div>
-                            <button className="lp-search-btn">
-                                Cari Layanan
-                            </button>
-                        </div>
+                        {/* LocationSearch — Autocomplete + Mini-Map */}
+                        <LocationSearch onSearchSubmit={handleSearchSubmit} />
                     </div>
 
                     {/* Abstract Background Element */}
@@ -152,7 +155,7 @@ const LandingPage = () => {
                 </section>
 
                 {/* Service Cards Section (Bento Inspired Grid) */}
-                <section className="lp-services">
+                <section className="lp-services" id="pilih-layanan" ref={servicesRef}>
                     <div className="lp-container">
                         <div className="lp-services-header animate-on-scroll">
                             <div>
@@ -265,3 +268,4 @@ const LandingPage = () => {
 };
 
 export default LandingPage;
+

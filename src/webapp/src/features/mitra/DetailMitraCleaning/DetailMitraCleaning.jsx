@@ -1,13 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useLocation } from '../../../context/LocationContext';
+import { calculateDistance } from '../../../utils/distance';
 import './DetailMitraCleaning.css';
 
 // Data mitra daily cleaning (static data - nanti bisa diganti dari API backend Laravel + Supabase)
+// Setiap mitra sekarang memiliki koordinat lat/lng untuk kalkulasi jarak
 const mitraData = [
     {
         id: 1,
         name: 'KostBersih Solo',
-        distance: '0.9 KM',
+        lat: -7.5580,
+        lng: 110.8530,
         rating: 4.8,
         reviewCount: 156,
         description: 'Jasa bersih-bersih kamar kos profesional. Melayani sapu, pel, lap debu, hingga cuci piring. Staff terlatih dan menggunakan alat kebersihan berkualitas.',
@@ -23,7 +27,8 @@ const mitraData = [
     {
         id: 2,
         name: 'Sparkling Clean UNS',
-        distance: '1.3 KM',
+        lat: -7.5550,
+        lng: 110.8600,
         rating: 4.9,
         reviewCount: 198,
         description: 'Layanan cleaning premium khusus area kos mahasiswa UNS. Tersedia paket lengkap termasuk rapikan kamar, ganti sprei, dan pembersihan kamar mandi.',
@@ -39,7 +44,8 @@ const mitraData = [
     {
         id: 3,
         name: 'Rapih Kos Jebres',
-        distance: '2.0 KM',
+        lat: -7.5670,
+        lng: 110.8480,
         rating: 4.5,
         reviewCount: 73,
         description: 'Jasa cleaning murah untuk anak kos area Jebres. Cocok buat yang sibuk kuliah dan butuh bantuan bersih-bersih mingguan dengan harga terjangkau.',
@@ -56,8 +62,20 @@ const mitraData = [
 
 const DetailMitraCleaning = ({ onOrderClick }) => {
     const navigate = useNavigate();
+    const { location } = useLocation();
     const [selectedCategories, setSelectedCategories] = useState(['sapu_pel']);
     const [sortBy, setSortBy] = useState('terdekat');
+
+    // Hitung jarak dinamis untuk setiap mitra berdasarkan lokasi user
+    const mitraWithDistance = useMemo(() => {
+        return mitraData.map((mitra) => {
+            const distance = calculateDistance(
+                location.lat, location.lng,
+                mitra.lat, mitra.lng
+            );
+            return { ...mitra, distance };
+        });
+    }, [location.lat, location.lng]);
 
     const handleCategoryChange = (category) => {
         setSelectedCategories((prev) =>
@@ -126,7 +144,7 @@ const DetailMitraCleaning = ({ onOrderClick }) => {
                         <div className="dmc-location">
                             <span className="material-symbols-outlined">location_on</span>
                             <h1 className="dmc-location-title">
-                                Menampilkan mitra di dekat: <span className="dmc-location-highlight">Jl. Ir. Sutami, Jebres, Surakarta</span>
+                                Menampilkan mitra di dekat: <span className="dmc-location-highlight">{location.address}</span>
                             </h1>
                         </div>
                     </div>
@@ -182,7 +200,7 @@ const DetailMitraCleaning = ({ onOrderClick }) => {
                     </aside>
 
                     <section className="dmc-card-list">
-                        {mitraData.map((mitra) => (
+                        {mitraWithDistance.map((mitra) => (
                             <article key={mitra.id} className="dmc-card">
                                 <div className="dmc-card-body">
                                     <div className="dmc-card-img-wrapper">
@@ -192,7 +210,7 @@ const DetailMitraCleaning = ({ onOrderClick }) => {
                                         <div>
                                             <div className="dmc-card-header">
                                                 <h3 className="dmc-card-title">{mitra.name}</h3>
-                                                <span className="dmc-card-badge">Berada dalam jangkauan ({mitra.distance})</span>
+                                                <span className="dmc-card-badge">Berada dalam jangkauan ({mitra.distance} KM)</span>
                                             </div>
                                             <div className="dmc-card-rating">
                                                 <span className="material-symbols-outlined">star</span>
