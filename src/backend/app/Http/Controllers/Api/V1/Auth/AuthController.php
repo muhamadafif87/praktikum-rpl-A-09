@@ -24,13 +24,27 @@ class AuthController extends Controller
     public function register(RegisterRequest $request): JsonResponse
     {
         $result = $this->authService->register($request->validated());
+        $registAs = $request->input('regist_as', 'user');
 
-        return response()->json([
-            'message' => 'Registrasi berhasil.',
-            'data'    => [
+        if ($registAs === 'mitra') {
+            $data = [
+                'mitra' => $result['mitra'],
+                'token' => $result['token'],
+                'guard' => $result['guard'],
+            ];
+            $message = 'Registrasi mitra berhasil. Akun Anda sedang dalam proses verifikasi.';
+        } else {
+            $data = [
                 'user'  => $result['user'],
                 'token' => $result['token'],
-            ],
+                'guard' => 'web',
+            ];
+            $message = 'Registrasi berhasil.';
+        }
+
+        return response()->json([
+            'message' => $message,
+            'data'    => $data,
         ], 201);
     }
 
