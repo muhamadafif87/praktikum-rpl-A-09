@@ -7,6 +7,7 @@ import Register from './features/auth/Register/Register';
 import LaundryPage from './pages/LaundryPage';
 import GasGalonPage from './pages/GasGalonPage';
 import DailyCleaningPage from './pages/DailyCleaningPage';
+import MitraDashboardPage from './pages/MitraDashboardPage';
 
 // Placeholder components for dashboard pages
 const DashboardAdmin = () => <div style={{ padding: '20px' }}><h1>Dashboard Admin</h1></div>;

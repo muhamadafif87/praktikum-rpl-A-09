@@ -1,13 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useLocation } from '../../../context/LocationContext';
+import { calculateDistance } from '../../../utils/distance';
 import './DetailMitra.css';
 
 // Data mitra laundry (static data - nanti bisa diganti dari API backend Laravel + Supabase)
+// Setiap mitra sekarang memiliki koordinat lat/lng untuk kalkulasi jarak
 const mitraData = [
     {
         id: 1,
         name: 'Super Laundry UNS',
-        distance: '1.2 KM',
+        lat: -7.5600,
+        lng: 110.8550,
         rating: 4.8,
         reviewCount: 120,
         description: 'Layanan laundry kiloan terbaik di sekitar UNS dengan proses pengerjaan 1 hari jadi. Menggunakan deterjen premium dan parfum tahan lama.',
@@ -23,7 +27,8 @@ const mitraData = [
     {
         id: 2,
         name: 'Solo Clean Express',
-        distance: '0.8 KM',
+        lat: -7.5530,
+        lng: 110.8580,
         rating: 4.9,
         reviewCount: 210,
         description: 'Spesialis express 6 jam jadi. Cocok buat mahasiswa yang butuh pakaian cepat bersih untuk acara mendadak.',
@@ -39,7 +44,8 @@ const mitraData = [
     {
         id: 3,
         name: 'Kentingan Laundry Pods',
-        distance: '1.5 KM',
+        lat: -7.5650,
+        lng: 110.8520,
         rating: 4.7,
         reviewCount: 85,
         description: 'Layanan laundry mandiri dengan mesin modern. Bisa ditunggu sambil nugas karena ada area Wi-Fi gratis.',
@@ -56,8 +62,20 @@ const mitraData = [
 
 const DetailMitra = ({ onOrderClick }) => {
     const navigate = useNavigate();
+    const { location } = useLocation();
     const [selectedCategories, setSelectedCategories] = useState(['pakaian']);
     const [sortBy, setSortBy] = useState('terdekat');
+
+    // Hitung jarak dinamis untuk setiap mitra berdasarkan lokasi user
+    const mitraWithDistance = useMemo(() => {
+        return mitraData.map((mitra) => {
+            const distance = calculateDistance(
+                location.lat, location.lng,
+                mitra.lat, mitra.lng
+            );
+            return { ...mitra, distance };
+        });
+    }, [location.lat, location.lng]);
 
     const handleCategoryChange = (category) => {
         setSelectedCategories((prev) =>
@@ -136,7 +154,7 @@ const DetailMitra = ({ onOrderClick }) => {
                         <div className="dm-location">
                             <span className="material-symbols-outlined">location_on</span>
                             <h1 className="dm-location-title">
-                                Menampilkan mitra di dekat: <span className="dm-location-highlight">Jl. Ir. Sutami, Jebres, Surakarta</span>
+                                Menampilkan mitra di dekat: <span className="dm-location-highlight">{location.address}</span>
                             </h1>
                         </div>
                     </div>
@@ -196,7 +214,7 @@ const DetailMitra = ({ onOrderClick }) => {
 
                     {/* Card List */}
                     <section className="dm-card-list">
-                        {mitraData.map((mitra) => (
+                        {mitraWithDistance.map((mitra) => (
                             <article key={mitra.id} className="dm-card">
                                 <div className="dm-card-body">
                                     <div className="dm-card-img-wrapper">
@@ -211,7 +229,7 @@ const DetailMitra = ({ onOrderClick }) => {
                                             <div className="dm-card-header">
                                                 <h3 className="dm-card-title">{mitra.name}</h3>
                                                 <span className="dm-card-badge">
-                                                    Berada dalam jangkauan ({mitra.distance})
+                                                    Berada dalam jangkauan ({mitra.distance} KM)
                                                 </span>
                                             </div>
                                             <div className="dm-card-rating">
