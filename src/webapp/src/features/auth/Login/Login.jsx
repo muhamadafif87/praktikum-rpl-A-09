@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../../services/api';
+import { useAuth } from '../../../context/AuthContext';
 import './Login.css';
 
 const Login = () => {
     const navigate = useNavigate();
+    const { login: authLogin } = useAuth();
 
     // ── Form State ──
     const [identifier, setIdentifier] = useState('');
@@ -35,20 +37,40 @@ const Login = () => {
 
             const { data } = response.data;
 
-            // Extract and save token securely
             if (data?.token) {
                 localStorage.setItem('token', data.token);
             }
 
-            // Save user data
             if (data?.user) {
                 localStorage.setItem('user', JSON.stringify(data.user));
             }
 
+            if (data?.guard) {
+                localStorage.setItem('guard', data.guard);
+            }
+
+            // Update auth context
+            if (data?.user && data?.token && data?.guard) {
+                authLogin(data.user, data.token, data.guard);
+            }
+
             // Show success state briefly before redirect
             setIsSuccess(true);
+
+            // Redirect based on guard/role
             setTimeout(() => {
-                navigate('/dashboard');
+                switch (data?.guard) {
+                    case 'admin':
+                        navigate('/dashboard/admin');
+                        break;
+                    case 'mitra':
+                        navigate('/dashboard/mitra');
+                        break;
+                    case 'web':
+                    default:
+                        navigate('/');
+                        break;
+                }
             }, 800);
         } catch (err) {
             if (err.response) {
