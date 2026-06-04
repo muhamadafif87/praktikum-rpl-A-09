@@ -41,6 +41,17 @@ class User extends Authenticatable {
     }
 
     public function Pesanan(){
-        return $this->hasMany(Pesanan::class, localKey: 'id_user');
+        return $this->hasMany(Pesanan::class, 'id_user', 'id_user');
+    }
+
+    public function Ulasan(){
+        return $this->hasManyThrough(
+            Ulasan::class,
+            Pesanan::class,
+            'id_user',
+            'id_pesanan',
+            'id_user',
+            'id_pesanan'
+        );
     }
 }
