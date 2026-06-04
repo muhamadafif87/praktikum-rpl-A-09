@@ -47,8 +47,13 @@ const Login = () => {
 
             // Show success state briefly before redirect
             setIsSuccess(true);
+
+            // Role-based redirect using guard from backend response
+            const guard = data?.guard;
+            const redirectPath = (guard === 'mitra' || guard === 'admin') ? '/mitra/dashboard' : '/';
+
             setTimeout(() => {
-                navigate('/dashboard');
+                navigate(redirectPath);
             }, 800);
         } catch (err) {
             if (err.response) {
