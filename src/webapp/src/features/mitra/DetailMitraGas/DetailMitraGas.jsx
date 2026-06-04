@@ -1,13 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useLocation } from '../../../context/LocationContext';
+import { calculateDistance } from '../../../utils/distance';
 import './DetailMitraGas.css';
 
 // Data mitra gas & galon (static data - nanti bisa diganti dari API backend Laravel + Supabase)
+// Setiap mitra sekarang memiliki koordinat lat/lng untuk kalkulasi jarak
 const mitraData = [
     {
         id: 1,
         name: 'Gas Mantap Solo',
-        distance: '0.5 KM',
+        lat: -7.5540,
+        lng: 110.8560,
         rating: 4.9,
         reviewCount: 185,
         description: 'Agen gas LPG dan galon air mineral terpercaya di Solo. Melayani antar cepat ke area kos-kosan sekitar UNS dengan harga bersahabat dan stok selalu tersedia.',
@@ -23,7 +27,8 @@ const mitraData = [
     {
         id: 2,
         name: 'Galon Berkah Jebres',
-        distance: '1.0 KM',
+        lat: -7.5620,
+        lng: 110.8510,
         rating: 4.7,
         reviewCount: 142,
         description: 'Spesialis galon air mineral berbagai merek. Tersedia Aqua, Le Minerale, dan Cleo. Free ongkir untuk area Jebres dan sekitarnya dengan minimum pembelian 2 galon.',
@@ -39,7 +44,8 @@ const mitraData = [
     {
         id: 3,
         name: 'Depot Air Kentingan',
-        distance: '1.8 KM',
+        lat: -7.5590,
+        lng: 110.8640,
         rating: 4.6,
         reviewCount: 97,
         description: 'Depot air minum isi ulang dan agen gas LPG lengkap. Tersedia gas 3kg dan 12kg. Bisa pesan via WhatsApp dan antar langsung ke depan kos.',
@@ -56,8 +62,20 @@ const mitraData = [
 
 const DetailMitraGas = ({ onOrderClick }) => {
     const navigate = useNavigate();
+    const { location } = useLocation();
     const [selectedCategories, setSelectedCategories] = useState(['gas_3kg']);
     const [sortBy, setSortBy] = useState('terdekat');
+
+    // Hitung jarak dinamis untuk setiap mitra berdasarkan lokasi user
+    const mitraWithDistance = useMemo(() => {
+        return mitraData.map((mitra) => {
+            const distance = calculateDistance(
+                location.lat, location.lng,
+                mitra.lat, mitra.lng
+            );
+            return { ...mitra, distance };
+        });
+    }, [location.lat, location.lng]);
 
     const handleCategoryChange = (category) => {
         setSelectedCategories((prev) =>
@@ -136,7 +154,7 @@ const DetailMitraGas = ({ onOrderClick }) => {
                         <div className="dmg-location">
                             <span className="material-symbols-outlined">location_on</span>
                             <h1 className="dmg-location-title">
-                                Menampilkan mitra di dekat: <span className="dmg-location-highlight">Jl. Ir. Sutami, Jebres, Surakarta</span>
+                                Menampilkan mitra di dekat: <span className="dmg-location-highlight">{location.address}</span>
                             </h1>
                         </div>
                     </div>
@@ -201,7 +219,7 @@ const DetailMitraGas = ({ onOrderClick }) => {
 
                     {/* Card List */}
                     <section className="dmg-card-list">
-                        {mitraData.map((mitra) => (
+                        {mitraWithDistance.map((mitra) => (
                             <article key={mitra.id} className="dmg-card">
                                 <div className="dmg-card-body">
                                     <div className="dmg-card-img-wrapper">
@@ -216,7 +234,7 @@ const DetailMitraGas = ({ onOrderClick }) => {
                                             <div className="dmg-card-header">
                                                 <h3 className="dmg-card-title">{mitra.name}</h3>
                                                 <span className="dmg-card-badge">
-                                                    Berada dalam jangkauan ({mitra.distance})
+                                                    Berada dalam jangkauan ({mitra.distance} KM)
                                                 </span>
                                             </div>
                                             <div className="dmg-card-rating">
