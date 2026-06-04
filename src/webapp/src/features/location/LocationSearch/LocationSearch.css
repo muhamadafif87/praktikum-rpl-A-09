@@ -1,0 +1,361 @@
+/* =============================================
+   LocationSearch Component — Styles
+   Kohesif dengan design system KostHub
+   ============================================= */
+
+/* ── Search Box ── */
+.loc-search {
+    width: 100%;
+    max-width: 42rem;
+    margin-top: 3rem;
+}
+
+/* Anchor wrapper — positions dropdown relative to search box, not entire component */
+.loc-search-anchor {
+    position: relative;
+    z-index: 20;
+}
+
+.loc-search-box {
+    padding: 0.5rem;
+    background-color: #ffffff;
+    border: 1px solid var(--lp-outline-variant, #c3c6d7);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    border-radius: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 21;
+}
+
+@media (min-width: 768px) {
+    .loc-search-box {
+        flex-direction: row;
+        border-radius: 0.5rem;
+    }
+}
+
+.loc-search-box:focus-within {
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+    border-color: var(--lp-primary-container, #2563eb);
+}
+
+.loc-search-input-wrapper {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    padding: 0 1rem;
+    gap: 0.75rem;
+}
+
+.loc-search-icon {
+    color: var(--lp-secondary, #5c5f61);
+    flex-shrink: 0;
+}
+
+.loc-search-input {
+    width: 100%;
+    border: none;
+    font-family: var(--lp-font, 'Inter', -apple-system, sans-serif);
+    font-size: 1rem;
+    color: var(--lp-on-surface, #0b1c30);
+    padding: 1rem 0;
+    outline: none;
+    background: transparent;
+}
+
+.loc-search-input::placeholder {
+    color: var(--lp-secondary, #5c5f61);
+    opacity: 0.7;
+}
+
+.loc-search-btn {
+    background-color: var(--lp-primary-container, #2563eb);
+    color: #ffffff;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 0.25rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: filter 0.2s ease, opacity 0.2s ease, background-color 0.2s ease;
+}
+
+.loc-search-btn:hover:not(:disabled) {
+    filter: brightness(0.9);
+}
+
+.loc-search-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    background-color: #94a3b8;
+}
+
+/* ── Loading Spinner ── */
+.loc-search-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(37, 99, 235, 0.2);
+    border-top: 2px solid var(--lp-primary-container, #2563eb);
+    border-radius: 50%;
+    animation: loc-spin 0.7s linear infinite;
+    flex-shrink: 0;
+}
+
+@keyframes loc-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ── Confirmed Check Icon ── */
+.loc-search-confirmed {
+    color: #16a34a;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+    animation: loc-pop 0.3s ease;
+}
+
+@keyframes loc-pop {
+    0% { transform: scale(0); }
+    70% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+/* ── Suggestions Dropdown ── */
+/* Anchored to .loc-search-anchor (position: relative) */
+/* Floats directly under the search box, overlaying the map */
+.loc-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background-color: #ffffff;
+    border: 1px solid var(--lp-outline-variant, #c3c6d7);
+    border-top: none;
+    border-radius: 0 0 0.75rem 0.75rem;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+    list-style: none;
+    margin: 0;
+    padding: 0.25rem 0;
+    max-height: 320px;
+    overflow-y: auto;
+    animation: loc-slideDown 0.2s ease;
+    text-align: left;
+}
+
+@keyframes loc-slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.loc-suggestion-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.625rem;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+    text-align: left;
+}
+
+.loc-suggestion-item:hover {
+    background-color: var(--lp-surface-container, #e5eeff);
+}
+
+.loc-suggestion-icon {
+    color: var(--lp-primary-container, #2563eb);
+    font-size: 1.25rem;
+    flex-shrink: 0;
+    line-height: 1.4;
+    margin: 0;
+    padding: 0;
+}
+
+.loc-suggestion-text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
+    text-align: left;
+    margin: 0;
+    padding: 0;
+}
+
+.loc-suggestion-main {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--lp-on-surface, #0b1c30);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.4;
+    text-align: left;
+}
+
+.loc-suggestion-detail {
+    font-size: 0.8125rem;
+    font-weight: 400;
+    color: var(--lp-secondary, #5c5f61);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+    text-align: left;
+}
+
+/* ── Reverse Geocoding Loading State ── */
+.loc-map-header--loading {
+    opacity: 0.85;
+}
+
+.loc-map-header--loading::after {
+    content: '';
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(0, 74, 198, 0.2);
+    border-top-color: var(--lp-primary, #004ac6);
+    border-radius: 50%;
+    animation: loc-spin 0.7s linear infinite;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+/* ── Mini-Map Container ── */
+.loc-map-container {
+    margin-top: 1rem;
+    background-color: #ffffff;
+    border: 1px solid var(--lp-outline-variant, #c3c6d7);
+    border-radius: 0.75rem;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    animation: loc-fadeUp 0.4s ease;
+    position: relative;
+    z-index: 1;
+}
+
+@keyframes loc-fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.loc-map-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background-color: var(--lp-surface-container, #e5eeff);
+    color: var(--lp-primary, #004ac6);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    border-bottom: 1px solid var(--lp-outline-variant, #c3c6d7);
+}
+
+.loc-map-header .material-symbols-outlined {
+    font-size: 1.125rem;
+}
+
+.loc-map-wrapper {
+    height: 240px;
+    position: relative;
+}
+
+@media (min-width: 768px) {
+    .loc-map-wrapper {
+        height: 280px;
+    }
+}
+
+.loc-map-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-top: 1px solid var(--lp-outline-variant, #c3c6d7);
+    background-color: #ffffff;
+}
+
+@media (min-width: 768px) {
+    .loc-map-footer {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+}
+
+.loc-map-coords {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+.loc-coords-icon {
+    color: var(--lp-secondary, #5c5f61);
+    font-size: 1rem;
+}
+
+.loc-coords-text {
+    font-size: 0.8125rem;
+    color: var(--lp-secondary, #5c5f61);
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    letter-spacing: 0.02em;
+}
+
+/* ── Confirm Button ── */
+.loc-confirm-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    border: 1px solid var(--lp-primary-container, #2563eb);
+    background-color: var(--lp-primary-container, #2563eb);
+    color: #ffffff;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    white-space: nowrap;
+}
+
+.loc-confirm-btn:hover {
+    filter: brightness(0.9);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.loc-confirm-btn:active {
+    transform: translateY(0);
+}
+
+.loc-confirm-btn .material-symbols-outlined {
+    font-size: 1.125rem;
+}
+
+/* Confirmed state */
+.loc-confirm-btn--confirmed {
+    background-color: #16a34a;
+    border-color: #16a34a;
+}
+
+.loc-confirm-btn--confirmed:hover {
+    filter: brightness(0.95);
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+}
