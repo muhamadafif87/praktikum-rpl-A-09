@@ -35,7 +35,7 @@ class Mitra extends Authenticatable {
     }
 
     public function Layanan(){
-        return $this->hasMany(Layanan::class, localKey:'id_mitra');
+        return $this->hasMany(Layanan::class, 'id_mitra', 'id_mitra');
     }
 
     public function Admin(){
@@ -43,6 +43,17 @@ class Mitra extends Authenticatable {
     }
 
     public function Pesanan(){
-        return $this->hasMany(Pesanan::class, localKey: 'id_mitra');
+        return $this->hasMany(Pesanan::class, 'id_mitra', 'id_mitra');
+    }
+
+    public function Ulasan(){
+        return $this->hasManyThrough(
+            Ulasan::class,
+            Pesanan::class,
+            'id_mitra',   // FK di tabel pesanan
+            'id_pesanan', // FK di tabel ulasan
+            'id_mitra',   // PK di tabel mitra
+            'id_pesanan'  // PK di tabel pesanan
+        );
     }
 }
