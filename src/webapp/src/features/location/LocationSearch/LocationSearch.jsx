@@ -5,6 +5,31 @@ import { useLocation } from '../../../context/LocationContext';
 import { useDebounce } from '../../../hooks/useDebounce';
 import './LocationSearch.css';
 
+// ══════════════════════════════════════════════════════════════
+// Mapbox Access Token — loaded from environment variable
+// Set VITE_MAPBOX_TOKEN in .env at the Vite project root
+// Get one free at: https://account.mapbox.com/access-tokens/
+// ══════════════════════════════════════════════════════════════
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || '';
+
+if (!MAPBOX_TOKEN) {
+    console.warn(
+        '[LocationSearch] VITE_MAPBOX_TOKEN is not set. ' +
+        'Add it to src/webapp/.env to enable location search.'
+    );
+}
+
+// Mapbox Search Box API (v6) endpoints - specifically designed for POIs and businesses
+const MAPBOX_SUGGEST_URL = 'https://api.mapbox.com/search/searchbox/v1/suggest';
+const MAPBOX_RETRIEVE_URL = 'https://api.mapbox.com/search/searchbox/v1/retrieve';
+const MAPBOX_REVERSE_URL = 'https://api.mapbox.com/search/searchbox/v1/reverse';
+
+// Surakarta/Solo center coordinates (for proximity bias)
+const SOLO_CENTER = { lng: 110.8237, lat: -7.5755 };
+
+// Strict Surakarta bounding box: [minLng, minLat, maxLng, maxLat]
+const SOLO_BBOX = '110.73,-7.62,110.89,-7.50';
+
 // Fix default marker icon issue with bundlers (Vite/Webpack)
 // Leaflet's default icon paths break when bundled — we manually set them
 delete L.Icon.Default.prototype._getIconUrl;
@@ -56,7 +81,8 @@ const DraggableMarker = ({ position, onDragEnd }) => {
 
 /**
  * LocationSearch — Komponen pencarian lokasi dengan autocomplete + mini-map.
- * 
+ * Menggunakan Mapbox Geocoding API v5 untuk forward & reverse geocoding.
+ *
  * Props:
  * - onConfirm: callback ketika user mengonfirmasi lokasi (opsional)
  * - onSearchSubmit: callback ketika user klik "Cari Layanan" (opsional)
@@ -76,13 +102,18 @@ const LocationSearch = ({ onConfirm, onSearchSubmit }) => {
     const [pinLng, setPinLng] = useState(null);
     const [selectedAddress, setSelectedAddress] = useState('');
     const [isConfirmed, setIsConfirmed] = useState(false);
+    const [isReverseGeocoding, setIsReverseGeocoding] = useState(false);
+    // Generate a session token for Mapbox suggest/retrieve pairing
+    const [sessionToken] = useState(() => Math.random().toString(36).substring(2) + Date.now().toString(36));
 
-    const debouncedQuery = useDebounce(query, 400);
+    // Debounce lowered to 200ms for snappier Mapbox typeahead
+    const debouncedQuery = useDebounce(query, 200);
     const wrapperRef = useRef(null);
     const inputRef = useRef(null);
 
     // Close suggestions dropdown when clicking outside
     useEffect(() => {
+        console.log("Token loaded:", import.meta.env.VITE_MAPBOX_TOKEN ? "Yes" : "No", "Token value:", import.meta.env.VITE_MAPBOX_TOKEN);
         const handleClickOutside = (e) => {
             if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
                 setShowSuggestions(false);
@@ -92,108 +123,130 @@ const LocationSearch = ({ onConfirm, onSearchSubmit }) => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    // Fetch suggestions from Nominatim when debounced query changes
+    // ── Forward Geocoding: Fetch suggestions from Mapbox ──
     useEffect(() => {
-        if (!debouncedQuery || debouncedQuery.length < 3) {
+        if (!debouncedQuery || debouncedQuery.length < 1) {
             setSuggestions([]);
             return;
         }
 
+        const controller = new AbortController();
+
         const fetchSuggestions = async () => {
             setIsLoadingSuggestions(true);
             try {
-                // Nominatim search with viewbox limited to Solo area
-                // viewbox: west,south,east,north (Solo area bounding box)
+                // Mapbox Search Box API (v6) Suggest endpoint for true typeahead
                 const params = new URLSearchParams({
-                    q: debouncedQuery,
-                    format: 'json',
-                    addressdetails: '1',
-                    limit: '6',
-                    viewbox: '110.75,-7.62,110.90,-7.50',
-                    bounded: '1',
-                    'accept-language': 'id',
+                    access_token: MAPBOX_TOKEN,
+                    q: debouncedQuery.trim(),
+                    bbox: SOLO_BBOX,
+                    proximity: `${SOLO_CENTER.lng},${SOLO_CENTER.lat}`,
+                    types: 'poi,address,neighborhood,locality,place',
+                    language: 'id',
+                    limit: '8',
+                    session_token: sessionToken
                 });
 
-                const response = await fetch(
-                    `https://nominatim.openstreetmap.org/search?${params.toString()}`,
-                    {
-                        headers: {
-                            'User-Agent': 'KostHub-App/1.0',
-                        },
-                    }
-                );
+                const fetchUrl = `${MAPBOX_SUGGEST_URL}?${params.toString()}`;
+                console.log("Fetching URL:", fetchUrl);
 
-                if (!response.ok) throw new Error('Nominatim API error');
+                const response = await fetch(fetchUrl, { signal: controller.signal });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Mapbox Geocoding API error ${response.status}: ${errorText}`);
+                }
 
                 const data = await response.json();
-                setSuggestions(data);
-                setShowSuggestions(data.length > 0);
+                const features = data.suggestions || []; // v6 suggest returns 'suggestions'
+
+                // Deduplicate by mapbox_id
+                const seenIds = new Set();
+                const deduped = features.filter((f) => {
+                    const id = f.mapbox_id;
+                    if (seenIds.has(id)) return false;
+                    seenIds.add(id);
+                    return true;
+                });
+
+                setSuggestions(deduped);
+                setShowSuggestions(deduped.length > 0);
             } catch (err) {
-                console.error('Error fetching suggestions:', err);
-                setSuggestions([]);
+                if (err.name !== 'AbortError') {
+                    console.error('Mapbox Fetch Error:', err);
+                    setSuggestions([]);
+                }
             } finally {
                 setIsLoadingSuggestions(false);
             }
         };
 
         fetchSuggestions();
+
+        return () => controller.abort();
     }, [debouncedQuery]);
 
     /**
-     * Format display name dari Nominatim response.
-     * Menampilkan detail kelurahan, kecamatan, kota/kabupaten.
+     * Mengambil label utama (title) dari Mapbox v6 suggest feature.
      */
-    const formatAddress = (item) => {
-        const addr = item.address || {};
-        const parts = [];
+    const getSuggestionTitle = (feature) => {
+        return feature.name || 'Lokasi';
+    };
 
-        // Road/place name
-        if (addr.road) parts.push(addr.road);
-        else if (addr.hamlet) parts.push(addr.hamlet);
-        else if (addr.village) parts.push(addr.village);
-        else if (item.display_name) {
-            // Use first part of display_name as fallback
-            const firstPart = item.display_name.split(',')[0];
-            parts.push(firstPart);
+    /**
+     * Mengambil detail alamat dari Mapbox v6 suggest feature.
+     */
+    const getAddressDetail = (feature) => {
+        return feature.place_formatted || feature.full_address || '';
+    };
+
+    /**
+     * Format a Mapbox feature into a clean display address for the input field.
+     */
+    const formatDisplayAddress = (feature) => {
+        const title = getSuggestionTitle(feature);
+        const detail = getAddressDetail(feature);
+        if (detail && detail !== title) {
+            return `${title}, ${detail}`;
         }
-
-        // Kelurahan/Suburb
-        if (addr.suburb) parts.push(addr.suburb);
-        else if (addr.village) parts.push(addr.village);
-
-        // Kecamatan
-        if (addr.city_district) parts.push(addr.city_district);
-        else if (addr.borough) parts.push(addr.borough);
-
-        // Kota/Kabupaten
-        if (addr.city) parts.push(addr.city);
-        else if (addr.town) parts.push(addr.town);
-        else if (addr.county) parts.push(addr.county);
-
-        // Deduplicate
-        const unique = [...new Set(parts)];
-        return unique.join(', ') || item.display_name;
+        return title;
     };
 
     /**
      * Saat user memilih alamat dari dropdown autocomplete.
+     * v6 suggest returns a mapbox_id. We must retrieve coordinates via /retrieve.
      */
-    const handleSelectSuggestion = (item) => {
-        const lat = parseFloat(item.lat);
-        const lng = parseFloat(item.lon);
-        const address = formatAddress(item);
+    const handleSelectSuggestion = async (feature) => {
+        setIsReverseGeocoding(true); // Re-use spinner for retrieving coordinates
+        try {
+            const retrieveUrl = `${MAPBOX_RETRIEVE_URL}/${feature.mapbox_id}?access_token=${MAPBOX_TOKEN}&session_token=${sessionToken}`;
+            const response = await fetch(retrieveUrl);
+            const data = await response.json();
+            
+            if (data.features && data.features.length > 0) {
+                const fullFeature = data.features[0];
+                const [lng, lat] = fullFeature.geometry.coordinates;
+                const address = formatDisplayAddress(feature); // formatting using the original suggestion
 
-        setPinLat(lat);
-        setPinLng(lng);
-        setSelectedAddress(address);
-        setQuery(address);
-        setShowSuggestions(false);
-        setShowMap(true);
-        setIsConfirmed(false);
+                setPinLat(lat);
+                setPinLng(lng);
+                setSelectedAddress(address);
+                setQuery(address);
+                setShowSuggestions(false);
+                setShowMap(true);
+                setIsConfirmed(false);
+            }
+        } catch (e) {
+            console.error("Retrieve error", e);
+        } finally {
+            setIsReverseGeocoding(false);
+        }
     };
 
     /**
      * Saat user menggeser pin di peta.
+     * Focuses PURELY on capturing latitude and longitude coordinates.
+     * Does NOT reverse geocode or overwrite the user's main search input text.
      */
     const handleMarkerDragEnd = (lat, lng) => {
         setPinLat(lat);
@@ -218,11 +271,8 @@ const LocationSearch = ({ onConfirm, onSearchSubmit }) => {
     const handleSearchSubmit = (e) => {
         if (e) e.preventDefault();
         
-        // Auto-confirm jika belum dikonfirmasi
-        if (!isConfirmed && pinLat && pinLng && selectedAddress) {
-            setLocation(selectedAddress, pinLat, pinLng);
-            setIsConfirmed(true);
-        }
+        // Hanya lanjut jika lokasi sudah dikonfirmasi
+        if (!isConfirmed) return;
 
         if (onSearchSubmit) onSearchSubmit();
     };
@@ -232,7 +282,7 @@ const LocationSearch = ({ onConfirm, onSearchSubmit }) => {
             e.preventDefault();
             if (showSuggestions && suggestions.length > 0) {
                 handleSelectSuggestion(suggestions[0]);
-            } else if (isConfirmed || (pinLat && pinLng)) {
+            } else if (isConfirmed) {
                 handleSearchSubmit();
             }
         }
@@ -240,75 +290,81 @@ const LocationSearch = ({ onConfirm, onSearchSubmit }) => {
 
     return (
         <div className="loc-search" ref={wrapperRef}>
-            {/* Search Input Bar */}
-            <form className="loc-search-box" onSubmit={handleSearchSubmit}>
-                <div className="loc-search-input-wrapper">
-                    <span className="material-symbols-outlined loc-search-icon">location_on</span>
-                    <input
-                        ref={inputRef}
-                        className="loc-search-input"
-                        placeholder="Masukkan alamat kos atau apartemenmu di Solo..."
-                        type="text"
-                        value={query}
-                        onChange={(e) => {
-                            setQuery(e.target.value);
-                            setIsConfirmed(false);
-                            if (e.target.value.length < 3) {
-                                setShowMap(false);
-                            }
-                        }}
-                        onFocus={() => {
-                            if (suggestions.length > 0) setShowSuggestions(true);
-                        }}
-                        onKeyDown={handleKeyDown}
-                        autoComplete="off"
-                        id="location-search-input"
-                    />
-                    {isLoadingSuggestions && (
-                        <div className="loc-search-spinner" />
-                    )}
-                    {isConfirmed && (
-                        <span className="material-symbols-outlined loc-search-confirmed">check_circle</span>
-                    )}
-                </div>
-                <button
-                    type="submit"
-                    className="loc-search-btn"
-                    disabled={!location.isConfirmed && !isConfirmed && !(pinLat && pinLng)}
-                >
-                    Cari Layanan
-                </button>
-            </form>
+            {/* Search Input Bar + Dropdown Anchor */}
+            <div className="loc-search-anchor">
+                <form className="loc-search-box" onSubmit={handleSearchSubmit}>
+                    <div className="loc-search-input-wrapper">
+                        <span className="material-symbols-outlined loc-search-icon">location_on</span>
+                        <input
+                            ref={inputRef}
+                            className="loc-search-input"
+                            placeholder="Masukkan alamat kos atau apartemenmu di Solo..."
+                            type="text"
+                            value={query}
+                            onChange={(e) => {
+                                setQuery(e.target.value);
+                                setIsConfirmed(false);
+                                if (e.target.value.length < 1) {
+                                    setShowMap(false);
+                                }
+                            }}
+                            onFocus={() => {
+                                if (suggestions.length > 0) setShowSuggestions(true);
+                            }}
+                            onKeyDown={handleKeyDown}
+                            autoComplete="off"
+                            id="location-search-input"
+                        />
+                        {isLoadingSuggestions && (
+                            <div className="loc-search-spinner" />
+                        )}
+                        {isConfirmed && (
+                            <span className="material-symbols-outlined loc-search-confirmed">check_circle</span>
+                        )}
+                    </div>
+                    <button
+                        type="submit"
+                        className="loc-search-btn"
+                        disabled={!isConfirmed}
+                    >
+                        Cari Layanan
+                    </button>
+                </form>
 
-            {/* Autocomplete Dropdown */}
-            {showSuggestions && suggestions.length > 0 && (
-                <ul className="loc-suggestions" id="location-suggestions">
-                    {suggestions.map((item, idx) => (
-                        <li
-                            key={item.place_id || idx}
-                            className="loc-suggestion-item"
-                            onClick={() => handleSelectSuggestion(item)}
-                        >
-                            <span className="material-symbols-outlined loc-suggestion-icon">place</span>
-                            <div className="loc-suggestion-text">
-                                <span className="loc-suggestion-main">
-                                    {item.address?.road || item.address?.hamlet || item.address?.village || item.display_name.split(',')[0]}
-                                </span>
-                                <span className="loc-suggestion-detail">
-                                    {formatAddress(item)}
-                                </span>
-                            </div>
-                        </li>
-                    ))}
-                </ul>
-            )}
+                {/* Autocomplete Dropdown — anchored to search box, overlays map */}
+                {showSuggestions && suggestions.length > 0 && (
+                    <ul className="loc-suggestions" id="location-suggestions">
+                        {suggestions.map((feature, idx) => (
+                            <li
+                                key={feature.id || idx}
+                                className="loc-suggestion-item"
+                                onClick={() => handleSelectSuggestion(feature)}
+                            >
+                                <span className="material-symbols-outlined loc-suggestion-icon">place</span>
+                                <div className="loc-suggestion-text">
+                                    <span className="loc-suggestion-main">
+                                        {getSuggestionTitle(feature)}
+                                    </span>
+                                    <span className="loc-suggestion-detail">
+                                        {getAddressDetail(feature)}
+                                    </span>
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </div>
 
             {/* Mini-Map with Draggable Pin */}
             {showMap && pinLat && pinLng && (
                 <div className="loc-map-container">
-                    <div className="loc-map-header">
+                    <div className={`loc-map-header${isReverseGeocoding ? ' loc-map-header--loading' : ''}`}>
                         <span className="material-symbols-outlined">my_location</span>
-                        <span>Geser pin untuk akurasi lokasi yang lebih presisi</span>
+                        <span>
+                            {isReverseGeocoding
+                                ? 'Memperbarui alamat...'
+                                : 'Geser pin untuk akurasi lokasi yang lebih presisi'}
+                        </span>
                     </div>
                     <div className="loc-map-wrapper" id="location-minimap">
                         <MapContainer

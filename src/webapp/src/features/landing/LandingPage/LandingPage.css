@@ -166,7 +166,7 @@
     text-align: center;
     background-color: var(--lp-surface);
     padding: 3rem 1rem;
-    overflow: hidden;
+    z-index: 20;
 }
 
 .lp-hero-content {
@@ -284,6 +284,7 @@
     inset: 0;
     opacity: 0.4;
     pointer-events: none;
+    overflow: hidden;
 }
 
 .lp-hero-orb-1 {
