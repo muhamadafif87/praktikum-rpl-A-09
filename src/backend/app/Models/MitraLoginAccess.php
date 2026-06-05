@@ -17,6 +17,12 @@ class MitraLoginAccess extends Authenticatable{
 
     protected $foreignKey = 'id_mitra';
 
+    protected $fillable = [
+        'id_mitra',
+        'email',
+        'password',
+    ];
+
     protected $hidden = ['password'];
 
     protected function casts(){
@@ -26,6 +32,6 @@ class MitraLoginAccess extends Authenticatable{
     }
 
     public function Mitra(){
-        return $this->hasOne(Mitra::class, 'id_mitra', 'id_mitra_user');
+        return $this->belongsTo(Mitra::class, 'id_mitra');
     }
 }
