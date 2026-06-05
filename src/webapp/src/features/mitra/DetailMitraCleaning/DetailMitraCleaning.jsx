@@ -184,7 +184,7 @@ const DetailMitraCleaning = ({ onOrderClick }) => {
                             <a className="dmc-nav-link dmc-nav-link--active" href="#" onMouseEnter={handleNavHover} onClick={handleNavClick} aria-current="page">Daily Cleaning</a>
                         </li>
                         <li className="dmc-nav-item">
-                            <a className="dmc-nav-link" href="#" onMouseEnter={handleNavHover}>Tentang Kami</a>
+                            <TransitionLink className="dmc-nav-link" to="/tentang-kami" onMouseEnter={handleNavHover} onClick={handleNavClick}>Tentang Kami</TransitionLink>
                         </li>
                     </ul>
 
