@@ -8,8 +8,6 @@ import './DetailMitraCleaning.css';
 const DetailMitraCleaning = ({ onOrderClick }) => {
     const navigate = useNavigate();
     const { location } = useLocation();
-    const [selectedCategories, setSelectedCategories] = useState(['kamar_mandi']);
-    const [sortBy, setSortBy] = useState('terdekat');
     const navLinksRef = useRef(null);
 
     // ── Sliding Indicator Logic ──
@@ -73,8 +71,6 @@ const DetailMitraCleaning = ({ onOrderClick }) => {
         }
     };
 
-    const navigate = useNavigate();
-    const [selectedCategories, setSelectedCategories] = useState([]);
     const [sortBy, setSortBy] = useState('Terbaik');
 
     const handleCategoryChange = (category) => {
