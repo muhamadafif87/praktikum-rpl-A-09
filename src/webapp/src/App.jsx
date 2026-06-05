@@ -11,7 +11,6 @@ import MitraDashboardPage from './pages/MitraDashboardPage';
 
 // Placeholder components for dashboard pages
 const DashboardAdmin = () => <div style={{ padding: '20px' }}><h1>Dashboard Admin</h1></div>;
-const DashboardMitra = () => <div style={{ padding: '20px' }}><h1>Dashboard Mitra</h1></div>;
 const ProfilePage = () => <div style={{ padding: '20px' }}><h1>Profil Saya</h1></div>;
 const SettingsPage = () => <div style={{ padding: '20px' }}><h1>Pengaturan</h1></div>;
 
@@ -28,7 +27,7 @@ const App = () => {
 
                 {/* Dashboard routes */}
                 <Route path="/dashboard/admin" element={<DashboardAdmin />} />
-                <Route path="/dashboard/mitra" element={<DashboardMitra />} />
+                <Route path="/dashboard/mitra" element={<MitraDashboardPage />} />
 
                 {/* Profile routes */}
                 <Route path="/profile" element={<ProfilePage />} />
