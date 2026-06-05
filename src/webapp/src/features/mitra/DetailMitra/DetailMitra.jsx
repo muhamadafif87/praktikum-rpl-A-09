@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useLayoutEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import TransitionLink from '../../../components/ViewTransition/TransitionLink';
 import { useLocation } from '../../../context/LocationContext';
 import { calculateDistance } from '../../../utils/distance';
 import './DetailMitra.css';
@@ -65,6 +66,68 @@ const DetailMitra = ({ onOrderClick }) => {
     const { location } = useLocation();
     const [selectedCategories, setSelectedCategories] = useState(['pakaian']);
     const [sortBy, setSortBy] = useState('terdekat');
+    const navLinksRef = useRef(null);
+
+    // ── Sliding Indicator Logic ──
+    const updateIndicator = useCallback((targetEl) => {
+        const ul = navLinksRef.current;
+        if (!ul || !targetEl) return;
+        const ulRect = ul.getBoundingClientRect();
+        const linkRect = targetEl.getBoundingClientRect();
+        ul.style.setProperty('--indicator-left', `${linkRect.left - ulRect.left}px`);
+        ul.style.setProperty('--indicator-width', `${linkRect.width}px`);
+    }, []);
+
+    useLayoutEffect(() => {
+        const ul = navLinksRef.current;
+        if (!ul) return;
+        const activeLink = ul.querySelector('.dm-nav-link--active');
+        if (!activeLink) return;
+
+        const prevRaw = sessionStorage.getItem('nav-indicator');
+        const hasPrev = !!prevRaw;
+
+        ul.style.setProperty('--indicator-transition', 'none');
+
+        if (hasPrev) {
+            const { left, width } = JSON.parse(prevRaw);
+            ul.style.setProperty('--indicator-left', left);
+            ul.style.setProperty('--indicator-width', width);
+            sessionStorage.removeItem('nav-indicator');
+        } else {
+            updateIndicator(activeLink);
+        }
+
+        void ul.offsetHeight;
+        ul.style.removeProperty('--indicator-transition');
+
+        if (hasPrev) {
+            updateIndicator(activeLink);
+        }
+    }, [updateIndicator]);
+
+    const handleNavHover = (e) => {
+        updateIndicator(e.currentTarget);
+    };
+
+    const handleNavLeave = () => {
+        const ul = navLinksRef.current;
+        if (!ul) return;
+        const activeLink = ul.querySelector('.dm-nav-link--active');
+        if (activeLink) {
+            updateIndicator(activeLink);
+        }
+    };
+
+    const handleNavClick = () => {
+        const ul = navLinksRef.current;
+        if (!ul) return;
+        const left = ul.style.getPropertyValue('--indicator-left');
+        const width = ul.style.getPropertyValue('--indicator-width');
+        if (left && width) {
+            sessionStorage.setItem('nav-indicator', JSON.stringify({ left, width }));
+        }
+    };
 
     // Hitung jarak dinamis untuk setiap mitra berdasarkan lokasi user
     const mitraWithDistance = useMemo(() => {
@@ -112,21 +175,21 @@ const DetailMitra = ({ onOrderClick }) => {
                     </div>
 
                     {/* Navigation Links (Desktop) */}
-                    <ul className="dm-nav-links">
+                    <ul className="dm-nav-links" ref={navLinksRef} onMouseLeave={handleNavLeave}>
                         <li className="dm-nav-item">
-                            <Link className="dm-nav-link" to="/">Home</Link>
+                            <TransitionLink className="dm-nav-link" to="/" onMouseEnter={handleNavHover} onClick={handleNavClick}>Home</TransitionLink>
                         </li>
                         <li className="dm-nav-item">
-                            <Link className="dm-nav-link" to="/gas-galon">Gas &amp; Galon</Link>
+                            <TransitionLink className="dm-nav-link" to="/gas-galon" onMouseEnter={handleNavHover} onClick={handleNavClick}>Gas &amp; Galon</TransitionLink>
                         </li>
                         <li className="dm-nav-item">
-                            <Link className="dm-nav-link dm-nav-link--active" to="/laundry">Laundry Express</Link>
+                            <a className="dm-nav-link dm-nav-link--active" href="#" onMouseEnter={handleNavHover} onClick={handleNavClick} aria-current="page">Laundry Express</a>
                         </li>
                         <li className="dm-nav-item">
-                            <Link className="dm-nav-link" to="/daily-cleaning">Daily Cleaning</Link>
+                            <TransitionLink className="dm-nav-link" to="/daily-cleaning" onMouseEnter={handleNavHover} onClick={handleNavClick}>Daily Cleaning</TransitionLink>
                         </li>
                         <li className="dm-nav-item">
-                            <a className="dm-nav-link" href="#">Tentang Kami</a>
+                            <a className="dm-nav-link" href="#" onMouseEnter={handleNavHover}>Tentang Kami</a>
                         </li>
                     </ul>
 
