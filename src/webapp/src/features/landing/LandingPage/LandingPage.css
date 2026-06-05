@@ -293,7 +293,7 @@
     left: -10%; /* Left Side */
     width: 450px;
     height: 450px;
-    background-color: rgba(96, 165, 250, 0.15); /* Soft blue/cyan tint (bg-blue-400/15) */
+    background-color: rgba(96, 165, 250, 0.25); /* Soft blue/cyan tint (bg-blue-400/25) */
     border-radius: 50%;
     filter: blur(120px);
     animation: drift-orb-1 25s ease-in-out infinite;
@@ -305,7 +305,7 @@
     right: -10%; /* Mid-Right Side */
     width: 400px;
     height: 400px;
-    background-color: rgba(129, 140, 248, 0.15); /* Soft indigo/blue tint (bg-indigo-400/15) */
+    background-color: rgba(129, 140, 248, 0.25); /* Soft indigo/blue tint (bg-indigo-400/25) */
     border-radius: 50%;
     filter: blur(100px);
     animation: drift-orb-2 28s ease-in-out infinite reverse; /* Staggered and reverse */
