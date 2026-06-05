@@ -5,62 +5,6 @@ import { useLocation } from '../../../context/LocationContext';
 import { calculateDistance } from '../../../utils/distance';
 import './DetailMitraGas.css';
 
-// Data mitra gas & galon (static data - nanti bisa diganti dari API backend Laravel + Supabase)
-// Setiap mitra sekarang memiliki koordinat lat/lng untuk kalkulasi jarak
-const mitraData = [
-    {
-        id: 1,
-        name: 'Gas Mantap Solo',
-        lat: -7.5540,
-        lng: 110.8560,
-        rating: 4.9,
-        reviewCount: 185,
-        description: 'Agen gas LPG dan galon air mineral terpercaya di Solo. Melayani antar cepat ke area kos-kosan sekitar UNS dengan harga bersahabat dan stok selalu tersedia.',
-        price: 'Mulai dari Rp 20.000/tabung 3kg',
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDn68W3rFM4GudQFBrdGbGAcbh3fY2Hl7ApVpf5dQ3YCw5INPj172n_KRsTcKEJkJQ2XcXrpfQ1yqIRx3hrYqxpX8RsXzWuV9VsJcqYhjoJWY5sERqHASD4DSfwqn9mRTykLTx-aimRG6SbXzPT2RuSClhdGf7FljkGwz-bh4s0Jtz1GmV39Hi02xFIAnyRAuENhZQXkiqcS7uBGrrBYUnXOeX-6Y0Q7kamYKrBGcosh99_1bnXXJNuCnlHA9GaLhxbIAjEiwYY4V0',
-        reviews: [
-            { name: 'Ade', rating: '5.0', text: 'Antar cepat, gas selalu ready!' },
-            { name: 'Afif', rating: '4.8', text: 'Harga murah, pelayanan ramah' },
-            { name: 'Aerio', rating: '5.0', text: 'Langganan sejak semester 1' },
-        ],
-        marqueeSpeed: '30s',
-    },
-    {
-        id: 2,
-        name: 'Galon Berkah Jebres',
-        lat: -7.5620,
-        lng: 110.8510,
-        rating: 4.7,
-        reviewCount: 142,
-        description: 'Spesialis galon air mineral berbagai merek. Tersedia Aqua, Le Minerale, dan Cleo. Free ongkir untuk area Jebres dan sekitarnya dengan minimum pembelian 2 galon.',
-        price: 'Mulai dari Rp 18.000/galon',
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBuutGa2SI-VZXt1A64IUr9ZChKBz0e1_OVvuFxCOpBToguYXLoLgw6kZmfg5rFPjbh1qf5x5X7cwFudfK-zUimxizVi6Rofd3GfN7IPhhO-c3WmeUUKwDABdn5JINc2g3SUjKGxB4DpuDt_NEv6O-CCn3y6qfkuG4cKckUHm5zF2g4JW69CmD5nvMBaNPo_nlWcLc_A5MmmjP6g2Fi_GZJy0eMUlT_k2kQhC5tt95zMflRvcXu1h3Fbrd0wQACNfd9LANBYm-ErdQ',
-        reviews: [
-            { name: 'Ade', rating: '5.0', text: 'Galon always fresh, suka!' },
-            { name: 'Afif', rating: '4.5', text: 'Pilihan merek lengkap' },
-            { name: 'Aerio', rating: '4.8', text: 'Free ongkir mantap!' },
-        ],
-        marqueeSpeed: '25s',
-    },
-    {
-        id: 3,
-        name: 'Depot Air Kentingan',
-        lat: -7.5590,
-        lng: 110.8640,
-        rating: 4.6,
-        reviewCount: 97,
-        description: 'Depot air minum isi ulang dan agen gas LPG lengkap. Tersedia gas 3kg dan 12kg. Bisa pesan via WhatsApp dan antar langsung ke depan kos.',
-        price: 'Mulai dari Rp 15.000/galon',
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCjA_GMUuQr_j019v6Wvbu9tjBu3OJN4zkE01lZc_Kl9Zgpn7SMzvjk27rB-S38m6GqKQDo3N1UPin2ayJmp4x0G-Q5LKdJWTNe3xCvzi-5cGPgxBEH8TSV2fKWTcuwtc3F1duY_5TlxJ6ZIAkQMXkKN6iFJmqdX2bcyldLCuLhlh6XRULjdCicrhKfLlXjLvlsFBwFRpEGioUwXLzWS8rcygygALyQBKklZh6B9sCFyEUoOXxLYK7RXP_RUrN5ZtPKGL1pqf-AhOY',
-        reviews: [
-            { name: 'Ade', rating: '4.5', text: 'Air isi ulang murah banget' },
-            { name: 'Afif', rating: '4.8', text: 'Gas 12kg juga ada, lengkap!' },
-            { name: 'Aerio', rating: '5.0', text: 'Pesan WA langsung antar' },
-        ],
-        marqueeSpeed: '35s',
-    },
-];
-
 const DetailMitraGas = ({ onOrderClick }) => {
     const navigate = useNavigate();
     const { location } = useLocation();
@@ -129,27 +73,87 @@ const DetailMitraGas = ({ onOrderClick }) => {
         }
     };
 
-    // Hitung jarak dinamis untuk setiap mitra berdasarkan lokasi user
-    const mitraWithDistance = useMemo(() => {
-        return mitraData.map((mitra) => {
-            const distance = calculateDistance(
-                location.lat, location.lng,
-                mitra.lat, mitra.lng
-            );
-            return { ...mitra, distance };
-        });
-    }, [location.lat, location.lng]);
+    const [mitraList, setMitraList] = useState([]);
+    const [mitraLoading, setMitraLoading] = useState(true);
+    const [mitraError, setMitraError] = useState('');
+
+    const [selectedCategories, setSelectedCategories] = useState([]);
+    const [sortBy, setSortBy] = useState('Terbaik');
+
+    const fetchMitraData = async (kategori = 'All', sortByValue = 'Terbaik') => {
+        setMitraLoading(true);
+        setMitraError('');
+
+        try {
+            const response = await api.get('/v1/landing-page/galon-gas', {
+                params: {
+                    kategori: kategori,
+                    sortBy: sortByValue,
+                }
+            });
+            const { data } = response.data;
+
+            const transformedData = data.map((mitra) => ({
+                id: mitra.id_mitra,
+                name: mitra.nama_mitra,
+                type: mitra.jenis_jasa,
+                location: mitra.lokasi_layanan,
+                distance: '0.5 KM', // Nanti bisa diambil dari API jika ada
+                rating: mitra.rating,
+                reviewCount: mitra.jumlah_ulasan,
+                description: `${mitra.jenis_jasa === 'gas' ? 'Agen gas LPG' : 'Layanan galon'} terpercaya. ${mitra.layanan?.length || 0} jenis layanan tersedia.`,
+                price: mitra.layanan?.length > 0
+                    ? `Mulai dari Rp ${parseInt(mitra.layanan[0].harga_satuan).toLocaleString('id-ID')}`
+                    : 'Hubungi untuk info harga',
+                image: `https://via.placeholder.com/300x200?text=${encodeURIComponent(mitra.nama_mitra)}`,
+                layanan: mitra.layanan || [],
+                reviews: (mitra.sample_ulasan || []).map((ulasan) => ({
+                    name: ulasan.nama_user,
+                    rating: `${ulasan.rating}.0`,
+                    text: ulasan.komentar,
+                })),
+                marqueeSpeed: '30s',
+            }));
+
+            setMitraList(transformedData);
+        } catch (err) {
+            console.error('Error fetching mitra data:', err);
+            if (err.response) {
+                setMitraError(err.response.data?.message || 'Gagal memuat data mitra');
+            } else if (err.request) {
+                setMitraError('Tidak dapat terhubung ke server.');
+            } else {
+                setMitraError('Terjadi kesalahan saat memuat data.');
+            }
+        } finally {
+            setMitraLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchMitraData(['All'], 'Terbaik');
+    }, []);
+
+    // Effect untuk listen perubahan filter (kategori dan sortBy)
+    useEffect(() => {
+        const kategoriParam = selectedCategories.length > 0 ? selectedCategories : ['All'];
+        fetchMitraData(kategoriParam, sortBy);
+    }, [selectedCategories, sortBy]);
 
     const handleCategoryChange = (category) => {
-        setSelectedCategories((prev) =>
-            prev.includes(category)
-                ? prev.filter((c) => c !== category)
-                : [...prev, category]
-        );
+        setSelectedCategories((prev) => {
+            let newCategories;
+            if (prev.includes(category)) {
+                newCategories = prev.filter((c) => c !== category);
+            } else {
+                newCategories = [...prev, category];
+            }
+
+            return newCategories;
+        });
     };
 
     const handleOrderClick = (mitra) => {
-        // Cek apakah user sudah login (token di localStorage dari Laravel Sanctum)
         const token = localStorage.getItem('token');
         if (!token) {
             // User belum login → trigger auth interceptor
@@ -157,7 +161,6 @@ const DetailMitraGas = ({ onOrderClick }) => {
                 onOrderClick(mitra);
             }
         } else {
-            // User sudah login → lanjut ke pemesanan (belum diimplementasi)
             console.log('Melanjutkan pemesanan untuk:', mitra.name);
         }
     };
@@ -195,12 +198,69 @@ const DetailMitraGas = ({ onOrderClick }) => {
 
                     {/* Trailing Action */}
                     <div className="dmg-nav-actions">
-                        <button
-                            onClick={() => navigate('/login')}
-                            className="dmg-btn-nav"
-                        >
-                            Masuk / Daftar
-                        </button>
+                        {isAuthenticated ? (
+                            <div className="dmg-profile-menu">
+                                <button
+                                    className="dmg-profile-btn"
+                                    onClick={() => setShowProfileMenu(!showProfileMenu)}
+                                    title={user?.nama_lengkap || user?.nama_mitra || user?.nama || 'User'}
+                                >
+                                    <div className="dmg-profile-avatar">
+                                        <span className="material-symbols-outlined">account_circle</span>
+                                    </div>
+                                </button>
+
+                                {showProfileMenu && (
+                                    <div className="dmg-profile-dropdown">
+                                        <div className="dmg-profile-info">
+                                            <p className="dmg-profile-name">
+                                                {user?.nama_lengkap || user?.nama_mitra || user?.nama || 'User'}
+                                            </p>
+                                            <p className="dmg-profile-email">{user?.email}</p>
+                                        </div>
+                                        <hr className="dmg-profile-divider" />
+                                        <button
+                                            className="dmg-profile-link"
+                                            onClick={() => {
+                                                navigate('/profile');
+                                                setShowProfileMenu(false);
+                                            }}
+                                        >
+                                            <span className="material-symbols-outlined">person</span>
+                                            Profil Saya
+                                        </button>
+                                        <button
+                                            className="dmg-profile-link"
+                                            onClick={() => {
+                                                navigate('/settings');
+                                                setShowProfileMenu(false);
+                                            }}
+                                        >
+                                            <span className="material-symbols-outlined">settings</span>
+                                            Pengaturan
+                                        </button>
+                                        <button
+                                            className="dmg-profile-link dmg-profile-logout"
+                                            onClick={() => {
+                                                logout();
+                                                setShowProfileMenu(false);
+                                                navigate('/');
+                                            }}
+                                        >
+                                            <span className="material-symbols-outlined">logout</span>
+                                            Keluar
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <button
+                                onClick={() => navigate('/login')}
+                                className="dmg-btn-nav"
+                            >
+                                Masuk / Daftar
+                            </button>
+                        )}
                     </div>
                 </div>
             </nav>
@@ -217,7 +277,7 @@ const DetailMitraGas = ({ onOrderClick }) => {
                         <div className="dmg-location">
                             <span className="material-symbols-outlined">location_on</span>
                             <h1 className="dmg-location-title">
-                                Menampilkan mitra di dekat: <span className="dmg-location-highlight">{location.address}</span>
+                                Menampilkan mitra di dekat: <span className="dmg-location-highlight">Jl. Ir. Sutami, Jebres, Surakarta</span>
                             </h1>
                         </div>
                     </div>
@@ -232,22 +292,23 @@ const DetailMitraGas = ({ onOrderClick }) => {
                                 <h2 className="dmg-filter-title">Filter</h2>
                                 <button
                                     className="dmg-filter-reset"
-                                    onClick={() => setSelectedCategories(['gas_3kg'])}
+                                    onClick={() => setSelectedCategories([])}
                                 >
                                     Reset
                                 </button>
                             </div>
 
-                            {/* Filter Groups */}
                             <div>
                                 <div className="dmg-filter-group">
                                     <label className="dmg-filter-label">Kategori</label>
                                     <div className="dmg-filter-options">
                                         {[
-                                            { key: 'gas_3kg', label: 'Gas 3kg' },
-                                            { key: 'gas_12kg', label: 'Gas 12kg' },
-                                            { key: 'galon_aqua', label: 'Galon Aqua' },
-                                            { key: 'galon_le_minerale', label: 'Galon Le Minerale' },
+                                            { key: 'Gas 3kg', label: 'Gas 3kg' },
+                                            { key: 'Gas 5kg', label: 'Gas 5kg' },
+                                            { key: 'Gas 10kg', label: 'Gas 10kg' },
+                                            { key: 'Galon 5L', label: 'Galon 5L' },
+                                            { key: 'Galon 15L', label: 'Galon 15L' },
+                                            { key: 'All', label: 'Semua' },
                                         ].map((cat) => (
                                             <label key={cat.key} className="dmg-checkbox-label">
                                                 <input
@@ -271,9 +332,10 @@ const DetailMitraGas = ({ onOrderClick }) => {
                                         value={sortBy}
                                         onChange={(e) => setSortBy(e.target.value)}
                                     >
-                                        <option value="terdekat">Terdekat</option>
-                                        <option value="harga">Harga Terendah</option>
-                                        <option value="rating">Rating Tertinggi</option>
+                                        <option value="Terdekat">Terdekat</option>
+                                        <option value="Terlaris">Terlaris</option>
+                                        <option value="Terbaik">Terbaik</option>
+                                        <option value="Harga Bersahabat">Harga Bersahabat</option>
                                     </select>
                                 </div>
                             </div>
@@ -282,63 +344,87 @@ const DetailMitraGas = ({ onOrderClick }) => {
 
                     {/* Card List */}
                     <section className="dmg-card-list">
-                        {mitraWithDistance.map((mitra) => (
-                            <article key={mitra.id} className="dmg-card">
-                                <div className="dmg-card-body">
-                                    <div className="dmg-card-img-wrapper">
-                                        <img
-                                            className="dmg-card-img"
-                                            src={mitra.image}
-                                            alt={mitra.name}
-                                        />
-                                    </div>
-                                    <div className="dmg-card-content">
-                                        <div>
-                                            <div className="dmg-card-header">
-                                                <h3 className="dmg-card-title">{mitra.name}</h3>
-                                                <span className="dmg-card-badge">
-                                                    Berada dalam jangkauan ({mitra.distance} KM)
-                                                </span>
-                                            </div>
-                                            <div className="dmg-card-rating">
-                                                <span className="material-symbols-outlined">star</span>
-                                                <span className="dmg-card-rating-value">{mitra.rating}</span>
-                                                <span className="dmg-card-rating-count">({mitra.reviewCount} Ulasan)</span>
-                                            </div>
-                                            <p className="dmg-card-desc">{mitra.description}</p>
+                        {mitraLoading ? (
+                            <div className="dmg-loading-container">
+                                <div className="dmg-spinner"></div>
+                                <p>Memuat data mitra...</p>
+                            </div>
+                        ) : mitraError ? (
+                            <div className="dmg-error-container">
+                                <span className="material-symbols-outlined">error_outline</span>
+                                <p>{mitraError}</p>
+                                <button
+                                    onClick={() => fetchMitraData()}
+                                    className="dmg-retry-btn"
+                                >
+                                    Coba Lagi
+                                </button>
+                            </div>
+                        ) : mitraList.length === 0 ? (
+                            <div className="dmg-empty-container">
+                                <span className="material-symbols-outlined">inbox</span>
+                                <p>Tidak ada data mitra tersedia</p>
+                            </div>
+                        ) : (
+                            mitraList.map((mitra) => (
+                                <article key={mitra.id} className="dmg-card">
+                                    <div className="dmg-card-body">
+                                        <div className="dmg-card-img-wrapper">
+                                            <img
+                                                className="dmg-card-img"
+                                                src={mitra.image}
+                                                alt={mitra.name}
+                                            />
                                         </div>
-                                        <div className="dmg-card-footer">
-                                            <div className="dmg-card-price">{mitra.price}</div>
-                                            <button
-                                                className="dmg-card-order-btn"
-                                                onClick={() => handleOrderClick(mitra)}
-                                            >
-                                                Pesan Sekarang
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Marquee Reviews */}
-                                <div className="dmg-marquee-section">
-                                    <div className="dmg-marquee-container">
-                                        <div
-                                            className="dmg-marquee-content"
-                                            style={{ animationDuration: mitra.marqueeSpeed }}
-                                        >
-                                            {/* Original + Duplicate for seamless loop */}
-                                            {[...mitra.reviews, ...mitra.reviews].map((review, idx) => (
-                                                <div key={idx} className="dmg-review-chip">
-                                                    <span className="dmg-review-name">{review.name}</span>
-                                                    <span className="dmg-review-rating">{review.rating}★</span>
-                                                    <span className="dmg-review-text">"{review.text}"</span>
+                                        <div className="dmg-card-content">
+                                            <div>
+                                                <div className="dmg-card-header">
+                                                    <h3 className="dmg-card-title">{mitra.name}</h3>
+                                                    <span className="dmg-card-badge">
+                                                        Berada dalam jangkauan ({mitra.distance})
+                                                    </span>
                                                 </div>
-                                            ))}
+                                                <div className="dmg-card-rating">
+                                                    <span className="material-symbols-outlined">star</span>
+                                                    <span className="dmg-card-rating-value">{mitra.rating}</span>
+                                                    <span className="dmg-card-rating-count">({mitra.reviewCount} Ulasan)</span>
+                                                </div>
+                                                <p className="dmg-card-desc">{mitra.description}</p>
+                                            </div>
+                                            <div className="dmg-card-footer">
+                                                <div className="dmg-card-price">{mitra.price}</div>
+                                                <button
+                                                    className="dmg-card-order-btn"
+                                                    onClick={() => handleOrderClick(mitra)}
+                                                >
+                                                    Pesan Sekarang
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </article>
-                        ))}
+
+                                    {/* Marquee Reviews */}
+                                    {mitra.reviews.length > 0 && (
+                                        <div className="dmg-marquee-section">
+                                            <div className="dmg-marquee-container">
+                                                <div
+                                                    className="dmg-marquee-content"
+                                                    style={{ animationDuration: mitra.marqueeSpeed }}
+                                                >
+                                                    {[...mitra.reviews, ...mitra.reviews].map((review, idx) => (
+                                                        <div key={idx} className="dmg-review-chip">
+                                                            <span className="dmg-review-name">{review.name}</span>
+                                                            <span className="dmg-review-rating">{review.rating}★</span>
+                                                            <span className="dmg-review-text">"{review.text}"</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </article>
+                            ))
+                        )}
                     </section>
                 </div>
             </main>
