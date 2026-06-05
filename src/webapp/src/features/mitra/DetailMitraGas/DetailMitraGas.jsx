@@ -8,8 +8,6 @@ import './DetailMitraGas.css';
 const DetailMitraGas = ({ onOrderClick }) => {
     const navigate = useNavigate();
     const { location } = useLocation();
-    const [selectedCategories, setSelectedCategories] = useState(['gas_3kg']);
-    const [sortBy, setSortBy] = useState('terdekat');
     const navLinksRef = useRef(null);
 
     // ── Sliding Indicator Logic ──
