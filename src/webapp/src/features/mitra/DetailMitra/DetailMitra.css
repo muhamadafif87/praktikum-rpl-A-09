@@ -33,7 +33,6 @@
     display: flex;
     flex-direction: column;
     -webkit-font-smoothing: antialiased;
-    overflow-x: hidden;
 }
 
 /* ── Navbar ── */

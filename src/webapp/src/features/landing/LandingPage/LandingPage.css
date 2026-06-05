@@ -282,31 +282,48 @@
 .lp-hero-bg {
     position: absolute;
     inset: 0;
-    opacity: 0.4;
     pointer-events: none;
-    overflow: hidden;
+    overflow: hidden; /* Prevent horizontal scrollbars from large blurs */
+    z-index: 0;
 }
 
 .lp-hero-orb-1 {
     position: absolute;
-    top: 25%;
-    right: -5rem;
-    width: 24rem;
-    height: 24rem;
-    background-color: rgba(0, 74, 198, 0.1);
+    top: 15%;
+    left: -10%; /* Left Side */
+    width: 450px;
+    height: 450px;
+    background-color: rgba(96, 165, 250, 0.25); /* Soft blue/cyan tint (bg-blue-400/25) */
     border-radius: 50%;
-    filter: blur(100px);
+    filter: blur(120px);
+    animation: drift-orb-1 25s ease-in-out infinite;
 }
 
 .lp-hero-orb-2 {
     position: absolute;
-    bottom: 25%;
-    left: -5rem;
-    width: 20rem;
-    height: 20rem;
-    background-color: var(--lp-surface-container-highest);
+    bottom: 20%;
+    right: -10%; /* Mid-Right Side */
+    width: 400px;
+    height: 400px;
+    background-color: rgba(129, 140, 248, 0.25); /* Soft indigo/blue tint (bg-indigo-400/25) */
     border-radius: 50%;
-    filter: blur(80px);
+    filter: blur(100px);
+    animation: drift-orb-2 28s ease-in-out infinite reverse; /* Staggered and reverse */
+}
+
+/* Custom Keyframe Loops for Drifting */
+@keyframes drift-orb-1 {
+    0% { transform: translate(0px, 0px); }
+    33% { transform: translate(30px, -50px); }
+    66% { transform: translate(-20px, 40px); }
+    100% { transform: translate(0px, 0px); }
+}
+
+@keyframes drift-orb-2 {
+    0% { transform: translate(0px, 0px); }
+    33% { transform: translate(-40px, 30px); }
+    66% { transform: translate(50px, -20px); }
+    100% { transform: translate(0px, 0px); }
 }
 
 /* ── Workflow Section ── */
