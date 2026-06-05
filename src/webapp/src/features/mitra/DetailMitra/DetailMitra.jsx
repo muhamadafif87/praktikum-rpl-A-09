@@ -189,7 +189,7 @@ const DetailMitra = ({ onOrderClick }) => {
                             <TransitionLink className="dm-nav-link" to="/daily-cleaning" onMouseEnter={handleNavHover} onClick={handleNavClick}>Daily Cleaning</TransitionLink>
                         </li>
                         <li className="dm-nav-item">
-                            <a className="dm-nav-link" href="#" onMouseEnter={handleNavHover}>Tentang Kami</a>
+                            <TransitionLink className="dm-nav-link" to="/tentang-kami" onMouseEnter={handleNavHover} onClick={handleNavClick}>Tentang Kami</TransitionLink>
                         </li>
                     </ul>
 
