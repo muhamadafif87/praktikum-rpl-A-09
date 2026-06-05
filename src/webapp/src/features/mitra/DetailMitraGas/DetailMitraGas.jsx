@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useLayoutEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import TransitionLink from '../../../components/ViewTransition/TransitionLink';
 import { useLocation } from '../../../context/LocationContext';
 import { calculateDistance } from '../../../utils/distance';
 import './DetailMitraGas.css';
@@ -65,6 +66,68 @@ const DetailMitraGas = ({ onOrderClick }) => {
     const { location } = useLocation();
     const [selectedCategories, setSelectedCategories] = useState(['gas_3kg']);
     const [sortBy, setSortBy] = useState('terdekat');
+    const navLinksRef = useRef(null);
+
+    // ── Sliding Indicator Logic ──
+    const updateIndicator = useCallback((targetEl) => {
+        const ul = navLinksRef.current;
+        if (!ul || !targetEl) return;
+        const ulRect = ul.getBoundingClientRect();
+        const linkRect = targetEl.getBoundingClientRect();
+        ul.style.setProperty('--indicator-left', `${linkRect.left - ulRect.left}px`);
+        ul.style.setProperty('--indicator-width', `${linkRect.width}px`);
+    }, []);
+
+    useLayoutEffect(() => {
+        const ul = navLinksRef.current;
+        if (!ul) return;
+        const activeLink = ul.querySelector('.dmg-nav-link--active');
+        if (!activeLink) return;
+
+        const prevRaw = sessionStorage.getItem('nav-indicator');
+        const hasPrev = !!prevRaw;
+
+        ul.style.setProperty('--indicator-transition', 'none');
+
+        if (hasPrev) {
+            const { left, width } = JSON.parse(prevRaw);
+            ul.style.setProperty('--indicator-left', left);
+            ul.style.setProperty('--indicator-width', width);
+            sessionStorage.removeItem('nav-indicator');
+        } else {
+            updateIndicator(activeLink);
+        }
+
+        void ul.offsetHeight;
+        ul.style.removeProperty('--indicator-transition');
+
+        if (hasPrev) {
+            updateIndicator(activeLink);
+        }
+    }, [updateIndicator]);
+
+    const handleNavHover = (e) => {
+        updateIndicator(e.currentTarget);
+    };
+
+    const handleNavLeave = () => {
+        const ul = navLinksRef.current;
+        if (!ul) return;
+        const activeLink = ul.querySelector('.dmg-nav-link--active');
+        if (activeLink) {
+            updateIndicator(activeLink);
+        }
+    };
+
+    const handleNavClick = () => {
+        const ul = navLinksRef.current;
+        if (!ul) return;
+        const left = ul.style.getPropertyValue('--indicator-left');
+        const width = ul.style.getPropertyValue('--indicator-width');
+        if (left && width) {
+            sessionStorage.setItem('nav-indicator', JSON.stringify({ left, width }));
+        }
+    };
 
     // Hitung jarak dinamis untuk setiap mitra berdasarkan lokasi user
     const mitraWithDistance = useMemo(() => {
@@ -112,21 +175,21 @@ const DetailMitraGas = ({ onOrderClick }) => {
                     </div>
 
                     {/* Navigation Links (Desktop) */}
-                    <ul className="dmg-nav-links">
+                    <ul className="dmg-nav-links" ref={navLinksRef} onMouseLeave={handleNavLeave}>
                         <li className="dmg-nav-item">
-                            <Link className="dmg-nav-link" to="/">Home</Link>
+                            <TransitionLink className="dmg-nav-link" to="/" onMouseEnter={handleNavHover} onClick={handleNavClick}>Home</TransitionLink>
                         </li>
                         <li className="dmg-nav-item">
-                            <Link className="dmg-nav-link dmg-nav-link--active" to="/gas-galon">Gas &amp; Galon</Link>
+                            <a className="dmg-nav-link dmg-nav-link--active" href="#" onMouseEnter={handleNavHover} onClick={handleNavClick} aria-current="page">Gas &amp; Galon</a>
                         </li>
                         <li className="dmg-nav-item">
-                            <Link className="dmg-nav-link" to="/laundry">Laundry Express</Link>
+                            <TransitionLink className="dmg-nav-link" to="/laundry" onMouseEnter={handleNavHover} onClick={handleNavClick}>Laundry Express</TransitionLink>
                         </li>
                         <li className="dmg-nav-item">
-                            <Link className="dmg-nav-link" to="/daily-cleaning">Daily Cleaning</Link>
+                            <TransitionLink className="dmg-nav-link" to="/daily-cleaning" onMouseEnter={handleNavHover} onClick={handleNavClick}>Daily Cleaning</TransitionLink>
                         </li>
                         <li className="dmg-nav-item">
-                            <a className="dmg-nav-link" href="#">Tentang Kami</a>
+                            <a className="dmg-nav-link" href="#" onMouseEnter={handleNavHover}>Tentang Kami</a>
                         </li>
                     </ul>
 

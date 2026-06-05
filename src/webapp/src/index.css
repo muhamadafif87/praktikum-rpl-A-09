@@ -37,3 +37,141 @@ body {
 ::-webkit-scrollbar-thumb:hover {
     background: #737686;
 }
+
+/* =============================================
+   View Transitions API — Directional Horizontal Slide
+   Direction is controlled by --nav-direction on :root (1 or -1),
+   set dynamically by useViewTransitionNavigate before startViewTransition.
+   ============================================= */
+
+/* Kill the default crossfade ghosting/glow */
+::view-transition-image-pair(root) {
+    isolation: auto;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+    mix-blend-mode: normal;
+}
+
+/* Old page: slides OUT in the opposite direction of navigation */
+::view-transition-old(root) {
+    animation: vt-slide-out 380ms cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+/* New page: slides IN from the navigation direction */
+::view-transition-new(root) {
+    animation: vt-slide-in 380ms cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+/*
+ * --nav-direction:  1 → forward  (old exits left,  new enters from right)
+ * --nav-direction: -1 → backward (old exits right, new enters from left)
+ *
+ * var(--nav-direction, 1) provides a safe default for non-tab navigations.
+ */
+@keyframes vt-slide-out {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(calc(var(--nav-direction, 1) * -12%));
+    }
+}
+
+@keyframes vt-slide-in {
+    from {
+        opacity: 0;
+        transform: translateX(calc(var(--nav-direction, 1) * 12%));
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* =============================================
+   Navbar Sliding Indicator
+   ============================================= */
+
+/* Remove the static border-bottom since we now use a dynamic sliding indicator */
+.lp-nav-link--active, 
+.dm-nav-link--active, 
+.dmg-nav-link--active, 
+.dmc-nav-link--active { 
+    border-bottom: none !important; 
+}
+
+/* Establish positioning context for the pseudo-element indicator */
+.lp-nav-links, 
+.dm-nav-links, 
+.dmg-nav-links, 
+.dmc-nav-links { 
+    position: relative; 
+}
+
+/* The sliding indicator element */
+.lp-nav-links::after, 
+.dm-nav-links::after, 
+.dmg-nav-links::after, 
+.dmc-nav-links::after { 
+    content: ''; 
+    position: absolute; 
+    bottom: 0; 
+    height: 2px; 
+    border-radius: 2px; 
+    pointer-events: none; 
+    will-change: left, width; 
+    left: var(--indicator-left, 0); 
+    width: var(--indicator-width, 0); 
+    /* 300ms cubic-bezier(0.25, 1, 0.5, 1) provides a fluid, snappy deceleration */
+    transition: var(--indicator-transition, left 300ms cubic-bezier(0.25, 1, 0.5, 1), width 300ms cubic-bezier(0.25, 1, 0.5, 1)); 
+}
+
+/* Assign correct brand colors to each navbar's indicator */
+.lp-nav-links::after { background-color: var(--lp-primary, #004ac6); }
+.dm-nav-links::after { background-color: var(--dm-primary, #004ac6); } /* DetailMitra Laundry uses same default palette structure or fallback */
+.dmg-nav-links::after { background-color: var(--dmg-primary, #e65100); }
+.dmc-nav-links::after { background-color: var(--dmc-primary, #00695c); }
+
+/* =============================================
+   Premium UX: Frosted Glass & Sibling Dimming
+   ============================================= */
+
+/* Sticky Frosted Glass Effect */
+.lp-navbar,
+.dm-navbar,
+.dmg-navbar,
+.dmc-navbar {
+    background-color: rgba(255, 255, 255, 0.7) !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important; /* softer border for glass effect */
+}
+
+/* Base transition for smooth fading */
+.lp-nav-link,
+.dm-nav-link,
+.dmg-nav-link,
+.dmc-nav-link {
+    transition: color 0.2s ease, opacity 0.3s ease !important;
+}
+
+/* Sibling Dimming / Focus Fade Effect */
+/* When the ul container is hovered, dim the nav-links inside that are NOT hovered */
+.lp-nav-links:hover .lp-nav-item:not(:hover) .lp-nav-link,
+.dm-nav-links:hover .dm-nav-item:not(:hover) .dm-nav-link,
+.dmg-nav-links:hover .dmg-nav-item:not(:hover) .dmg-nav-link,
+.dmc-nav-links:hover .dmc-nav-item:not(:hover) .dmc-nav-link {
+    opacity: 0.4;
+}
+
+/* Instant Font Weight Bolding on Hover */
+.lp-nav-link:hover,
+.dm-nav-link:hover,
+.dmg-nav-link:hover,
+.dmc-nav-link:hover {
+    font-weight: 700 !important;
+}
