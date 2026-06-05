@@ -31,7 +31,7 @@ class Mitra extends Authenticatable {
     }
 
     public function MitraAccess(){
-        return $this->belongsTo(MitraLoginAccess::class, 'id_mitra', 'id_mitra_user');
+        return $this->hasOne(MitraLoginAccess::class, 'id_mitra');
     }
 
     public function Layanan(){
