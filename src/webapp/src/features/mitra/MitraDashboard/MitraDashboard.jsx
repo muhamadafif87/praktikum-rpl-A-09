@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import api from '../../../services/api';
 import MitraOrders from '../MitraOrders/MitraOrders';
 import MitraInventory from '../MitraInventory/MitraInventory';
+import MitraFinance from '../MitraFinance/MitraFinance';
 import './MitraDashboard.css';
 
 /**
@@ -163,6 +164,8 @@ const MitraDashboard = () => {
                     <MitraOrders />
                 ) : activeSidebar === 'inventory' ? (
                     <MitraInventory />
+                ) : activeSidebar === 'finance' ? (
+                    <MitraFinance />
                 ) : loading ? (
                     <div className="md-loading">
                         <span className="material-symbols-outlined md-spinner">progress_activity</span>
