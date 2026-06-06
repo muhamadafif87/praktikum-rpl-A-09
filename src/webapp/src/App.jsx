@@ -8,6 +8,7 @@ import LaundryPage from './pages/LaundryPage';
 import GasGalonPage from './pages/GasGalonPage';
 import DailyCleaningPage from './pages/DailyCleaningPage';
 import TentangKamiPage from './features/tentang-kami/TentangKamiPage';
+import DetailGasGalon from './features/detail-pemesanan/DetailGasGalon';
 import MitraDashboardPage from './pages/MitraDashboardPage';
 import ChatMitra from './features/mitra/ChatMitra/ChatMitra';
 import ReviewMitra from './features/mitra/ReviewMitra/ReviewMitra';
@@ -29,6 +30,7 @@ const App = () => {
                 <Route path="/gas-galon" element={<GasGalonPage />} />
                 <Route path="/daily-cleaning" element={<DailyCleaningPage />} />
                 <Route path="/tentang-kami" element={<TentangKamiPage />} />
+                <Route path="/pesan/gas-galon" element={<DetailGasGalon />} />
 
                 {/* Dashboard routes */}
                 <Route path="/dashboard/admin" element={<DashboardAdmin />} />
