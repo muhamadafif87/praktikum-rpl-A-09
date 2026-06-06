@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../../services/api';
 import MitraOrders from '../MitraOrders/MitraOrders';
+import MitraInventory from '../MitraInventory/MitraInventory';
 import MitraFinance from '../MitraFinance/MitraFinance';
 import './MitraDashboard.css';
 
@@ -161,6 +162,8 @@ const MitraDashboard = () => {
             <main className="md-main">
                 {activeSidebar === 'orders' ? (
                     <MitraOrders />
+                ) : activeSidebar === 'inventory' ? (
+                    <MitraInventory />
                 ) : activeSidebar === 'finance' ? (
                     <MitraFinance />
                 ) : loading ? (
