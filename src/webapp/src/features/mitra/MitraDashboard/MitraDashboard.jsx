@@ -10,10 +10,10 @@ import './MitraDashboard.css';
  * komponen menampilkan empty/zero state secara graceful.
  * 
  * API Endpoints:
- * - GET /api/v1/mitra/dashboard/stats
- * - GET /api/v1/mitra/dashboard/orders?status=incoming
- * - GET /api/v1/mitra/dashboard/inventory
- * - GET /api/v1/mitra/dashboard/performance
+ * - GET /api/v1/dashboard/mitra/stats
+ * - GET /api/v1/dashboard/mitra/orders?status=incoming
+ * - GET /api/v1/dashboard/mitra/inventory
+ * - GET /api/v1/dashboard/mitra/performance
  */
 
 const SIDEBAR_ITEMS = [
@@ -53,10 +53,10 @@ const MitraDashboard = () => {
             setLoading(true);
             try {
                 const [statsRes, ordersRes, inventoryRes, perfRes] = await Promise.allSettled([
-                    api.get('/v1/mitra/dashboard/stats'),
-                    api.get('/v1/mitra/dashboard/orders', { params: { status: 'incoming' } }),
-                    api.get('/v1/mitra/dashboard/inventory'),
-                    api.get('/v1/mitra/dashboard/performance'),
+                    api.get('/v1/dashboard/mitra/stats'),
+                    api.get('/v1/dashboard/mitra/orders', { params: { status: 'incoming' } }),
+                    api.get('/v1/dashboard/mitra/inventory'),
+                    api.get('/v1/dashboard/mitra/performance'),
                 ]);
 
                 if (statsRes.status === 'fulfilled') setStats(statsRes.value.data.data || statsRes.value.data);
