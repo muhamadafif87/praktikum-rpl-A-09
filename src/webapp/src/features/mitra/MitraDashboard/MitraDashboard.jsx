@@ -139,6 +139,8 @@ const MitraDashboard = () => {
                                 setActiveSidebar(item.key);
                                 if (item.key === 'chat') {
                                     navigate('/dashboard/mitra/chat');
+                                } else if (item.key === 'reviews') {
+                                    navigate('/dashboard/mitra/reviews');
                                 }
                             }}
                         >
