@@ -1,0 +1,468 @@
+/* =============================================
+   KostHub Mitra Finance — Manajemen Keuangan
+   Reuses CSS variables from MitraDashboard.css
+   ============================================= */
+
+/* ── Page Header ── */
+.mf-header {
+    margin-bottom: 1.5rem;
+    margin-top: 0.5rem;
+    padding-top: 1.25rem;
+}
+
+.mf-header h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--md-on-surface);
+    margin: 0 0 0.5rem 0;
+}
+
+@media (min-width: 768px) {
+    .mf-header h1 { font-size: 2rem; }
+}
+
+.mf-header p {
+    font-size: 1.125rem;
+    color: var(--md-on-surface-variant);
+    margin: 0;
+}
+
+/* ── Stats Row ── */
+.mf-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+@media (min-width: 640px) {
+    .mf-stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (min-width: 1024px) {
+    .mf-stats-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+.mf-stat-card {
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    border: 1px solid var(--md-outline-variant);
+    background: var(--md-surface-container-lowest);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+.mf-stat-card:hover {
+    border-color: var(--md-primary);
+    box-shadow: 0 2px 8px rgba(0, 74, 198, 0.08);
+}
+
+.mf-stat-card-top-accent {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--md-tertiary);
+}
+
+.mf-stat-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.25rem;
+}
+
+.mf-stat-card-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--md-on-surface-variant);
+    margin: 0;
+    line-height: 1;
+}
+
+.mf-stat-card-icon {
+    font-size: 1rem;
+    color: var(--md-tertiary);
+    line-height: 1;
+}
+
+.mf-stat-card-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--md-on-surface);
+    margin: 0;
+    line-height: 1.2;
+}
+
+.mf-stat-card-note {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--md-on-surface-variant);
+    margin: 0.5rem 0 0 0;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.mf-stat-card-note--positive { color: #16a34a; }
+.mf-stat-card-note--tertiary { color: var(--md-tertiary); }
+
+.mf-stat-card-note-icon {
+    font-size: 0.875rem;
+}
+
+.mf-btn-primary {
+    margin-top: 1rem;
+    width: 100%;
+    padding: 0.5rem;
+    background: var(--md-primary);
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    font-family: var(--md-font);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.mf-btn-primary:hover {
+    background: rgba(0, 74, 198, 0.9);
+}
+
+/* ── Search & Filter Bar ── */
+.mf-toolbar {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    align-items: stretch;
+}
+
+@media (min-width: 768px) {
+    .mf-toolbar {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+}
+
+.mf-toolbar-left {
+    display: flex;
+    flex: 1;
+    gap: 1rem;
+    flex-direction: column;
+}
+
+@media (min-width: 640px) {
+    .mf-toolbar-left {
+        flex-direction: row;
+    }
+}
+
+.mf-search-wrapper {
+    position: relative;
+    flex: 1;
+    max-width: 28rem;
+}
+
+.mf-search-icon {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--md-on-surface-variant);
+    font-size: 1.125rem;
+    pointer-events: none;
+}
+
+.mf-search-input {
+    width: 100%;
+    padding: 0.5rem 1rem 0.5rem 2.5rem;
+    border: 1px solid var(--md-outline-variant);
+    border-radius: 0.5rem;
+    background: var(--md-surface-container-low);
+    font-size: 0.875rem;
+    font-family: var(--md-font);
+    color: var(--md-on-surface);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.mf-search-input:focus {
+    border-color: var(--md-primary);
+    box-shadow: 0 0 0 1px var(--md-primary);
+}
+
+.mf-filter-wrapper {
+    position: relative;
+}
+
+.mf-filter-select {
+    appearance: none;
+    background: var(--md-surface-container-low);
+    border: 1px solid var(--md-outline-variant);
+    border-radius: 0.5rem;
+    padding: 0.5rem 2.5rem 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-family: var(--md-font);
+    color: var(--md-on-surface);
+    cursor: pointer;
+    outline: none;
+    min-width: 10rem;
+    transition: border-color 0.2s;
+}
+
+.mf-filter-select:focus {
+    border-color: var(--md-primary);
+}
+
+.mf-filter-icon {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--md-on-surface-variant);
+    pointer-events: none;
+    font-size: 1.25rem;
+}
+
+.mf-export-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--md-outline-variant);
+    border-radius: 0.5rem;
+    background: transparent;
+    font-size: 0.875rem;
+    font-weight: 500;
+    font-family: var(--md-font);
+    color: var(--md-on-surface);
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+}
+
+.mf-export-btn:hover {
+    background: var(--md-surface-container-high);
+}
+
+.mf-export-btn .material-symbols-outlined {
+    font-size: 1rem;
+}
+
+/* ── Transaction Table Panel ── */
+.mf-table-panel {
+    background: var(--md-surface-container-lowest);
+    border-radius: 0.75rem;
+    border: 1px solid var(--md-outline-variant);
+    overflow: hidden;
+}
+
+.mf-table-panel-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--md-outline-variant);
+}
+
+.mf-table-panel-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--md-on-surface);
+}
+
+.mf-table-wrap {
+    overflow-x: auto;
+}
+
+.mf-table {
+    width: 100%;
+    text-align: left;
+    border-collapse: collapse;
+}
+
+.mf-table thead tr {
+    background: var(--md-surface-container-low);
+    border-bottom: 1px solid var(--md-outline-variant);
+}
+
+.mf-table th {
+    padding: 1rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--md-on-surface-variant);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+
+.mf-table td {
+    padding: 1rem;
+    font-size: 0.875rem;
+    color: var(--md-on-surface);
+    vertical-align: middle;
+}
+
+.mf-table tbody tr {
+    border-bottom: 1px solid rgba(195, 198, 215, 0.3);
+    transition: background 0.2s;
+}
+
+.mf-table tbody tr:hover {
+    background: var(--md-surface-bright);
+}
+
+/* Table Elements */
+.mf-tx-id {
+    font-weight: 700;
+    color: var(--md-primary);
+}
+
+.mf-tx-date {
+    font-weight: 500;
+    color: var(--md-on-surface-variant);
+}
+
+.mf-tx-service, .mf-tx-customer {
+    font-weight: 500;
+}
+
+.mf-tx-amount {
+    font-weight: 700;
+}
+
+/* Status Badges */
+.mf-status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    text-align: center;
+}
+
+.mf-status-badge--selesai {
+    background: #dcfce7;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+}
+
+.mf-status-badge--proses {
+    background: #dbeafe;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+}
+
+.mf-status-badge--baru {
+    background: #fef9c3;
+    color: #a16207;
+    border: 1px solid #fef08a;
+}
+
+/* Action Link */
+.mf-action-link {
+    background: none;
+    border: none;
+    color: var(--md-primary);
+    font-size: 0.75rem;
+    font-weight: 700;
+    font-family: var(--md-font);
+    cursor: pointer;
+    text-decoration: none;
+    padding: 0;
+    display: inline-block;
+}
+
+.mf-action-link:hover {
+    text-decoration: underline;
+}
+
+/* Table Empty State */
+.mf-table-empty {
+    padding: 4rem 1.5rem;
+    text-align: center;
+    color: var(--md-on-surface-variant);
+}
+
+.mf-table-empty-icon {
+    font-size: 3.5rem;
+    color: var(--md-outline-variant);
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.mf-table-empty-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--md-on-surface);
+    margin: 0 0 0.5rem 0;
+}
+
+.mf-table-empty-text {
+    font-size: 0.875rem;
+    margin: 0;
+    color: var(--md-on-surface-variant);
+}
+
+/* Pagination */
+.mf-pagination {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--md-outline-variant);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--md-surface-container-low);
+}
+
+.mf-pagination-info {
+    font-size: 0.75rem;
+    color: var(--md-on-surface-variant);
+}
+
+.mf-pagination-btns {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.mf-pagination-btn {
+    padding: 0.375rem 0.75rem;
+    border: 1px solid var(--md-outline-variant);
+    border-radius: 0.25rem;
+    background: white;
+    font-size: 0.75rem;
+    font-family: var(--md-font);
+    cursor: pointer;
+    color: var(--md-on-surface);
+    transition: background 0.2s;
+}
+
+.mf-pagination-btn:hover:not(:disabled) {
+    background: var(--md-surface-container-high);
+}
+
+.mf-pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Loading State */
+.mf-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40vh;
+    width: 100%;
+}
+
+.mf-loading-spinner {
+    font-size: 48px;
+    animation: md-spin 1s linear infinite;
+    color: var(--md-primary);
+}
