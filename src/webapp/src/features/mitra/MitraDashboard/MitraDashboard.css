@@ -867,10 +867,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 4rem;
+    min-height: 60vh;
+    width: 100%;
 }
 
 .md-spinner {
+    font-size: 48px;
     animation: md-spin 1s linear infinite;
     color: var(--md-primary);
 }

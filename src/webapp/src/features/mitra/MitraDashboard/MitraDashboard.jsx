@@ -135,7 +135,12 @@ const MitraDashboard = () => {
                         <button
                             key={item.key}
                             className={`md-sidebar-link ${activeSidebar === item.key ? 'md-sidebar-link--active' : ''}`}
-                            onClick={() => setActiveSidebar(item.key)}
+                            onClick={() => {
+                                setActiveSidebar(item.key);
+                                if (item.key === 'chat') {
+                                    navigate('/dashboard/mitra/chat');
+                                }
+                            }}
                         >
                             <span className="material-symbols-outlined">{item.icon}</span>
                             <span>{item.label}</span>
