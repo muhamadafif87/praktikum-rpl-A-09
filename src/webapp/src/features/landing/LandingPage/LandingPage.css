@@ -51,14 +51,16 @@
     }
 }
 
-/* ── Navbar ── */
 .lp-navbar {
     position: sticky;
     top: 0;
     z-index: 50;
-    background-color: #ffffff;
-    border-bottom: 1px solid var(--lp-outline-variant);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    background-color: rgba(255, 255, 255, 0.7);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.4);
     height: 4rem;
+    transition: all 0.3s ease;
 }
 
 .lp-navbar-inner {
