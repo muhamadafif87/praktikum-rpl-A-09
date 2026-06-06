@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import api from '../../../services/api';
 import './ChatMitra.css';
 
 const ChatMitra = () => {
@@ -15,11 +16,22 @@ const ChatMitra = () => {
   });
 
   useEffect(() => {
-    // Simulate loading data
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 800);
-    return () => clearTimeout(timer);
+    const fetchChatStats = async () => {
+      setLoading(true);
+      try {
+        const response = await api.get('/v1/mitra/chat/stats');
+        if (response.data?.data) {
+          setChatStats(response.data.data);
+        }
+      } catch (error) {
+        console.warn('API /v1/mitra/chat/stats belum tersedia, menggunakan fallback data dummy.');
+        // Fallback data is already the default state or we can leave it as is
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchChatStats();
   }, []);
 
   return (
@@ -73,11 +85,11 @@ const ChatMitra = () => {
             <span className="material-symbols-outlined">dashboard</span>
             <span>Overview</span>
           </Link>
-          <Link className="chat-mitra-nav-link" to="/dashboard/mitra">
+          <Link className="chat-mitra-nav-link" to="/dashboard/mitra/orders">
             <span className="material-symbols-outlined">receipt_long</span>
             <span>Orders</span>
           </Link>
-          <Link className="chat-mitra-nav-link" to="/dashboard/mitra">
+          <Link className="chat-mitra-nav-link" to="/dashboard/mitra/inventory">
             <span className="material-symbols-outlined">inventory_2</span>
             <span>Inventory</span>
           </Link>
@@ -85,19 +97,19 @@ const ChatMitra = () => {
             <span className="material-symbols-outlined">chat</span>
             <span>Chat</span>
           </Link>
-          <Link className="chat-mitra-nav-link" to="/dashboard/mitra">
+          <Link className="chat-mitra-nav-link" to="/dashboard/mitra/finance">
             <span className="material-symbols-outlined">payments</span>
             <span>Finance</span>
           </Link>
-          <Link className="chat-mitra-nav-link" to="/dashboard/mitra">
+          <Link className="chat-mitra-nav-link" to="/dashboard/mitra/reviews">
             <span className="material-symbols-outlined">star</span>
             <span>Reviews &amp; Performance</span>
           </Link>
-          <Link className="chat-mitra-nav-link" to="/dashboard/mitra">
+          <Link className="chat-mitra-nav-link" to="/dashboard/mitra/support">
             <span className="material-symbols-outlined">support_agent</span>
             <span>Help &amp; Support</span>
           </Link>
-          <Link className="chat-mitra-nav-link" to="/dashboard/mitra">
+          <Link className="chat-mitra-nav-link" to="/dashboard/mitra/settings">
             <span className="material-symbols-outlined">settings</span>
             <span>Settings</span>
           </Link>
@@ -173,7 +185,7 @@ const ChatMitra = () => {
           </button>
         </div>
 
-        {/* Contact List, masih data dummy jadi belum dinamis sesuai database,  
+        {/* Contact List, masih data dummy belum dinamis sesuai database,  
           diubah nanti */}
         <div className="chat-mitra-table-container">
           <div className="chat-mitra-table-header">
@@ -206,9 +218,9 @@ const ChatMitra = () => {
                     <span className="chat-mitra-status-badge-table pending">BELUM DIHUBUNGI</span>
                   </td>
                   <td className="text-center">
-                    <button className="chat-mitra-whatsapp-btn">
+                    <a href="https://wa.me/6281234567890" target="_blank" rel="noopener noreferrer" className="chat-mitra-whatsapp-btn" style={{ textDecoration: 'none' }}>
                       <span className="material-symbols-outlined">message</span> Chat via WhatsApp
-                    </button>
+                    </a>
                   </td>
                 </tr>
                 <tr>
@@ -225,9 +237,9 @@ const ChatMitra = () => {
                     <span className="chat-mitra-status-badge-table contacted">SUDAH DIHUBUNGI</span>
                   </td>
                   <td className="text-center">
-                    <button className="chat-mitra-whatsapp-btn">
+                    <a href="https://wa.me/6289988776655" target="_blank" rel="noopener noreferrer" className="chat-mitra-whatsapp-btn" style={{ textDecoration: 'none' }}>
                       <span className="material-symbols-outlined">message</span> Chat via WhatsApp
-                    </button>
+                    </a>
                   </td>
                 </tr>
                 <tr>
@@ -244,9 +256,9 @@ const ChatMitra = () => {
                     <span className="chat-mitra-status-badge-table pending">BELUM DIHUBUNGI</span>
                   </td>
                   <td className="text-center">
-                    <button className="chat-mitra-whatsapp-btn">
+                    <a href="https://wa.me/6281311223344" target="_blank" rel="noopener noreferrer" className="chat-mitra-whatsapp-btn" style={{ textDecoration: 'none' }}>
                       <span className="material-symbols-outlined">message</span> Chat via WhatsApp
-                    </button>
+                    </a>
                   </td>
                 </tr>
               </tbody>
