@@ -8,6 +8,7 @@ import LaundryPage from './pages/LaundryPage';
 import GasGalonPage from './pages/GasGalonPage';
 import DailyCleaningPage from './pages/DailyCleaningPage';
 import MitraDashboardPage from './pages/MitraDashboardPage';
+import ChatMitra from './features/mitra/ChatMitra/ChatMitra';
 
 // Placeholder components for dashboard pages
 const DashboardAdmin = () => <div style={{ padding: '20px' }}><h1>Dashboard Admin</h1></div>;
@@ -28,6 +29,7 @@ const App = () => {
                 {/* Dashboard routes */}
                 <Route path="/dashboard/admin" element={<DashboardAdmin />} />
                 <Route path="/dashboard/mitra" element={<MitraDashboardPage />} />
+                <Route path="/dashboard/mitra/chat" element={<ChatMitra />} />
 
                 {/* Profile routes */}
                 <Route path="/profile" element={<ProfilePage />} />
