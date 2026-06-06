@@ -21,7 +21,7 @@ const ReviewMitra = () => {
     const fetchReviewData = async () => {
       setLoading(true);
       try {
-        const response = await api.get('/v1/mitra/reviews');
+        const response = await api.get('/v1/dashboard/mitra/reviews');
         if (response.data?.data) {
           if (response.data.data.stats) setStats(response.data.data.stats);
           if (response.data.data.reviews) setReviews(response.data.data.reviews);
