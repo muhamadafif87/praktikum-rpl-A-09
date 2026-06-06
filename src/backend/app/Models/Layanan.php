@@ -9,11 +9,16 @@ class Layanan extends Model {
 
     public $timestamps = false;
 
+    protected $casts = [
+        'catatan' => 'array'
+    ];
+
     protected $fillable = [
         'id_mitra',
         'nama_layanan',
         'harga',
-        'satuan'
+        'satuan',
+        'catatan'
     ];
 
     public function Mitra(){

@@ -15,13 +15,18 @@ class Mitra extends Authenticatable {
     protected $primaryKey = 'id_mitra';
     public $timestamps = false;
 
+    protected $casts = [
+        'catatan' => 'array',
+    ];
+
     protected $fillable = [
         'nama_mitra',
         'jenis_jasa',
         'alamat_mitra',
         'status_verifikasi',
         'id_admin',
-        'nomor_telepon'
+        'nomor_telepon',
+        'catatan'
     ];
 
     protected function casts(){
