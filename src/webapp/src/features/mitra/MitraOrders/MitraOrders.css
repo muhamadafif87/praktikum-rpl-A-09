@@ -1,0 +1,492 @@
+/* =============================================
+   KostHub Mitra Orders — Manajemen Pesanan
+   Reuses CSS variables from MitraDashboard.css
+   ============================================= */
+
+/* ── Page Header ── */
+.mo-header {
+    margin-bottom: 1.5rem;
+    margin-top: 0.5rem;
+    padding-top: 1.25rem;
+}
+
+.mo-header h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--md-on-surface);
+    margin: 0 0 0.5rem 0;
+}
+
+@media (min-width: 768px) {
+    .mo-header h1 { font-size: 2rem; }
+}
+
+.mo-header p {
+    font-size: 1.125rem;
+    color: var(--md-on-surface-variant);
+    margin: 0;
+}
+
+/* ── Stats Row ── */
+.mo-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+@media (min-width: 640px) {
+    .mo-stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (min-width: 1024px) {
+    .mo-stats-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+.mo-stat-card {
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    border: 1px solid var(--md-outline-variant);
+    background: var(--md-surface-container-lowest);
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.mo-stat-card:hover {
+    border-color: var(--md-primary);
+    box-shadow: 0 2px 8px rgba(0, 74, 198, 0.08);
+}
+
+.mo-stat-card-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: var(--md-on-surface-variant);
+    margin: 0 0 0.25rem 0;
+}
+
+.mo-stat-card-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--md-on-surface);
+}
+
+.mo-stat-card-value--primary { color: var(--md-primary); }
+.mo-stat-card-value--tertiary { color: var(--md-tertiary); }
+.mo-stat-card-value--secondary { color: var(--md-secondary); }
+
+/* ── Search & Filter Bar ── */
+.mo-toolbar {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    align-items: stretch;
+}
+
+@media (min-width: 768px) {
+    .mo-toolbar {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+}
+
+.mo-toolbar-left {
+    display: flex;
+    flex: 1;
+    gap: 1rem;
+    flex-direction: column;
+}
+
+@media (min-width: 640px) {
+    .mo-toolbar-left {
+        flex-direction: row;
+    }
+}
+
+.mo-search-wrapper {
+    position: relative;
+    flex: 1;
+    max-width: 28rem;
+}
+
+.mo-search-icon {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--md-on-surface-variant);
+    font-size: 1.125rem;
+    pointer-events: none;
+}
+
+.mo-search-input {
+    width: 100%;
+    padding: 0.5rem 1rem 0.5rem 2.5rem;
+    border: 1px solid var(--md-outline-variant);
+    border-radius: 0.5rem;
+    background: var(--md-surface-container-low);
+    font-size: 0.875rem;
+    font-family: var(--md-font);
+    color: var(--md-on-surface);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.mo-search-input::placeholder {
+    color: var(--md-on-surface-variant);
+}
+
+.mo-search-input:focus {
+    border-color: var(--md-primary);
+    box-shadow: 0 0 0 1px var(--md-primary);
+}
+
+.mo-filter-wrapper {
+    position: relative;
+}
+
+.mo-filter-select {
+    appearance: none;
+    background: var(--md-surface-container-low);
+    border: 1px solid var(--md-outline-variant);
+    border-radius: 0.5rem;
+    padding: 0.5rem 2.5rem 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-family: var(--md-font);
+    color: var(--md-on-surface);
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s;
+    min-width: 10rem;
+}
+
+.mo-filter-select:focus {
+    border-color: var(--md-primary);
+}
+
+.mo-filter-icon {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--md-on-surface-variant);
+    pointer-events: none;
+    font-size: 1.25rem;
+}
+
+.mo-export-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--md-outline-variant);
+    border-radius: 0.5rem;
+    background: transparent;
+    font-size: 0.875rem;
+    font-weight: 500;
+    font-family: var(--md-font);
+    color: var(--md-on-surface);
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+}
+
+.mo-export-btn:hover {
+    background: var(--md-surface-container-high);
+}
+
+.mo-export-btn .material-symbols-outlined {
+    font-size: 1rem;
+}
+
+/* ── Orders Table Panel ── */
+.mo-table-panel {
+    background: var(--md-surface-container-lowest);
+    border-radius: 0.75rem;
+    border: 1px solid var(--md-outline-variant);
+    overflow: hidden;
+}
+
+.mo-table-panel-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--md-outline-variant);
+}
+
+.mo-table-panel-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--md-on-surface);
+}
+
+.mo-table-wrap {
+    overflow-x: auto;
+}
+
+.mo-table {
+    width: 100%;
+    text-align: left;
+    border-collapse: collapse;
+}
+
+.mo-table thead tr {
+    background: var(--md-surface-container-low);
+    border-bottom: 1px solid var(--md-outline-variant);
+}
+
+.mo-table th {
+    padding: 1rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--md-on-surface-variant);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+
+.mo-table td {
+    padding: 1rem;
+    font-size: 0.875rem;
+    color: var(--md-on-surface);
+    vertical-align: middle;
+}
+
+.mo-table tbody tr {
+    border-bottom: 1px solid rgba(195, 198, 215, 0.3);
+    transition: background 0.2s;
+}
+
+.mo-table tbody tr:hover {
+    background: var(--md-surface-bright);
+}
+
+/* Table: Order ID */
+.mo-order-id {
+    font-weight: 500;
+    color: var(--md-primary);
+}
+
+/* Table: Customer cell */
+.mo-customer-name {
+    font-weight: 500;
+    color: var(--md-on-surface);
+}
+
+.mo-customer-address {
+    font-size: 0.75rem;
+    color: var(--md-on-surface-variant);
+    margin-top: 0.125rem;
+}
+
+/* Table: Service badges */
+.mo-service-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.mo-service-badge--laundry {
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.mo-service-badge--cleaning {
+    background: #f0fdf4;
+    color: #15803d;
+}
+
+.mo-service-badge--gas {
+    background: #fff7ed;
+    color: #c2410c;
+}
+
+/* Table: Time */
+.mo-order-time {
+    color: var(--md-on-surface-variant);
+    white-space: nowrap;
+}
+
+/* Table: Status badges */
+.mo-status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.mo-status-badge--baru {
+    background: var(--md-primary-container);
+    color: white;
+}
+
+.mo-status-badge--proses {
+    background: var(--md-tertiary);
+    color: white;
+}
+
+.mo-status-badge--siap-kirim {
+    background: var(--md-secondary);
+    color: white;
+}
+
+.mo-status-badge--selesai {
+    background: #16a34a;
+    color: white;
+}
+
+.mo-status-badge--batal {
+    background: var(--md-error);
+    color: white;
+}
+
+/* Table: Action buttons */
+.mo-action-btn {
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    font-family: var(--md-font);
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.mo-action-btn--primary {
+    background: var(--md-primary);
+    color: white;
+    border: none;
+}
+
+.mo-action-btn--primary:hover {
+    background: var(--md-primary-container);
+}
+
+.mo-action-btn--outline {
+    background: transparent;
+    color: var(--md-primary);
+    border: 1px solid var(--md-primary);
+}
+
+.mo-action-btn--outline:hover {
+    background: var(--md-primary-fixed);
+}
+
+.mo-action-btn--secondary {
+    background: var(--md-secondary);
+    color: white;
+    border: none;
+}
+
+.mo-action-btn--secondary:hover {
+    opacity: 0.9;
+}
+
+.mo-action-detail {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--md-on-surface-variant);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: var(--md-font);
+    padding: 0.375rem 0.5rem;
+}
+
+.mo-action-detail:hover {
+    text-decoration: underline;
+    color: var(--md-primary);
+}
+
+/* Table: Empty state */
+.mo-table-empty {
+    padding: 4rem 1.5rem;
+    text-align: center;
+    color: var(--md-on-surface-variant);
+}
+
+.mo-table-empty-icon {
+    font-size: 3.5rem;
+    color: var(--md-outline-variant);
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.mo-table-empty-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--md-on-surface);
+    margin: 0 0 0.5rem 0;
+}
+
+.mo-table-empty-text {
+    font-size: 0.875rem;
+    margin: 0;
+    color: var(--md-on-surface-variant);
+}
+
+/* ── Pagination Footer ── */
+.mo-pagination {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--md-outline-variant);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--md-surface-container-low);
+}
+
+.mo-pagination-info {
+    font-size: 0.75rem;
+    color: var(--md-on-surface-variant);
+}
+
+.mo-pagination-btns {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.mo-pagination-btn {
+    padding: 0.375rem 0.75rem;
+    border: 1px solid var(--md-outline-variant);
+    border-radius: 0.25rem;
+    background: white;
+    font-size: 0.75rem;
+    font-family: var(--md-font);
+    cursor: pointer;
+    color: var(--md-on-surface);
+    transition: background 0.2s;
+}
+
+.mo-pagination-btn:hover:not(:disabled) {
+    background: var(--md-surface-container-high);
+}
+
+.mo-pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ── Loading State ── */
+.mo-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40vh;
+    width: 100%;
+}
+
+.mo-loading-spinner {
+    font-size: 48px;
+    animation: md-spin 1s linear infinite;
+    color: var(--md-primary);
+}

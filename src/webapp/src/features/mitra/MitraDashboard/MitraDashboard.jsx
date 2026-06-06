@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../../services/api';
+import MitraOrders from '../MitraOrders/MitraOrders';
 import './MitraDashboard.css';
 
 /**
@@ -157,7 +158,9 @@ const MitraDashboard = () => {
 
             {/* ═══ Main Content ═══ */}
             <main className="md-main">
-                {loading ? (
+                {activeSidebar === 'orders' ? (
+                    <MitraOrders />
+                ) : loading ? (
                     <div className="md-loading">
                         <span className="material-symbols-outlined md-spinner">progress_activity</span>
                     </div>
@@ -221,7 +224,7 @@ const MitraDashboard = () => {
                                 <div className="md-orders-panel">
                                     <div className="md-panel-header">
                                         <h2 className="md-panel-title">Incoming Orders</h2>
-                                        <button className="md-panel-action">View All</button>
+                                        <button className="md-panel-action" onClick={() => setActiveSidebar('orders')}>View All</button>
                                     </div>
                                     <div className="md-table-wrap">
                                         <table className="md-table">
