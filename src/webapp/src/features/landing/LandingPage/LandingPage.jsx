@@ -186,7 +186,7 @@ const LandingPage = () => {
                             <TransitionLink className="lp-nav-link" to="/daily-cleaning" onMouseEnter={handleNavHover} onClick={handleNavClick}>Daily Cleaning</TransitionLink>
                         </li>
                         <li className="lp-nav-item">
-                            <a className="lp-nav-link" href="#" onMouseEnter={handleNavHover}>Tentang Kami</a>
+                            <TransitionLink className="lp-nav-link" to="/tentang-kami" onMouseEnter={handleNavHover} onClick={handleNavClick}>Tentang Kami</TransitionLink>
                         </li>
                     </ul>
 

@@ -19,6 +19,7 @@ const routeOrder = {
     '/gas-galon': 1,
     '/laundry': 2,
     '/daily-cleaning': 3,
+    '/tentang-kami': 4,
 };
 
 export const useViewTransitionNavigate = () => {

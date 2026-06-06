@@ -190,7 +190,7 @@ const DetailMitraGas = ({ onOrderClick }) => {
                             <TransitionLink className="dmg-nav-link" to="/daily-cleaning" onMouseEnter={handleNavHover} onClick={handleNavClick}>Daily Cleaning</TransitionLink>
                         </li>
                         <li className="dmg-nav-item">
-                            <a className="dmg-nav-link" href="#" onMouseEnter={handleNavHover}>Tentang Kami</a>
+                            <TransitionLink className="dmg-nav-link" to="/tentang-kami" onMouseEnter={handleNavHover} onClick={handleNavClick}>Tentang Kami</TransitionLink>
                         </li>
                     </ul>
 
