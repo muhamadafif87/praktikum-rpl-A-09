@@ -1,0 +1,246 @@
+/* PengaturanMitra.css */
+
+/* Core Variables based on the provided design system */
+.pengaturan-mitra-container {
+  --pm-primary: #004ac6;
+  --pm-primary-container: #2563eb;
+  --pm-on-surface: #0b1c30;
+  --pm-on-surface-variant: #434655;
+  --pm-surface-container-lowest: #ffffff;
+  --pm-surface-container-low: #eff4ff;
+  --pm-surface-container-high: #dce9ff;
+  --pm-outline-variant: #c3c6d7;
+  --pm-background: #f8f9ff;
+  --pm-primary-fixed: #dbe1ff;
+  
+  font-family: 'Inter', sans-serif;
+  background-color: var(--pm-background);
+  color: var(--pm-on-surface);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Typography Helpers */
+.text-label-sm { font-size: 12px; line-height: 1; letter-spacing: 0.02em; font-weight: 500; }
+.text-label-md { font-size: 14px; line-height: 1; letter-spacing: 0.01em; font-weight: 500; }
+.text-body-sm { font-size: 14px; line-height: 1.5; font-weight: 400; }
+.text-body-md { font-size: 16px; line-height: 1.5; font-weight: 400; }
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0;
+}
+
+/* TopNavBar */
+.pengaturan-mitra-navbar {
+  position: fixed;
+  top: 0; width: 100%; z-index: 50;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0 32px; height: 64px;
+  background-color: var(--pm-surface-container-lowest);
+  border-bottom: 1px solid var(--pm-outline-variant);
+  transition: background-color 0.2s;
+  left: 0; right: 0;
+}
+
+.pengaturan-mitra-brand { display: flex; align-items: center; gap: 16px; }
+.pengaturan-mitra-brand-link {
+  font-size: 24px; font-weight: 700; color: var(--pm-on-surface);
+  letter-spacing: -0.01em; display: flex; align-items: center; gap: 4px; text-decoration: none;
+}
+.pengaturan-mitra-brand-dot { color: var(--pm-primary); font-size: 24px; line-height: 1; }
+
+.pengaturan-mitra-nav-actions { display: flex; align-items: center; gap: 24px; }
+.pengaturan-mitra-icon-btn {
+  color: var(--pm-on-surface-variant);
+  background: none; border: none; cursor: pointer;
+  padding: 8px; border-radius: 9999px; transition: background-color 0.2s;
+  display: flex; align-items: center; justify-content: center;
+}
+.pengaturan-mitra-icon-btn:hover { background-color: var(--pm-surface-container-low); }
+
+.pengaturan-mitra-user-profile { display: flex; align-items: center; gap: 8px; }
+.pengaturan-mitra-avatar { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--pm-outline-variant); object-fit: cover; }
+.pengaturan-mitra-user-name { font-size: 14px; font-weight: 500; color: var(--pm-on-surface); }
+@media (max-width: 768px) { .pengaturan-mitra-user-name { display: none; } }
+
+/* SideNavBar */
+.pengaturan-mitra-sidebar {
+  position: fixed; left: 0; top: 64px; height: calc(100vh - 64px);
+  width: 256px; padding: 16px; display: flex; flex-direction: column; gap: 16px;
+  background-color: var(--pm-surface-container-lowest);
+  border-right: 1px solid var(--pm-outline-variant);
+  z-index: 40; overflow-y: auto;
+}
+@media (max-width: 768px) { .pengaturan-mitra-sidebar { display: none; } }
+
+.pengaturan-mitra-sidebar-header { margin-bottom: 8px; padding: 0 8px 16px; border-bottom: 1px solid var(--pm-outline-variant); }
+.pengaturan-mitra-admin-info { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.pengaturan-mitra-admin-avatar { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--pm-primary-fixed); }
+.pengaturan-mitra-admin-title { font-size: 14px; font-weight: 700; color: var(--pm-on-surface); margin: 0; }
+.pengaturan-mitra-admin-subtitle { font-size: 12px; color: var(--pm-on-surface-variant); margin: 0; }
+.pengaturan-mitra-status-badge {
+  display: flex; align-items: center; gap: 6px; margin-top: 8px;
+  background-color: #f0fdf4; padding: 2px 8px; border-radius: 9999px; border: 1px solid #bbf7d0;
+}
+.pengaturan-mitra-status-dot { width: 8px; height: 8px; border-radius: 50%; background-color: #22c55e; animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+.pengaturan-mitra-status-text { font-size: 10px; font-weight: 700; color: #15803d; text-transform: uppercase; letter-spacing: 0.05em; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+
+.pengaturan-mitra-sidebar-nav { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.pengaturan-mitra-nav-link {
+  display: flex; align-items: center; padding: 12px 16px; border-radius: 12px;
+  color: var(--pm-on-surface-variant); text-decoration: none; transition: all 0.2s;
+  font-size: 14px; font-weight: 500;
+}
+.pengaturan-mitra-nav-link:hover { color: var(--pm-on-surface); background-color: var(--pm-surface-container-high); }
+.pengaturan-mitra-nav-link.active { background-color: var(--pm-primary); color: white; font-weight: 700; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+.pengaturan-mitra-nav-link .material-symbols-outlined { margin-right: 12px; }
+
+.pengaturan-mitra-sidebar-footer { margin-top: auto; padding: 16px 8px; border-top: 1px solid var(--pm-outline-variant); }
+.pengaturan-mitra-quick-support-btn {
+  width: 100%; padding: 8px; background-color: var(--pm-surface-container-low);
+  color: var(--pm-primary); border: 1px solid var(--pm-outline-variant);
+  border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; transition: background-color 0.2s;
+}
+.pengaturan-mitra-quick-support-btn:hover { background-color: var(--pm-surface-container-high); }
+
+/* Main Content */
+.pengaturan-mitra-main-content {
+  margin-left: 256px; padding: 32px; padding-top: 84px; padding-bottom: 96px; min-height: 100vh;
+}
+@media (max-width: 768px) { .pengaturan-mitra-main-content { margin-left: 0; padding: 16px; padding-top: 84px; } }
+
+.pengaturan-mitra-loading-container { display: flex; justify-content: center; align-items: center; height: 60vh; }
+.pengaturan-mitra-spinner { font-size: 48px; color: var(--pm-primary); animation: spin 1s linear infinite; }
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
+.pengaturan-mitra-header { margin-bottom: 24px; margin-top: 8px; }
+.pengaturan-mitra-title { font-size: 32px; font-weight: 700; color: var(--pm-on-surface); margin: 0 0 8px 0; letter-spacing: -0.01em; line-height: 1.2; }
+.pengaturan-mitra-description { font-size: 18px; color: var(--pm-on-surface-variant); margin: 0; line-height: 1.6; }
+
+.pengaturan-mitra-sections { display: flex; flex-direction: column; gap: 24px; }
+
+.pengaturan-mitra-section-card {
+  background-color: var(--pm-surface-container-lowest);
+  padding: 24px; border-radius: 12px;
+  border: 1px solid var(--pm-outline-variant);
+}
+
+.pengaturan-mitra-section-title { font-size: 18px; font-weight: 700; color: var(--pm-on-surface); margin: 0 0 16px 0; line-height: 1.4; }
+
+/* Profil Bisnis Grid */
+.pengaturan-mitra-grid-2 { display: grid; grid-template-columns: 1fr; gap: 16px; }
+@media (min-width: 768px) { .pengaturan-mitra-grid-2 { grid-template-columns: repeat(2, 1fr); } }
+
+.pengaturan-mitra-form-group { display: flex; flex-direction: column; gap: 8px; }
+.pengaturan-mitra-form-group label { font-size: 14px; font-weight: 700; color: var(--pm-on-surface-variant); }
+.pengaturan-mitra-form-group input {
+  width: 100%; padding: 8px; border: 1px solid var(--pm-outline-variant);
+  border-radius: 8px; background-color: var(--pm-surface-container-low);
+  font-family: inherit; font-size: 16px; color: var(--pm-on-surface);
+  box-sizing: border-box; outline: none; transition: border-color 0.2s;
+}
+.pengaturan-mitra-form-group input:focus { border-color: var(--pm-primary); }
+
+.pengaturan-mitra-primary-btn {
+  padding: 8px 16px; background-color: var(--pm-primary); color: white;
+  border: none; border-radius: 8px; font-size: 14px; font-weight: 500;
+  cursor: pointer; transition: background-color 0.2s;
+}
+.pengaturan-mitra-primary-btn:hover { background-color: var(--pm-primary-container); }
+
+/* Jam Operasional */
+.pengaturan-mitra-jam-list { display: flex; flex-direction: column; gap: 12px; }
+.pengaturan-mitra-jam-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 0; border-bottom: 1px solid rgba(195, 198, 215, 0.3);
+}
+.pengaturan-mitra-jam-item:last-child { border-bottom: none; }
+.pengaturan-mitra-day-label { width: 96px; font-weight: 500; font-size: 16px; }
+.pengaturan-mitra-jam-controls { display: flex; align-items: center; gap: 16px; }
+.pengaturan-mitra-time-inputs { display: flex; align-items: center; gap: 8px; }
+.pengaturan-mitra-time-inputs input[type="time"] {
+  border: 1px solid var(--pm-outline-variant); border-radius: 4px; padding: 4px;
+  font-size: 14px; background-color: var(--pm-surface-container-low);
+  font-family: inherit; color: var(--pm-on-surface); outline: none;
+}
+.pengaturan-mitra-time-inputs input[type="time"]:disabled { opacity: 0.5; }
+
+/* Custom Toggle */
+.pengaturan-mitra-toggle { position: relative; display: inline-flex; align-items: center; cursor: pointer; }
+.pengaturan-mitra-toggle-bg {
+  width: 44px; height: 24px; background-color: var(--pm-outline-variant);
+  border-radius: 9999px; transition: all 0.3s; position: relative;
+}
+.pengaturan-mitra-toggle-bg::after {
+  content: ''; position: absolute; top: 2px; left: 2px;
+  background-color: white; border-radius: 50%;
+  height: 20px; width: 20px; transition: all 0.3s;
+}
+.pengaturan-mitra-toggle input:checked + .pengaturan-mitra-toggle-bg { background-color: var(--pm-primary); }
+.pengaturan-mitra-toggle input:checked + .pengaturan-mitra-toggle-bg::after { transform: translateX(20px); }
+
+/* Manajemen Layanan */
+.pengaturan-mitra-layanan-list { display: flex; flex-direction: column; gap: 16px; }
+.pengaturan-mitra-layanan-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px; background-color: var(--pm-surface-container-low); border-radius: 8px;
+}
+.pengaturan-mitra-layanan-name { font-weight: 700; margin: 0 0 4px 0; font-size: 16px; }
+.pengaturan-mitra-layanan-desc { font-size: 12px; color: var(--pm-on-surface-variant); margin: 0; }
+.pengaturan-mitra-layanan-controls { display: flex; align-items: center; gap: 16px; }
+.pengaturan-mitra-price-input { display: flex; align-items: center; gap: 8px; }
+.pengaturan-mitra-price-input span { font-size: 12px; }
+.pengaturan-mitra-price-input input {
+  width: 96px; border: 1px solid var(--pm-outline-variant); border-radius: 4px; padding: 4px;
+  font-size: 14px; font-family: inherit; outline: none; background: white;
+}
+
+/* Keamanan & Akun */
+.pengaturan-mitra-security-list { display: flex; flex-direction: column; gap: 16px; }
+.pengaturan-mitra-flex-center { display: flex; align-items: center; gap: 12px; }
+.pengaturan-mitra-change-pwd-btn {
+  display: flex; align-items: center; justify-content: space-between; width: 100%;
+  padding: 16px; border: 1px solid var(--pm-outline-variant); border-radius: 8px;
+  background: none; cursor: pointer; transition: background-color 0.2s;
+  color: var(--pm-on-surface); font-family: inherit; font-size: 16px;
+}
+.pengaturan-mitra-change-pwd-btn:hover { background-color: var(--pm-surface-container-low); }
+.pengaturan-mitra-2fa-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px; border: 1px solid var(--pm-outline-variant); border-radius: 8px;
+}
+.pengaturan-mitra-2fa-name { font-weight: 500; margin: 0 0 4px 0; }
+.pengaturan-mitra-2fa-desc { font-size: 12px; color: var(--pm-on-surface-variant); margin: 0; }
+
+/* Action Buttons */
+.pengaturan-mitra-action-buttons { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
+.pengaturan-mitra-btn-secondary {
+  padding: 8px 24px; border: 1px solid var(--pm-outline-variant); background: transparent;
+  border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; color: var(--pm-on-surface); transition: background-color 0.2s;
+}
+.pengaturan-mitra-btn-secondary:hover { background-color: var(--pm-surface-container-high); }
+.pengaturan-mitra-btn-primary {
+  padding: 8px 24px; background-color: var(--pm-primary); color: white;
+  border: none; border-radius: 8px; font-size: 14px; font-weight: 700;
+  cursor: pointer; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); transition: background-color 0.2s;
+}
+.pengaturan-mitra-btn-primary:hover { background-color: var(--pm-primary-container); }
+
+/* Footer */
+.pengaturan-mitra-footer {
+  width: 100%; padding: 32px; display: flex; flex-direction: column; justify-content: space-between; align-items: center;
+  background-color: var(--pm-surface-container-lowest); border-top: 1px solid var(--pm-outline-variant);
+  margin-top: auto; z-index: 10; position: relative;
+}
+@media (min-width: 768px) {
+  .pengaturan-mitra-footer { flex-direction: row; margin-left: 256px; width: calc(100% - 256px); }
+}
+.pengaturan-mitra-footer-brand { margin-bottom: 16px; }
+@media (min-width: 768px) { .pengaturan-mitra-footer-brand { margin-bottom: 0; } }
+.pengaturan-mitra-brand-text { font-size: 20px; font-weight: 700; color: var(--pm-on-surface); display: flex; align-items: center; gap: 4px; }
+.pengaturan-mitra-copyright { font-size: 12px; font-weight: 500; color: #626567; margin: 4px 0 0 0; }
+.pengaturan-mitra-footer-links { display: flex; gap: 24px; }
+.pengaturan-mitra-footer-links a { font-size: 12px; font-weight: 500; color: #626567; text-decoration: none; transition: color 0.2s; }
+.pengaturan-mitra-footer-links a:hover { color: var(--pm-primary); }
