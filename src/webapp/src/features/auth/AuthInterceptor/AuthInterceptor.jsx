@@ -2,14 +2,6 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './AuthInterceptor.css';
 
-/**
- * AuthInterceptor — Modal autentikasi yang muncul saat user belum login
- * dan mencoba menekan tombol "Pesan Sekarang" di halaman Detail Mitra.
- * 
- * Props:
- * - isOpen: boolean — apakah modal ditampilkan
- * - onClose: function — callback untuk menutup modal
- */
 const AuthInterceptor = ({ isOpen, onClose }) => {
     const navigate = useNavigate();
 
