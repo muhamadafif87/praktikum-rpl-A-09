@@ -22,6 +22,9 @@ import HelpSupportMitra from './features/mitra/HelpSupportMitra/HelpSupportMitra
 import AdminOverview from './features/admin/AdminOverview/AdminOverview';
 import AdminStock from './features/admin/AdminStock/AdminStock';
 import AdminPartner from './features/admin/AdminPartner/AdminPartner';
+import AdminSecurity from './features/admin/AdminSecurity/AdminSecurity';
+import AdminMaintenance from './features/admin/AdminMaintenance/AdminMaintenance';
+import AdminSettings from './features/admin/AdminSettings/AdminSettings';
 
 // Placeholder components for dashboard pages
 const ProfilePage = () => <div style={{ padding: '20px' }}><h1>Profil Saya</h1></div>;
@@ -46,6 +49,9 @@ const App = () => {
                 <Route path="/dashboard/admin" element={<AdminOverview />} />
                 <Route path="/dashboard/admin/stock" element={<AdminStock />} />
                 <Route path="/dashboard/admin/partners" element={<AdminPartner />} />
+                <Route path="/dashboard/admin/security" element={<AdminSecurity />} />
+                <Route path="/dashboard/admin/maintenance" element={<AdminMaintenance />} />
+                <Route path="/dashboard/admin/settings" element={<AdminSettings />} />
 
                 {/* Mitra Dashboard routes */}
                 <Route path="/dashboard/mitra" element={<MitraDashboardPage />} />

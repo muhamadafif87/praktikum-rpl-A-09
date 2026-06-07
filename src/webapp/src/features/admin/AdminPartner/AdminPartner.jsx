@@ -54,18 +54,18 @@ const SideNavBar = () => (
         <span className="material-symbols-outlined admin-side-nav-icon">group</span>
         <span className="text-label-md">Partners List</span>
       </Link>
-      <a className="admin-side-nav-link" href="#">
+      <Link className="admin-side-nav-link" to="/dashboard/admin/security">
         <span className="material-symbols-outlined admin-side-nav-icon">security</span>
         <span className="text-label-md">Security</span>
-      </a>
-      <a className="admin-side-nav-link" href="#">
+      </Link>
+      <Link className="admin-side-nav-link" to="/dashboard/admin/maintenance">
         <span className="material-symbols-outlined admin-side-nav-icon">build</span>
         <span className="text-label-md">Maintenance</span>
-      </a>
-      <a className="admin-side-nav-link" href="#">
+      </Link>
+      <Link className="admin-side-nav-link" to="/dashboard/admin/settings">
         <span className="material-symbols-outlined admin-side-nav-icon">settings</span>
         <span className="text-label-md">Settings</span>
-      </a>
+      </Link>
     </nav>
     <div className="admin-side-nav-footer">
       <button className="admin-support-btn text-label-md">Quick Support</button>
