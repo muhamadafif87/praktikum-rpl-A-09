@@ -1,77 +1,16 @@
-import React, { useState, useMemo, useRef, useLayoutEffect, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import TransitionLink from '../../../components/ViewTransition/TransitionLink';
-import { useLocation } from '../../../context/LocationContext';
-import { calculateDistance } from '../../../utils/distance';
-import './DetailMitraCleaning.css';
+import './DetailMitraLaundry.css';
+import { useAuth } from '../../../context/AuthContext';
+import api from '../../../services/api';
 
-const DetailMitraCleaning = ({ onOrderClick }) => {
+const DetailMitraLaundry = ({ onOrderClick }) => {
     const navigate = useNavigate();
-    const { location } = useLocation();
-    const navLinksRef = useRef(null);
+    const [selectedCategories, setSelectedCategories] = useState([]);
+    const [sortBy, setSortBy] = useState('terdekat');
 
-    // ── Sliding Indicator Logic ──
-    const updateIndicator = useCallback((targetEl) => {
-        const ul = navLinksRef.current;
-        if (!ul || !targetEl) return;
-        const ulRect = ul.getBoundingClientRect();
-        const linkRect = targetEl.getBoundingClientRect();
-        ul.style.setProperty('--indicator-left', `${linkRect.left - ulRect.left}px`);
-        ul.style.setProperty('--indicator-width', `${linkRect.width}px`);
-    }, []);
-
-    useLayoutEffect(() => {
-        const ul = navLinksRef.current;
-        if (!ul) return;
-        const activeLink = ul.querySelector('.dmc-nav-link--active');
-        if (!activeLink) return;
-
-        const prevRaw = sessionStorage.getItem('nav-indicator');
-        const hasPrev = !!prevRaw;
-
-        ul.style.setProperty('--indicator-transition', 'none');
-
-        if (hasPrev) {
-            const { left, width } = JSON.parse(prevRaw);
-            ul.style.setProperty('--indicator-left', left);
-            ul.style.setProperty('--indicator-width', width);
-            sessionStorage.removeItem('nav-indicator');
-        } else {
-            updateIndicator(activeLink);
-        }
-
-        void ul.offsetHeight;
-        ul.style.removeProperty('--indicator-transition');
-
-        if (hasPrev) {
-            updateIndicator(activeLink);
-        }
-    }, [updateIndicator]);
-
-    const handleNavHover = (e) => {
-        updateIndicator(e.currentTarget);
-    };
-
-    const handleNavLeave = () => {
-        const ul = navLinksRef.current;
-        if (!ul) return;
-        const activeLink = ul.querySelector('.dmc-nav-link--active');
-        if (activeLink) {
-            updateIndicator(activeLink);
-        }
-    };
-
-    const handleNavClick = () => {
-        const ul = navLinksRef.current;
-        if (!ul) return;
-        const left = ul.style.getPropertyValue('--indicator-left');
-        const width = ul.style.getPropertyValue('--indicator-width');
-        if (left && width) {
-            sessionStorage.setItem('nav-indicator', JSON.stringify({ left, width }));
-        }
-    };
-
-    const [sortBy, setSortBy] = useState('Terbaik');
+    const { user, isAuthenticated, logout } = useAuth();
+    const [showProfileMenu, setShowProfileMenu] = useState(false);
 
     const handleCategoryChange = (category) => {
         setSelectedCategories((prev) => {
@@ -111,7 +50,7 @@ const DetailMitraCleaning = ({ onOrderClick }) => {
         setMitraError('');
 
         try{
-            const response =  await api.get('/v1/landing-page/daily-cleaning', {
+            const response =  await api.get('/v1/landing-page/laundry-express', {
                 params: {
                     kategori: kategori,
                     sortBy: sortByValue,
@@ -174,21 +113,21 @@ const DetailMitraCleaning = ({ onOrderClick }) => {
                         </Link>
                     </div>
 
-                    <ul className="dmc-nav-links" ref={navLinksRef} onMouseLeave={handleNavLeave}>
+                    <ul className="dmc-nav-links">
                         <li className="dmc-nav-item">
-                            <TransitionLink className="dmc-nav-link" to="/" onMouseEnter={handleNavHover} onClick={handleNavClick}>Home</TransitionLink>
+                            <Link className="dmc-nav-link" to="/">Home</Link>
                         </li>
                         <li className="dmc-nav-item">
-                            <TransitionLink className="dmc-nav-link" to="/gas-galon" onMouseEnter={handleNavHover} onClick={handleNavClick}>Gas &amp; Galon</TransitionLink>
+                            <Link className="dmc-nav-link" to="/gas-galon">Gas &amp; Galon</Link>
                         </li>
                         <li className="dmc-nav-item">
-                            <TransitionLink className="dmc-nav-link" to="/laundry" onMouseEnter={handleNavHover} onClick={handleNavClick}>Laundry Express</TransitionLink>
+                            <Link className="dmc-nav-link dmg-nav-link--active" to="/laundry">Laundry Express</Link>
                         </li>
                         <li className="dmc-nav-item">
-                            <a className="dmc-nav-link dmc-nav-link--active" href="#" onMouseEnter={handleNavHover} onClick={handleNavClick} aria-current="page">Daily Cleaning</a>
+                            <Link className="dmc-nav-link" to="/daily-cleaning">Daily Cleaning</Link>
                         </li>
                         <li className="dmc-nav-item">
-                            <TransitionLink className="dmc-nav-link" to="/tentang-kami" onMouseEnter={handleNavHover} onClick={handleNavClick}>Tentang Kami</TransitionLink>
+                            <a className="dmc-nav-link" href="#">Tentang Kami</a>
                         </li>
                     </ul>
 
@@ -266,7 +205,7 @@ const DetailMitraCleaning = ({ onOrderClick }) => {
                         <nav className="dmc-breadcrumb">
                             <Link to="/">Layanan</Link>
                             <span className="material-symbols-outlined">chevron_right</span>
-                            <span className="dmc-breadcrumb-current">Daily Cleaning</span>
+                            <span className="dmc-breadcrumb-current">Laundry</span>
                         </nav>
                         <div className="dmc-location">
                             <span className="material-symbols-outlined">location_on</span>
@@ -292,10 +231,10 @@ const DetailMitraCleaning = ({ onOrderClick }) => {
                                     <label className="dmc-filter-label">Kategori</label>
                                     <div className="dmc-filter-options">
                                         {[
-                                            { key: 'sapu_pel', label: 'Sapu & Pel' },
-                                            { key: 'cuci_piring', label: 'Cuci Piring' },
-                                            { key: 'rapikan_kamar', label: 'Rapikan Kamar' },
-                                            { key: 'paket_lengkap', label: 'Paket Lengkap' },
+                                            { key: 'Pakaian', label: 'Pakaian' },
+                                            { key: 'Sprei', label: 'Sprei' },
+                                            { key: 'Bedcover', label: 'Bedcover' },
+                                            { key: 'All', label: 'Semuanya' },
                                         ].map((cat) => (
                                             <label key={cat.key} className="dmc-checkbox-label">
                                                 <input
@@ -422,4 +361,4 @@ const DetailMitraCleaning = ({ onOrderClick }) => {
     );
 };
 
-export default DetailMitraCleaning;
+export default DetailMitraLaundry;

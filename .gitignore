@@ -28,3 +28,5 @@ yarn-error.log
 composer.phar
 composer.bat
 test_db.php
+
+src/webapp/dist/
