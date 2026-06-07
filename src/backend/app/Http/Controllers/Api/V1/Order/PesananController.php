@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Order\CreatePesananRequest;
 use App\Http\Requests\Order\GenerateFeeRequest;
 use App\Http\Requests\Order\RiwayatPesananRequest;
+use App\Http\Requests\Order\DetailPesananRequest;
 use App\Services\PesananService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

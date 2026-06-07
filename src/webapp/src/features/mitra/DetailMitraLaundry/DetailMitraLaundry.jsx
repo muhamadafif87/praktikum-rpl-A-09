@@ -68,11 +68,12 @@ const DetailMitraLaundry = ({ onOrderClick }) => {
     const handleOrderClick = (mitra) => {
         const token = localStorage.getItem('token');
         if (!token) {
+            sessionStorage.setItem('redirectAfterLogin', `/laundry/${mitra.id}/pesan`);
             if (onOrderClick) {
                 onOrderClick(mitra);
             }
         } else {
-            console.log('Melanjutkan pemesanan untuk:', mitra.name);
+            navigate(`/laundry/${mitra.id}/pesan`);
         }
     };
 
