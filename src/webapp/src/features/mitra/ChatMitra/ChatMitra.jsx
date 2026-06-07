@@ -19,7 +19,7 @@ const ChatMitra = () => {
     const fetchChatStats = async () => {
       setLoading(true);
       try {
-        const response = await api.get('/v1/mitra/chat/stats');
+        const response = await api.get('/v1/dashboard/mitra/chat/stats');
         if (response.data?.data) {
           setChatStats(response.data.data);
         }
