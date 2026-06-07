@@ -9,11 +9,16 @@ class Layanan extends Model {
 
     public $timestamps = false;
 
+    protected $casts = [
+        'catatan' => 'array'
+    ];
+
     protected $fillable = [
         'id_mitra',
         'nama_layanan',
         'harga',
-        'satuan'
+        'satuan',
+        'catatan'
     ];
 
     public function Mitra(){
@@ -21,6 +26,6 @@ class Layanan extends Model {
     }
 
     public function DetailPesanan(){
-        return $this->hasMany(DetailPesanan::class, localKey: 'id_layanan');
+        return $this->hasMany(DetailPesanan::class,'id_layanan');
     }
 }
