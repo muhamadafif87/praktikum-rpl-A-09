@@ -71,6 +71,7 @@ const DetailMitraCleaning = ({ onOrderClick }) => {
         }
     };
 
+    const [selectedCategories, setSelectedCategories] = useState([]);
     const [sortBy, setSortBy] = useState('Terbaik');
 
     const handleCategoryChange = (category) => {
@@ -118,9 +119,10 @@ const DetailMitraCleaning = ({ onOrderClick }) => {
                 }
             });
             const { data } = response.data;
+            const dataArray = Array.isArray(data) ? data : [];
 
             setMitraList(
-                data.map((mitra) => ({
+                dataArray.map((mitra) => ({
                     id: mitra.id_mitra,
                     name: mitra.nama_mitra,
                     type: mitra.jenis_jasa,

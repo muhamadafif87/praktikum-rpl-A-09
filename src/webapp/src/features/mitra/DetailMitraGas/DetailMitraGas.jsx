@@ -28,8 +28,9 @@ const DetailMitraGas = ({ onOrderClick }) => {
                 }
             });
             const { data } = response.data;
+            const dataArray = Array.isArray(data) ? data : [];
 
-            const transformedData = data.map((mitra) => ({
+            const transformedData = dataArray.map((mitra) => ({
                 id: mitra.id_mitra,
                 name: mitra.nama_mitra,
                 type: mitra.jenis_jasa,
@@ -128,7 +129,7 @@ const DetailMitraGas = ({ onOrderClick }) => {
                             <Link className="dmg-nav-link" to="/daily-cleaning">Daily Cleaning</Link>
                         </li>
                         <li className="dmg-nav-item">
-                            <TransitionLink className="dmg-nav-link" to="/tentang-kami" onMouseEnter={handleNavHover} onClick={handleNavClick}>Tentang Kami</TransitionLink>
+                            <Link className="dmg-nav-link" to="/tentang-kami">Tentang Kami</Link>
                         </li>
                     </ul>
 
