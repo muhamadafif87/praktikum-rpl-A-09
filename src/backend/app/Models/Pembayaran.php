@@ -28,6 +28,6 @@ class Pembayaran extends Model
     }
 
     public function Pesanan(){
-        return $this->belongsTo(Pesanan::class, 'id_pesanan', 'id_pembayaran');
+        return $this->belongsTo(Pesanan::class, 'id_pesanan');
     }
 }
