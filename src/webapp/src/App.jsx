@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import LandingPage from './features/landing/LandingPage/LandingPage';
 import Login from './features/auth/Login/Login';
+import DetailDailyCleaning from './features/detail-pemesanan/DetailDailyCleaning';
 import Register from './features/auth/Register/Register';
 import LaundryPage from './pages/LaundryPage';
 import GasGalonPage from './pages/GasGalonPage';
@@ -27,6 +28,7 @@ const App = () => {
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/laundry" element={<LaundryPage />} />
+                <Route path="/pesan/daily-cleaning" element={<DetailDailyCleaning />} />
                 <Route path="/gas-galon" element={<GasGalonPage />} />
                 <Route path="/daily-cleaning" element={<DailyCleaningPage />} />
                 <Route path="/tentang-kami" element={<TentangKamiPage />} />
