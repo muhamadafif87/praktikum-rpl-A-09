@@ -91,7 +91,7 @@ const AdminSecurity = () => {
       try {
         setLoading(true);
         const response = await axios.get('/v1/dashboard/admin/security');
-        if (!response.data) throw new Error("Invalid data");
+        if (typeof response.data === 'string' || !response.data || !response.data.stats) throw new Error("Invalid data");
         setData(response.data);
       } catch (error) {
         console.warn('Failed to fetch from backend, using dummy data', error);
