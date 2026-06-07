@@ -1,5 +1,7 @@
 vendor/
 node_modules/
+dist/
+src/webapp/dist/
 
 .env
 .env.backup
