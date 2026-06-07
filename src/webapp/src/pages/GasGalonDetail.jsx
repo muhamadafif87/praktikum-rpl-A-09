@@ -1,5 +1,6 @@
 import './GasGalonDetail.css';
-import React, { useState, useEffect } from 'react';
+import '../features/landing/LandingPage/LandingPage.css';
+import React, { useState, useEffect, useRef, useLayoutEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -19,6 +20,56 @@ const GasGalonDetail = () => {
     const [namaLengkap, setNamaLengkap] = useState('');
     const [noWa, setNoWa] = useState('');
     const [catatan, setCatatan] = useState('');
+
+    const navLinksRef = useRef(null);
+    const [showProfileMenu, setShowProfileMenu] = useState(false);
+
+    const updateIndicator = useCallback((targetEl) => {
+        const ul = navLinksRef.current;
+        if (!ul || !targetEl) return;
+        const ulRect = ul.getBoundingClientRect();
+        const linkRect = targetEl.getBoundingClientRect();
+        ul.style.setProperty('--indicator-left', `${linkRect.left - ulRect.left}px`);
+        ul.style.setProperty('--indicator-width', `${linkRect.width}px`);
+    }, []);
+
+    useLayoutEffect(() => {
+        const ul = navLinksRef.current;
+        if (!ul) return;
+        const activeLink = ul.querySelector('.lp-nav-link--active');
+        if (!activeLink) return;
+        const prevRaw = sessionStorage.getItem('nav-indicator');
+        const hasPrev = !!prevRaw;
+        ul.style.setProperty('--indicator-transition', 'none');
+        if (hasPrev) {
+            const { left, width } = JSON.parse(prevRaw);
+            ul.style.setProperty('--indicator-left', left);
+            ul.style.setProperty('--indicator-width', width);
+            sessionStorage.removeItem('nav-indicator');
+        } else {
+            updateIndicator(activeLink);
+        }
+        void ul.offsetHeight;
+        ul.style.removeProperty('--indicator-transition');
+        if (hasPrev) {
+            updateIndicator(activeLink);
+        }
+    }, [updateIndicator]);
+
+    const handleNavHover = (e) => updateIndicator(e.currentTarget);
+    const handleNavLeave = () => {
+        const ul = navLinksRef.current;
+        if (!ul) return;
+        const activeLink = ul.querySelector('.lp-nav-link--active');
+        if (activeLink) updateIndicator(activeLink);
+    };
+    const handleNavClick = () => {
+        const ul = navLinksRef.current;
+        if (!ul) return;
+        const left = ul.style.getPropertyValue('--indicator-left');
+        const width = ul.style.getPropertyValue('--indicator-width');
+        if (left && width) sessionStorage.setItem('nav-indicator', JSON.stringify({ left, width }));
+    };
 
     useEffect(() => {
         const fetchData = async () => {
@@ -72,25 +123,46 @@ const GasGalonDetail = () => {
 
     return (
         <div className="dp-page">
-            <nav className="dp-nav">
-                <div className="dp-nav-inner">
-                    <div className="dp-nav-brand">
-                        <Link className="dp-nav-brand-link" to="/">
-                            KostHub<span className="dp-nav-brand-dot">.</span>
-                        </Link>
+                        <nav className="lp-navbar">
+                <div className="lp-container lp-navbar-inner">
+                    <div className="lp-brand">
+                        <Link to="/" className="lp-brand-link">KostHub<span className="lp-brand-dot">.</span></Link>
                     </div>
-                    <ul className="dp-nav-links">
-                        <li className="dp-nav-item"><Link className="dp-nav-link" to="/">Home</Link></li>
-                        <li className="dp-nav-item"><Link className="dp-nav-link active" to="/gas-galon">Gas &amp; Galon</Link></li>
-                        <li className="dp-nav-item"><Link className="dp-nav-link" to="/laundry">Laundry Express</Link></li>
-                        <li className="dp-nav-item"><Link className="dp-nav-link" to="/daily-cleaning">Daily Cleaning</Link></li>
-                        <li className="dp-nav-item"><Link className="dp-nav-link" to="/tentang-kami">Tentang Kami</Link></li>
+                    <ul className="lp-nav-links" ref={navLinksRef} onMouseLeave={handleNavLeave}>
+                        <li className="lp-nav-item"><Link className={`lp-nav-link ${'/' === '/gas-galon' ? 'lp-nav-link--active' : ''}`} to="/" onMouseEnter={handleNavHover} onClick={handleNavClick}>Home</Link></li>
+                        <li className="lp-nav-item"><Link className={`lp-nav-link ${'/gas-galon' === '/gas-galon' ? 'lp-nav-link--active' : ''}`} to="/gas-galon" onMouseEnter={handleNavHover} onClick={handleNavClick}>Gas &amp; Galon</Link></li>
+                        <li className="lp-nav-item"><Link className={`lp-nav-link ${'/laundry' === '/gas-galon' ? 'lp-nav-link--active' : ''}`} to="/laundry" onMouseEnter={handleNavHover} onClick={handleNavClick}>Laundry Express</Link></li>
+                        <li className="lp-nav-item"><Link className={`lp-nav-link ${'/daily-cleaning' === '/gas-galon' ? 'lp-nav-link--active' : ''}`} to="/daily-cleaning" onMouseEnter={handleNavHover} onClick={handleNavClick}>Daily Cleaning</Link></li>
+                        <li className="lp-nav-item"><Link className="lp-nav-link" to="/tentang-kami" onMouseEnter={handleNavHover} onClick={handleNavClick}>Tentang Kami</Link></li>
                     </ul>
-                    <div className="dp-nav-actions">
-                        <div className="dp-nav-actions-inner">
-                            <button className="material-symbols-outlined dp-btn-icon">notifications</button>
-                            <div className="dp-avatar">JD</div>
-                        </div>
+                    <div className="lp-nav-actions">
+                        {isAuthenticated ? (
+                            <div className="lp-profile-menu">
+                                <button className="lp-profile-btn" onClick={() => setShowProfileMenu(!showProfileMenu)} title={user?.nama_lengkap || user?.nama_mitra || user?.nama || 'User'}>
+                                    <div className="lp-profile-avatar"><span className="material-symbols-outlined">account_circle</span></div>
+                                </button>
+                                {showProfileMenu && (
+                                    <div className="lp-profile-dropdown">
+                                        <div className="lp-profile-info">
+                                            <p className="lp-profile-name">{user?.nama_lengkap || user?.nama_mitra || user?.nama || 'User'}</p>
+                                            <p className="lp-profile-email">{user?.email}</p>
+                                        </div>
+                                        <hr className="lp-profile-divider" />
+                                        <button className="lp-profile-link" onClick={() => { navigate('/profile'); setShowProfileMenu(false); }}>
+                                            <span className="material-symbols-outlined">person</span> Profil Saya
+                                        </button>
+                                        <button className="lp-profile-link" onClick={() => { navigate('/settings'); setShowProfileMenu(false); }}>
+                                            <span className="material-symbols-outlined">settings</span> Pengaturan
+                                        </button>
+                                        <button className="lp-profile-link lp-profile-logout" onClick={() => { logout(); setShowProfileMenu(false); navigate('/'); }}>
+                                            <span className="material-symbols-outlined">logout</span> Keluar
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <button onClick={() => navigate('/login')} className="lp-btn-primary">Masuk / Daftar</button>
+                        )}
                     </div>
                 </div>
             </nav>
@@ -263,18 +335,18 @@ const GasGalonDetail = () => {
                 </div>
             </main>
 
-            <footer className="dp-footer">
-                <div className="dp-footer-inner">
-                    <div className="dp-footer-brand">KostHub<span className="dp-footer-brand-dot">.</span></div>
-                    <div className="dp-footer-links">
-                        <a className="dp-footer-link" href="#">About Us</a>
-                        <a className="dp-footer-link" href="#">Terms of Service</a>
-                        <a className="dp-footer-link" href="#">Privacy Policy</a>
-                        <a className="dp-footer-link" href="#">Contact</a>
+                        <footer className="lp-footer">
+                <div className="lp-container lp-footer-inner">
+                    <div className="lp-footer-brand">
+                        <Link to="/" className="lp-footer-logo">KostHub<span className="lp-footer-dot">.</span></Link>
+                        <p className="lp-footer-desc">Solusi praktis anak kos di Solo.</p>
                     </div>
-                    <div className="dp-footer-copy">
-                        © 2024 KostHub. Hyperlocal Marketplace.
+                    <div className="lp-footer-links">
+                        <a className="lp-footer-link" href="#">Syarat &amp; Ketentuan</a>
+                        <a className="lp-footer-link" href="#">Kebijakan Privasi</a>
+                        <a className="lp-footer-link" href="#">Hubungi Kami</a>
                     </div>
+                    <p className="lp-footer-copy">© 2024 KostHub. All rights reserved.</p>
                 </div>
             </footer>
         </div>
