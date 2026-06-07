@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './DetailMitraLaundry.css';
+import TransitionLink from '../../../components/ViewTransition/TransitionLink';
 import { useAuth } from '../../../context/AuthContext';
 import api from '../../../services/api';
 
@@ -9,8 +10,19 @@ const DetailMitraLaundry = ({ onOrderClick }) => {
     const [selectedCategories, setSelectedCategories] = useState([]);
     const [sortBy, setSortBy] = useState('terdekat');
 
+    const navLinksRef = useRef(null);
+
     const { user, isAuthenticated, logout } = useAuth();
     const [showProfileMenu, setShowProfileMenu] = useState(false);
+
+    const updateIndicator = useCallback((targetEl) => {
+        const ul = navLinksRef.current;
+        if (!ul || !targetEl) return;
+        const ulRect = ul.getBoundingClientRect();
+        const linkRect = targetEl.getBoundingClientRect();
+        ul.style.setProperty('--indicator-left', `${linkRect.left - ulRect.left}px`);
+        ul.style.setProperty('--indicator-width', `${linkRect.width}px`);
+    }, []);
 
     const handleCategoryChange = (category) => {
         setSelectedCategories((prev) => {
@@ -23,6 +35,29 @@ const DetailMitraLaundry = ({ onOrderClick }) => {
 
             return newCategories;
         });
+    };
+
+    const handleNavHover = (e) => {
+        updateIndicator(e.currentTarget);
+    };
+
+    const handleNavLeave = () => {
+        const ul = navLinksRef.current;
+        if (!ul) return;
+        const activeLink = ul.querySelector('.dmc-nav-link--active');
+        if (activeLink) {
+            updateIndicator(activeLink);
+        }
+    };
+
+    const handleNavClick = () => {
+        const ul = navLinksRef.current;
+        if (!ul) return;
+        const left = ul.style.getPropertyValue('--indicator-left');
+        const width = ul.style.getPropertyValue('--indicator-width');
+        if (left && width) {
+            sessionStorage.setItem('nav-indicator', JSON.stringify({ left, width }));
+        }
     };
 
     useEffect(() => {
@@ -113,21 +148,21 @@ const DetailMitraLaundry = ({ onOrderClick }) => {
                         </Link>
                     </div>
 
-                    <ul className="dmc-nav-links">
+                    <ul className="dmc-nav-links" ref={navLinksRef} onMouseLeave={handleNavLeave}>
                         <li className="dmc-nav-item">
-                            <Link className="dmc-nav-link" to="/">Home</Link>
+                            <TransitionLink className="dmc-nav-link" to="/" onMouseEnter={handleNavHover} onClick={handleNavClick}>Home</TransitionLink>
                         </li>
                         <li className="dmc-nav-item">
-                            <Link className="dmc-nav-link" to="/gas-galon">Gas &amp; Galon</Link>
+                            <TransitionLink className="dmc-nav-link" to="/gas-galon" onMouseEnter={handleNavHover} onClick={handleNavClick}>Gas &amp; Galon</TransitionLink>
                         </li>
                         <li className="dmc-nav-item">
-                            <Link className="dmc-nav-link dmg-nav-link--active" to="/laundry">Laundry Express</Link>
+                            <TransitionLink className="dmc-nav-link dmc-nav-link--active" to="/laundry" onMouseEnter={handleNavHover} onClick={handleNavClick} aria-current="page">Laundry Express</TransitionLink>
                         </li>
                         <li className="dmc-nav-item">
-                            <Link className="dmc-nav-link" to="/daily-cleaning">Daily Cleaning</Link>
+                            <TransitionLink className="lp-nav-link" to="/daily-cleaning" onMouseEnter={handleNavHover} onClick={handleNavClick}>Daily Cleaning</TransitionLink>
                         </li>
                         <li className="dmc-nav-item">
-                            <a className="dmc-nav-link" href="#">Tentang Kami</a>
+                            <TransitionLink className="dmc-nav-link" to="/tentang-kami" onMouseEnter={handleNavHover} onClick={handleNavClick}>Tentang Kami</TransitionLink>
                         </li>
                     </ul>
 
