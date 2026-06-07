@@ -73,11 +73,12 @@ class AuthService{
 
         foreach ($guardMap as $guard => $model) {
             if ($guard === 'mitra') {
-                $user = Mitra::where('nomor_telepon', $credential)
-                        ->orWhereHas('MitraAccess', function ($q) use ($credential){
-                            $q->where('email', $credential);
-                        })
-                        ->first();
+                $mitraAccess = MitraLoginAccess::where('email', $credential)->first();
+                if ($mitraAccess) {
+                    $user = Mitra::find($mitraAccess->id_mitra);
+                } else {
+                    $user = Mitra::where('nomor_telepon', $credential)->first();
+                }
             }
             else {
                 $user = $model::where('email', $credential)->first();
@@ -103,14 +104,12 @@ class AuthService{
         ['guard' => $guard] = $this->detectGuard($credentials['email']);
 
         if ($guard === 'mitra') {
-            $mitra = Mitra::with('MitraAccess')
-                ->where(function ($q) use ($credentials) {
-                    $q->where('nomor_telepon', $credentials['email'])
-                    ->orWhereHas('MitraAccess', function ($q) use ($credentials) {
-                        $q->where('email', $credentials['email']);
-                    });
-                })
-                ->first();
+            $mitraAccess = MitraLoginAccess::where('email', $credentials['email'])->first();
+            if ($mitraAccess) {
+                $mitra = Mitra::with('MitraAccess')->find($mitraAccess->id_mitra);
+            } else {
+                $mitra = Mitra::with('MitraAccess')->where('nomor_telepon', $credentials['email'])->first();
+            }
 
             if (! $mitra || ! Hash::check($credentials['password'], $mitra->MitraAccess->password)) {
                 throw new AuthenticationException('Email/nomor telepon atau password salah.');
