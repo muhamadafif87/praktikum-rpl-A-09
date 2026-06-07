@@ -30,6 +30,8 @@ Route::prefix('v1')->group(function () {
         Route::middleware('auth:sanctum')->group(function(){
             Route::get('/search', [LandingPageController::class, 'searchLayanan'])->name('search');
 
+            Route::post('/generate-fee-pesanan', [PesananController::class, 'estimateFeePesanan'])->name('generatefeepesanan');
+
             //Pesanan
             Route::prefix('laundry-express')->name('laundry-express.')->group(function () {
                 Route::get('/', [LandingPageController::class, 'laundryExpress'])->name('index');

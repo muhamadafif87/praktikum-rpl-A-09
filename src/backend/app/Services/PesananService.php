@@ -10,30 +10,55 @@ class PesananService
         //
     }
 
-    public function estimateFeePesanan(){
-        //Laundry Express
-        /**
-         * Estimasi biaya cuci: harga_satuan layanan laundry (kg) * estimasi_berat
-         * Estimasi biaya kurir antar-jemput: jarak_customer * harga_ongkir kurir (km)
-         * return total_estimasi_biaya_sementara
-         */
+    public function estimateFeePesanan(
+        string $idMitra,
+        string $idLayanan,
+        string $typeLayanan,
+        int $qty,
+        int $jarakOngkir,
+        array $biayaTambahan
+    ){
+        $mitra = Mitra::find($idMitra);
+        if (!$mitra) {
+            throw new \Exception('Mitra tidak ditemukan');
+        }
 
-        //Gas & Galon
-        /**
-         * subtotalProduk: gas/galon * harga
-         * biaya pengiriman: jarak_customer * harga_ongkir kurir (km)
-         * return total_pembayaran
-         */
+        $layanan = $mitra->Layanan()->where('id_layanan', $idLayanan)->first();
+        if (!$layanan) {
+            throw new \Exception('Layanan tidak ditemukan');
+        }
 
-        //Daily Cleaning
-        /**
-         * harga:  paket cleaning yang dipilih (jam)
-         * biaya_tambahan: alat tambahan (opsional)
-         * biaya transportasi: jarak_customer * harga_ongkir kurir (km)
-         * return total_pembayaran
-         */
+        $biayaPokok    = $layanan->harga * $qty;
+        $biayaOngkir   = ($layanan->catatan['biaya_ongkir'] ?? 0) * $jarakOngkir;
+        $biayaTransport = ($layanan->catatan['biaya_transportasi'] ?? 0) * $jarakOngkir;
+        $biayaAplikasi = 1000;
 
-        // *don't forget to add 'biaya layanan aplikasi' in every transaction
+        if ($typeLayanan === 'laundry') {
+            return [
+                'subtotal'          => $biayaPokok,
+                'biaya_ongkir'      => $biayaOngkir,
+                'biaya_layanan'     => $biayaAplikasi,
+                'total_pembayaran'  => $biayaPokok + $biayaOngkir + $biayaAplikasi
+            ];
+        } elseif ($typeLayanan === 'galon_gas') {
+            $tambahan = ($biayaTambahan['beli_baru'] ?? 0) * $qty;
+            return [
+                'subtotal'         => $biayaPokok,
+                'biaya_ongkir'     => $biayaOngkir,
+                'biaya_layanan'    => $biayaAplikasi,
+                'beli_baru'        => $tambahan,
+                'total_pembayaran' => $biayaPokok + $biayaOngkir + $biayaAplikasi + $tambahan
+            ];
+        } else {
+            $totalBiayaTambahan = array_sum($biayaTambahan);
+            return [
+                'subtotal'              => $biayaPokok,
+                'biaya_tambahan_alat'   => $totalBiayaTambahan,
+                'biaya_transportasi'    => $biayaTransport,
+                'biaya_layanan'         => $biayaAplikasi,
+                'total_pembayaran'      => $biayaPokok + $totalBiayaTambahan + $biayaTransport + $biayaAplikasi
+            ];
+        }
     }
 
     private function generateIdPesanan(){
@@ -70,6 +95,7 @@ class PesananService
         if ($type_layanan === 'laundry') {
             return [
                 'id_mitra' => $mitra->id_mitra,
+                'nama_mitra' => $mitra->nama_mitra,
                 'layanan' => $layanan->map(fn($l) => [
                     'id_layanan' => $l->id_layanan,
                     'nama_layanan' => $l->nama_layanan,
@@ -82,6 +108,7 @@ class PesananService
         elseif ($type_layanan === 'daily_cleaning') {
             return [
                 'id_mitra' => $mitra->id_mitra,
+                'nama_mitra' => $mitra->nama_mitra,
                 'layanan' => $layanan->map(fn($l) => [
                     'id_layanan' => $l->id_layanan,
                     'nama_layanan' => $l->nama_layanan,
@@ -94,6 +121,7 @@ class PesananService
         else {
             return [
                 'id_mitra' => $mitra->id_mitra,
+                'nama_mitra' => $mitra->nama_mitra,
                 'layanan' => $layanan->map(fn($l) => [
                     'id_layanan' => $l->id_layanan,
                     'nama_layanan' => $l->nama_layanan,
