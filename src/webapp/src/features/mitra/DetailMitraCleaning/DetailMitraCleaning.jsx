@@ -1,14 +1,18 @@
-import React, { useState, useMemo, useRef, useLayoutEffect, useCallback } from 'react';
+import React, { useState, useMemo, useRef, useLayoutEffect, useCallback, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import TransitionLink from '../../../components/ViewTransition/TransitionLink';
 import { useLocation } from '../../../context/LocationContext';
 import { calculateDistance } from '../../../utils/distance';
+import { useAuth } from '../../../context/AuthContext';
+import api from '../../../services/api';
 import './DetailMitraCleaning.css';
 
 const DetailMitraCleaning = ({ onOrderClick }) => {
     const navigate = useNavigate();
     const { location } = useLocation();
     const navLinksRef = useRef(null);
+    const { user, isAuthenticated, logout } = useAuth();
+    const [showProfileMenu, setShowProfileMenu] = useState(false);
 
     // ── Sliding Indicator Logic ──
     const updateIndicator = useCallback((targetEl) => {
@@ -112,7 +116,7 @@ const DetailMitraCleaning = ({ onOrderClick }) => {
         setMitraError('');
 
         try{
-            const response =  await api.get('/v1/landing-page/daily-cleaning', {
+            const response =  await api.get('/v1/landing-page/daily-cleaning/', {
                 params: {
                     kategori: kategori,
                     sortBy: sortByValue,
