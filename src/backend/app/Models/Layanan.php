@@ -26,6 +26,6 @@ class Layanan extends Model {
     }
 
     public function DetailPesanan(){
-        return $this->hasMany(DetailPesanan::class, localKey: 'id_layanan');
+        return $this->hasMany(DetailPesanan::class,'id_layanan');
     }
 }

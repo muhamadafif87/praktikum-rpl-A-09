@@ -2,12 +2,397 @@
 
 namespace App\Services;
 
+use App\Models\DetailPesanan;
 use App\Models\Mitra;
+use App\Models\Pesanan;
+use Illuminate\Support\Facades\DB;
 
 class PesananService
 {
-    public function createPesanan(){
-        //
+
+    // {
+    //     "idMitra": "6",
+    //     "typeLayanan": "daily_cleaning",
+    //     "items": [
+    //         { "idLayanan": "9", "qty": 2 },
+    //         { "idLayanan": "10", "qty": 1 }
+    //     ],
+    //     "jarakOngkir": 3,
+    //     "biayaTambahan": { "Sapu": 5000, "Pel": 7000 },
+    //     "estimasi": {
+    //         "subtotal": 80000,
+    //         "biaya_ongkir": 9000,
+    //         "biaya_aplikasi": 1000,
+    //         "biaya_tambahan_alat": 12000,
+    //         "total_pembayaran": 102000
+    //     },
+    //     "catatanPengiriman": "Tolong datang pagi"
+    // }
+    // -------------------------------------------------------------------------
+    // Format: ORD-{typeLayanan uppercase}-{YYYYMMDD}-{6 char random}
+    // Contoh: ORD-LAUNDRY-20250607-A3F9K1
+    // -------------------------------------------------------------------------
+    private function generateIdPesanan(string $typeLayanan): string {
+        $prefix = 'ORD-' . strtoupper($typeLayanan) . '-' . now()->format('Ymd');
+
+        do {
+            $suffix = strtoupper(\Illuminate\Support\Str::random(6));
+            $idUnique = "{$prefix}-{$suffix}";
+        } while (Pesanan::where('id_unique_pesanan', $idUnique)->exists());
+
+        return $idUnique;
+    }
+
+    public function createPesanan(
+        string $idUser,
+        string $idMitra,
+        string $typeLayanan,
+        array  $items,
+        int    $jarakOngkir,
+        array  $estimasi,
+        array  $biayaTambahan,
+        ?string $catatanPengiriman
+    ): array {
+        return DB::transaction(function () use (
+            $idUser, $idMitra, $typeLayanan, $items,
+            $jarakOngkir, $estimasi, $biayaTambahan, $catatanPengiriman
+        ) {
+            $mitra = Mitra::find($idMitra);
+            if (!$mitra) {
+                throw new \Exception('Mitra tidak ditemukan.');
+            }
+
+            $idLayananList = array_column($items, 'idLayanan');
+            $layanans = $mitra->Layanan()
+                ->whereIn('id_layanan', $idLayananList)
+                ->get()
+                ->keyBy('id_layanan');
+
+            if ($layanans->count() !== count($idLayananList)) {
+                throw new \Exception('Satu atau lebih layanan tidak ditemukan atau bukan milik mitra ini.');
+            }
+
+            $idUniquePesanan = $this->generateIdPesanan($typeLayanan);
+
+            $catatanPesanan_s = [
+                'jarak_ongkir'       => $jarakOngkir,
+                'biaya_aplikasi'     => 1000,
+                'biaya_tambahan'     => $biayaTambahan ?: null,
+                'total_pembayaran'   => $estimasi['total_pembayaran'],
+                'catatan_pengiriman' => $catatanPengiriman,
+            ];
+
+            if($typeLayanan === 'daily_cleaning'){
+                $catatanPesanan_s['biaya_tambahan_alat'] = $estimasi['biaya_tambahan_alat'] ?? 0;
+                $catatanPesanan_s['biaya_transportasi'] = $estimasi['biaya_transportasi'] ?? 0;
+                $catatanPesanan_s['detail_alat_tambahan'] = array_keys($biayaTambahan);
+            }
+            if($typeLayanan === 'laundry'){
+                $catatanPesanan_s['biaya_ongkir'] = $estimasi['biaya_ongkir'] ?? 0;
+            }
+            if ($typeLayanan === 'galon_gas') {
+                $catatanPesanan_s['biaya_ongkir'] = $estimasi['biaya_ongkir'] ?? 0;
+                $catatanPesanan_s['jenis_layanan'] = isset($biayaTambahan['beli_baru']) && $biayaTambahan['beli_baru'] > 0
+                    ? 'beli_baru'
+                    : 'isi_ulang';
+            }
+
+            $pesanan = Pesanan::create([
+                'id_unique_pesanan' => $idUniquePesanan,
+                'id_user'           => $idUser,
+                'id_mitra'          => $idMitra,
+                'status_pesanan'    => 'pending',
+                'catatan'           => $catatanPesanan_s,
+            ]);
+
+            $detailList = [];
+            foreach ($items as $item) {
+                $layanan = $layanans->get($item['idLayanan']);
+                $harga    = $layanan->harga;
+                $qty      = $item['qty'];
+                $subtotal = $harga * $qty;
+
+                $detail = DetailPesanan::create([
+                    'id_pesanan'  => $pesanan->id_pesanan,
+                    'id_layanan'  => $layanan->id_layanan,
+                    'jumlah'      => $qty,
+                    'harga'       => $harga,
+                    'subtotal'    => $subtotal,
+                ]);
+
+                $detailList[] = [
+                    'id_detail_pesanan' => $detail->id_detail_pesanan,
+                    'nama_layanan'      => $layanan->nama_layanan,
+                    'satuan'            => $layanan->satuan,
+                    'harga'             => $harga,
+                    'jumlah'            => $qty,
+                    'subtotal'          => $subtotal,
+                ];
+            }
+
+            if ($typeLayanan === 'daily_cleaning') {
+                return [
+                    'id_pesanan'         => $pesanan->id_pesanan,
+                    'id_unique_pesanan'  => $pesanan->id_unique_pesanan,
+                    'status_pesanan'     => $pesanan->status_pesanan,
+                    'detail_layanan'     => $detailList, //array
+                    'detail_alat_tambahan'   => array_keys($biayaTambahan),
+                    'ringkasan_biaya'    => [
+                        'subtotal'          => $estimasi['subtotal'],
+                        'biaya_transportasi'=> $estimasi['biaya_transportasi'],
+                        'biaya_tambahan_alat' => $estimasi['biaya_tambahan_alat'],
+                        'biaya_aplikasi'    => 1000,
+                        'total_pembayaran'  => $estimasi['total_pembayaran'],
+                    ],
+                    'catatan_pengiriman' => $catatanPengiriman,
+                ];
+            }
+            elseif($typeLayanan === 'laundry'){
+                return [
+                    'id_pesanan'         => $pesanan->id_pesanan,
+                    'id_unique_pesanan'  => $pesanan->id_unique_pesanan,
+                    'status_pesanan'     => $pesanan->status_pesanan,
+                    'detail_layanan'     => $detailList,
+                    'ringkasan_biaya'    => [
+                        'subtotal'          => $estimasi['subtotal'],
+                        'biaya_ongkir'      => $estimasi['biaya_ongkir'],
+                        'biaya_aplikasi'    => 1000,
+                        'total_pembayaran'  => $estimasi['total_pembayaran'],
+                    ],
+                    'catatan_pengiriman' => $catatanPengiriman,
+                ];
+            }
+            else{
+                return [
+                    'id_pesanan'         => $pesanan->id_pesanan,
+                    'id_unique_pesanan'  => $pesanan->id_unique_pesanan,
+                    'status_pesanan'     => $pesanan->status_pesanan,
+                    'detail_layanan'     => $detailList,
+                    'ringkasan_biaya'    => [
+                        'subtotal'          => $estimasi['subtotal'],
+                        'biaya_ongkir'      => $estimasi['biaya_ongkir'],
+                        'biaya_aplikasi'    => 1000,
+                        'total_pembayaran'  => $estimasi['total_pembayaran'],
+                    ],
+                    'catatan_pengiriman' => $catatanPengiriman,
+                ];
+            }
+        });
+    }
+
+    // -------------------------------------------------------------------------
+    // SHOW RIWAYAT PESANAN — USER
+    // -------------------------------------------------------------------------
+    public function riwayatPesananUser(
+        string  $idUser,
+        ?string $status,
+        ?string $tglDari,
+        ?string $tglSampai,
+        int     $perPage
+    ) {
+        $query = Pesanan::with([
+                'DetailPesanan.Layanan',
+                'Mitra:id_mitra,nama_mitra,jenis_jasa,alamat_mitra',
+            ])
+            ->where('id_user', $idUser)
+            ->orderBy('tgl_pesanan', 'desc');
+
+        if ($status) {
+            $query->where('status_pesanan', $status);
+        }
+
+        if ($tglDari) {
+            $query->whereDate('tgl_pesanan', '>=', $tglDari);
+        }
+
+        if ($tglSampai) {
+            $query->whereDate('tgl_pesanan', '<=', $tglSampai);
+        }
+
+        $paginated = $query->paginate($perPage);
+
+        return [
+            'data'  => $paginated->map(fn($p) => $this->formatRiwayat($p)),
+            'meta'  => [
+                'current_page'  => $paginated->currentPage(),
+                'last_page'     => $paginated->lastPage(),
+                'per_page'      => $paginated->perPage(),
+                'total'         => $paginated->total(),
+            ],
+        ];
+    }
+
+    // -------------------------------------------------------------------------
+    // SHOW RIWAYAT PESANAN — MITRA
+    // -------------------------------------------------------------------------
+    public function riwayatPesananMitra(
+        string  $idMitra,
+        ?string $status,
+        ?string $tglDari,
+        ?string $tglSampai,
+        int     $perPage
+    ) {
+        $query = Pesanan::with([
+                'DetailPesanan.Layanan',
+                'User:id_user,nama_lengkap,nomor_telepon,alamat_kost',
+            ])
+            ->where('id_mitra', $idMitra)
+            ->orderBy('tgl_pesanan', 'desc');
+
+        if ($status) {
+            $query->where('status_pesanan', $status);
+        }
+
+        if ($tglDari) {
+            $query->whereDate('tgl_pesanan', '>=', $tglDari);
+        }
+
+        if ($tglSampai) {
+            $query->whereDate('tgl_pesanan', '<=', $tglSampai);
+        }
+
+        $paginated = $query->paginate($perPage);
+
+        return [
+            'data'  => $paginated->map(fn($p) => $this->formatRiwayat($p)),
+            'meta'  => [
+                'current_page'  => $paginated->currentPage(),
+                'last_page'     => $paginated->lastPage(),
+                'per_page'      => $paginated->perPage(),
+                'total'         => $paginated->total(),
+            ],
+        ];
+    }
+
+    // -------------------------------------------------------------------------
+    // SHOW DETAIL PESANAN
+    // -------------------------------------------------------------------------
+    public function showDetailPesanan(string $idUniquePesanan): array
+    {
+        $pesanan = Pesanan::with([
+                'DetailPesanan.Layanan',
+                'Mitra:id_mitra,nama_mitra,jenis_jasa,alamat_mitra,nomor_telepon',
+                'User:id_user,nama_lengkap,nomor_telepon,alamat_kost',
+                'Pembayaran',
+                'Ulasan',
+            ])
+            ->where('id_unique_pesanan', $idUniquePesanan)
+            ->first();
+
+        if (!$pesanan) {
+            throw new \Exception('Pesanan tidak ditemukan.');
+        }
+
+        $catatan = $pesanan->catatan ?? [];
+
+        return [
+            'id_pesanan'         => $pesanan->id_pesanan,
+            'id_unique_pesanan'  => $pesanan->id_unique_pesanan,
+            'status_pesanan'     => $pesanan->status_pesanan,
+            'tgl_pesanan'        => $pesanan->tgl_pesanan,
+            'mitra'              => $pesanan->Mitra,
+            'user'               => $pesanan->User,
+            'detail_layanan'     => $pesanan->DetailPesanan->map(fn($d) => [
+                'id_detail_pesanan' => $d->id_detail_pesanan,
+                'nama_layanan'      => $d->Layanan->nama_layanan ?? '-',
+                'satuan'            => $d->Layanan->satuan ?? '-',
+                'harga'             => $d->harga,
+                'jumlah'            => $d->jumlah,
+                'subtotal'          => $d->subtotal,
+            ]),
+            'ringkasan_biaya'    => [
+                'subtotal'              => $catatan['subtotal'] ?? null,
+                'biaya_ongkir'          => $catatan['biaya_ongkir'] ?? null,
+                'biaya_aplikasi'        => $catatan['biaya_aplikasi'] ?? null,
+                'biaya_tambahan_alat'   => $catatan['biaya_tambahan_alat'] ?? null,
+                'total_pembayaran'      => $catatan['total_pembayaran'] ?? null,
+            ],
+            'catatan_pengiriman' => $catatan['catatan_pengiriman'] ?? null,
+            'pembayaran'         => $pesanan->Pembayaran,
+            'ulasan'             => $pesanan->Ulasan,
+        ];
+    }
+
+    // -------------------------------------------------------------------------
+    // CANCEL PESANAN — USER (hanya saat pending)
+    // -------------------------------------------------------------------------
+    public function cancelPesananUser(string $idUniquePesanan, string $idUser): array
+    {
+        $pesanan = Pesanan::where('id_unique_pesanan', $idUniquePesanan)
+            ->where('id_user', $idUser)
+            ->first();
+
+        if (!$pesanan) {
+            throw new \Exception('Pesanan tidak ditemukan.');
+        }
+
+        if ($pesanan->status_pesanan !== 'pending') {
+            throw new \Exception(
+                'Pesanan tidak dapat dibatalkan. Pembatalan hanya bisa dilakukan saat status masih pending.'
+            );
+        }
+
+        $pesanan->update(['status_pesanan' => 'dibatalkan']);
+
+        return [
+            'id_unique_pesanan' => $pesanan->id_unique_pesanan,
+            'status_pesanan'    => 'dibatalkan',
+        ];
+    }
+
+    // -------------------------------------------------------------------------
+    // CANCEL PESANAN — MITRA (bisa di semua status kecuali selesai/dibatalkan)
+    // -------------------------------------------------------------------------
+    public function cancelPesananMitra(string $idUniquePesanan, string $idMitra): array
+    {
+        $pesanan = Pesanan::where('id_unique_pesanan', $idUniquePesanan)
+            ->where('id_mitra', $idMitra)
+            ->first();
+
+        if (!$pesanan) {
+            throw new \Exception('Pesanan tidak ditemukan.');
+        }
+
+        if (in_array($pesanan->status_pesanan, ['selesai', 'dibatalkan'])) {
+            throw new \Exception(
+                "Pesanan dengan status '{$pesanan->status_pesanan}' tidak dapat dibatalkan."
+            );
+        }
+
+        $pesanan->update(['status_pesanan' => 'dibatalkan']);
+
+        return [
+            'id_unique_pesanan' => $pesanan->id_unique_pesanan,
+            'status_pesanan'    => 'dibatalkan',
+        ];
+    }
+
+    // -------------------------------------------------------------------------
+    // HELPER — Format riwayat untuk response list
+    // -------------------------------------------------------------------------
+    private function formatRiwayat(Pesanan $pesanan): array
+    {
+        $catatan = $pesanan->catatan ?? [];
+
+        return [
+            'id_unique_pesanan'  => $pesanan->id_unique_pesanan,
+            'status_pesanan'     => $pesanan->status_pesanan,
+            'tgl_pesanan'        => $pesanan->tgl_pesanan,
+            'mitra'              => isset($pesanan->Mitra) ? [
+                'nama_mitra'  => $pesanan->Mitra->nama_mitra,
+                'jenis_jasa'  => $pesanan->Mitra->jenis_jasa,
+            ] : null,
+            'user'               => isset($pesanan->User) ? [
+                'nama_lengkap'  => $pesanan->User->nama_lengkap,
+                'nomor_telepon' => $pesanan->User->nomor_telepon,
+            ] : null,
+            'detail_layanan'     => $pesanan->DetailPesanan->map(fn($d) => [
+                'nama_layanan'  => $d->Layanan->nama_layanan ?? '-',
+                'jumlah'        => $d->jumlah,
+                'subtotal'      => $d->subtotal,
+            ]),
+            'total_pembayaran'   => $catatan['total_pembayaran'] ?? null,
+        ];
     }
 
     public function estimateFeePesanan(
@@ -59,22 +444,6 @@ class PesananService
                 'total_pembayaran'      => $biayaPokok + $totalBiayaTambahan + $biayaTransport + $biayaAplikasi
             ];
         }
-    }
-
-    private function generateIdPesanan(){
-        //
-    }
-
-    public function showRiwayatPesanan(){
-        //
-    }
-
-    public function cancelPesanan(){
-        //
-    }
-
-    public function showDetailPesanan(){
-        //
     }
 
     public function seedingDetailPesanan(string $type_layanan, string $idMitra){
