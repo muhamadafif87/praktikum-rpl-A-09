@@ -16,9 +16,11 @@ import MitraFinance from './features/mitra/MitraFinance/MitraFinance';
 import MitraInventory from './features/mitra/MitraInventory/MitraInventory';
 import MitraOrders from './features/mitra/MitraOrders/MitraOrders';
 import HelpSupportMitra from './features/mitra/HelpSupportMitra/HelpSupportMitra';
+import AdminOverview from './features/admin/AdminOverview/AdminOverview';
+import AdminStock from './features/admin/AdminStock/AdminStock';
+import AdminPartner from './features/admin/AdminPartner/AdminPartner';
 
 // Placeholder components for dashboard pages
-const DashboardAdmin = () => <div style={{ padding: '20px' }}><h1>Dashboard Admin</h1></div>;
 const ProfilePage = () => <div style={{ padding: '20px' }}><h1>Profil Saya</h1></div>;
 const SettingsPage = () => <div style={{ padding: '20px' }}><h1>Pengaturan</h1></div>;
 
@@ -34,8 +36,12 @@ const App = () => {
                 <Route path="/daily-cleaning" element={<DailyCleaningPage />} />
                 <Route path="/tentang-kami" element={<TentangKamiPage />} />
 
-                {/* Dashboard routes */}
-                <Route path="/dashboard/admin" element={<DashboardAdmin />} />
+                {/* Admin Dashboard routes */}
+                <Route path="/dashboard/admin" element={<AdminOverview />} />
+                <Route path="/dashboard/admin/stock" element={<AdminStock />} />
+                <Route path="/dashboard/admin/partners" element={<AdminPartner />} />
+
+                {/* Mitra Dashboard routes */}
                 <Route path="/dashboard/mitra" element={<MitraDashboardPage />} />
                 <Route path="/dashboard/mitra/chat" element={<ChatMitra />} />
                 <Route path="/dashboard/mitra/reviews" element={<ReviewMitra />} />
