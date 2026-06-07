@@ -12,7 +12,7 @@ import './MitraFinance.css';
  * - Empty state jika data transaksi kosong
  *
  * API Endpoint:
- * - GET /v1/mitra/finance
+ * - GET /v1/dashboard/mitra/finance
  */
 
 const ITEMS_PER_PAGE = 10;

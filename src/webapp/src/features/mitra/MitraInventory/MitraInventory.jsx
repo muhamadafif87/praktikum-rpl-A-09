@@ -12,7 +12,7 @@ import './MitraInventory.css';
  * - Empty state jika belum ada data
  *
  * API Endpoint:
- * - GET /v1/mitra/inventory
+ * - GET /v1/dashboard/mitra/inventory
  */
 
 const ITEMS_PER_PAGE = 10;

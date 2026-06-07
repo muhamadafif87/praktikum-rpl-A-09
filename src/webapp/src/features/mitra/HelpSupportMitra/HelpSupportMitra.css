@@ -1,0 +1,591 @@
+/* Color Palette reference from Tailwind config */
+:root {
+  --primary: #004ac6;
+  --on-primary: #ffffff;
+  --primary-container: #2563eb;
+  --on-primary-container: #eeefff;
+  
+  --surface-container-lowest: #ffffff;
+  --surface-container-low: #eff4ff;
+  --surface-container: #e5eeff;
+  --surface-container-high: #dce9ff;
+  --surface-container-highest: #d3e4fe;
+  
+  --on-surface: #0b1c30;
+  --on-surface-variant: #434655;
+  --outline: #737686;
+  --outline-variant: #c3c6d7;
+  
+  --error: #ba1a1a;
+  --on-error: #ffffff;
+  --error-container: #ffdad6;
+  --on-error-container: #93000a;
+
+  --success: #16a34a;
+  --success-light: #dcfce7;
+  --success-dark: #15803d;
+
+  --background: #f8f9ff;
+  --on-background: #0b1c30;
+
+  --font-body: 'Inter', sans-serif;
+}
+
+.help-support-mitra-container {
+  font-family: var(--font-body);
+  background-color: var(--background);
+  color: var(--on-background);
+  min-height: 100vh;
+}
+
+/* Navbar */
+.help-support-mitra-navbar {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 50;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 32px;
+  height: 64px;
+  background-color: var(--surface-container-lowest);
+  border-bottom: 1px solid var(--outline-variant);
+  box-sizing: border-box;
+}
+
+.help-support-mitra-brand-link {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--on-surface);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.help-support-mitra-brand-dot {
+  color: var(--primary);
+  line-height: 1;
+}
+
+.help-support-mitra-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.help-support-mitra-icon-btn {
+  color: var(--on-surface-variant);
+  background: transparent;
+  border: none;
+  padding: 8px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.help-support-mitra-icon-btn:hover {
+  background-color: var(--surface-container-low);
+}
+
+.help-support-mitra-user-profile {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.help-support-mitra-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--outline-variant);
+}
+
+.help-support-mitra-user-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--on-surface);
+}
+
+/* Sidebar */
+.help-support-mitra-sidebar {
+  position: fixed;
+  left: 0;
+  top: 64px;
+  height: calc(100vh - 64px);
+  width: 256px;
+  background-color: var(--surface-container-lowest);
+  border-right: 1px solid var(--outline-variant);
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  z-index: 40;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.help-support-mitra-sidebar-header {
+  margin-bottom: 8px;
+  padding: 0 8px 16px;
+  border-bottom: 1px solid var(--outline-variant);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.help-support-mitra-admin-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.help-support-mitra-admin-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid #dbe1ff;
+}
+
+.help-support-mitra-admin-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--on-surface);
+  margin: 0;
+}
+
+.help-support-mitra-admin-subtitle {
+  font-size: 12px;
+  color: var(--on-surface-variant);
+  margin: 0 0 8px 0;
+}
+
+.help-support-mitra-status-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #f0fdf4;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  border: 1px solid #bbf7d0;
+}
+
+.help-support-mitra-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--success);
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .5; }
+}
+
+.help-support-mitra-status-dot.normal {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.help-support-mitra-status-dot.issue {
+  background-color: #ea580c;
+}
+
+.help-support-mitra-status-text {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--success-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.help-support-mitra-sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.help-support-mitra-nav-link {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border-radius: 12px;
+  color: var(--on-surface-variant);
+  text-decoration: none;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.help-support-mitra-nav-link span.material-symbols-outlined {
+  margin-right: 12px;
+}
+
+.help-support-mitra-nav-link:hover {
+  color: var(--on-surface);
+  background-color: var(--surface-container-high);
+}
+
+.help-support-mitra-nav-link.active {
+  background-color: var(--primary);
+  color: white;
+  font-weight: 700;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.help-support-mitra-sidebar-footer {
+  margin-top: auto;
+  padding: 16px 8px 0;
+  border-top: 1px solid var(--outline-variant);
+}
+
+.help-support-mitra-quick-support-btn {
+  width: 100%;
+  padding: 8px 0;
+  background-color: var(--surface-container-low);
+  color: var(--primary);
+  border: 1px solid var(--outline-variant);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.help-support-mitra-quick-support-btn:hover {
+  background-color: var(--surface-container-high);
+}
+
+/* Main Content */
+.help-support-mitra-main-content {
+  margin-left: 256px;
+  padding: 32px;
+  padding-top: 84px; /* 64px nav + 20px space */
+  padding-bottom: 96px;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .help-support-mitra-sidebar {
+    display: none;
+  }
+  .help-support-mitra-user-name {
+    display: none;
+  }
+  .help-support-mitra-main-content {
+    margin-left: 0;
+    padding: 16px;
+    padding-top: 80px;
+  }
+}
+
+.help-support-mitra-loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 60vh;
+}
+
+.help-support-mitra-spinner {
+  font-size: 48px;
+  color: var(--primary);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Header */
+.help-support-mitra-header {
+  margin-bottom: 24px;
+  margin-top: 8px;
+}
+
+.help-support-mitra-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--on-surface);
+  margin: 0 0 8px 0;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.help-support-mitra-description {
+  font-size: 18px;
+  color: var(--on-surface-variant);
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* Stats */
+.help-support-mitra-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.help-support-mitra-stat-card {
+  background-color: var(--surface-container-lowest);
+  padding: 24px;
+  border-radius: 12px;
+  border: 1px solid var(--outline-variant);
+}
+
+.help-support-mitra-stat-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--on-surface-variant);
+  margin: 0 0 4px 0;
+}
+
+.help-support-mitra-stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--on-surface);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.help-support-mitra-stat-value.highlight-primary {
+  color: var(--primary);
+}
+
+.help-support-mitra-stat-value.highlight-success {
+  color: var(--success);
+}
+
+.help-support-mitra-stat-value.highlight-warning {
+  color: #ea580c;
+}
+
+.help-support-mitra-status-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Content Section */
+.help-support-mitra-content-section {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* Search */
+.help-support-mitra-search-container {
+  position: relative;
+  max-width: 672px;
+  margin: 0 auto;
+  margin-bottom: 40px;
+  width: 100%;
+}
+
+.help-support-mitra-search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--on-surface-variant);
+}
+
+.help-support-mitra-search-input {
+  width: 100%;
+  padding: 16px 16px 16px 48px;
+  border: 1px solid var(--outline-variant);
+  border-radius: 12px;
+  background-color: var(--surface-container-lowest);
+  font-size: 16px;
+  color: var(--on-surface);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.help-support-mitra-search-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(0, 74, 198, 0.2);
+}
+
+/* Topics Grid */
+.help-support-mitra-topics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+.help-support-mitra-topic-card {
+  padding: 24px;
+  background-color: var(--surface-container-lowest);
+  border: 1px solid var(--outline-variant);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+}
+
+.help-support-mitra-topic-card:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.help-support-mitra-topic-icon {
+  color: var(--primary);
+  font-size: 32px;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.help-support-mitra-topic-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  color: var(--on-surface);
+}
+
+.help-support-mitra-topic-desc {
+  font-size: 14px;
+  color: var(--on-surface-variant);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Contact Block */
+.help-support-mitra-contact-block {
+  margin-top: 48px;
+  padding: 32px;
+  background-color: var(--surface-container);
+  border-radius: 16px;
+  border: 1px solid var(--outline-variant);
+  text-align: center;
+}
+
+.help-support-mitra-contact-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  color: var(--on-surface);
+}
+
+.help-support-mitra-contact-desc {
+  font-size: 16px;
+  color: var(--on-surface-variant);
+  margin: 0 0 24px 0;
+}
+
+.help-support-mitra-contact-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+}
+
+.help-support-mitra-btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background-color: var(--primary);
+  color: white;
+  font-weight: 700;
+  font-family: inherit;
+  font-size: 16px;
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transition: background-color 0.2s;
+}
+
+.help-support-mitra-btn-primary:hover {
+  background-color: rgba(0, 74, 198, 0.9);
+}
+
+.help-support-mitra-btn-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background-color: var(--surface-container-lowest);
+  color: var(--primary);
+  font-weight: 700;
+  font-family: inherit;
+  font-size: 16px;
+  border: 1px solid var(--primary);
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.help-support-mitra-btn-secondary:hover {
+  background-color: rgba(0, 74, 198, 0.05);
+}
+
+/* Footer */
+.help-support-mitra-footer {
+  position: relative;
+  z-index: 10;
+  margin-top: auto;
+  margin-left: 256px;
+  padding: 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--surface-container-lowest);
+  border-top: 1px solid var(--outline-variant);
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.help-support-mitra-footer:hover {
+  opacity: 1;
+}
+
+@media (max-width: 768px) {
+  .help-support-mitra-footer {
+    margin-left: 0;
+    flex-direction: column;
+    text-align: center;
+    gap: 16px;
+  }
+}
+
+.help-support-mitra-brand-text {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--on-surface);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.help-support-mitra-copyright {
+  font-size: 12px;
+  color: #626567;
+  margin: 4px 0 0 0;
+}
+
+.help-support-mitra-footer-links {
+  display: flex;
+  gap: 24px;
+}
+
+.help-support-mitra-footer-links a {
+  font-size: 12px;
+  color: #626567;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.help-support-mitra-footer-links a:hover {
+  color: var(--primary);
+}

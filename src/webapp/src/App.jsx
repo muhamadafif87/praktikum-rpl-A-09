@@ -12,6 +12,10 @@ import MitraDashboardPage from './pages/MitraDashboardPage';
 import ChatMitra from './features/mitra/ChatMitra/ChatMitra';
 import ReviewMitra from './features/mitra/ReviewMitra/ReviewMitra';
 import PengaturanMitra from './features/mitra/PengaturanMitra/PengaturanMitra';
+import MitraFinance from './features/mitra/MitraFinance/MitraFinance';
+import MitraInventory from './features/mitra/MitraInventory/MitraInventory';
+import MitraOrders from './features/mitra/MitraOrders/MitraOrders';
+import HelpSupportMitra from './features/mitra/HelpSupportMitra/HelpSupportMitra';
 
 // Placeholder components for dashboard pages
 const DashboardAdmin = () => <div style={{ padding: '20px' }}><h1>Dashboard Admin</h1></div>;
@@ -36,6 +40,10 @@ const App = () => {
                 <Route path="/dashboard/mitra/chat" element={<ChatMitra />} />
                 <Route path="/dashboard/mitra/reviews" element={<ReviewMitra />} />
                 <Route path="/dashboard/mitra/settings" element={<PengaturanMitra />} />
+                <Route path="/dashboard/mitra/finance" element={<MitraFinance />} />
+                <Route path="/dashboard/mitra/inventory" element={<MitraInventory />} />
+                <Route path="/dashboard/mitra/orders" element={<MitraOrders />} />
+                <Route path="/dashboard/mitra/support" element={<HelpSupportMitra />} />
 
                 {/* Profile routes */}
                 <Route path="/profile" element={<ProfilePage />} />
