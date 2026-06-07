@@ -36,9 +36,13 @@ const DetailMitraCleaning = ({ onOrderClick }) => {
         ul.style.setProperty('--indicator-transition', 'none');
 
         if (hasPrev) {
-            const { left, width } = JSON.parse(prevRaw);
-            ul.style.setProperty('--indicator-left', left);
-            ul.style.setProperty('--indicator-width', width);
+            try {
+                const { left, width } = JSON.parse(prevRaw);
+                ul.style.setProperty('--indicator-left', left);
+                ul.style.setProperty('--indicator-width', width);
+            } catch (e) {
+                console.error("Failed to parse nav-indicator from sessionStorage", e);
+            }
             sessionStorage.removeItem('nav-indicator');
         } else {
             updateIndicator(activeLink);
