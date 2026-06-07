@@ -1,75 +1,13 @@
-import React, { useState, useMemo, useRef, useLayoutEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import TransitionLink from '../../../components/ViewTransition/TransitionLink';
-import { useLocation } from '../../../context/LocationContext';
-import { calculateDistance } from '../../../utils/distance';
+import { useAuth } from '../../../context/AuthContext';
+import api from '../../../services/api';
 import './DetailMitraGas.css';
 
 const DetailMitraGas = ({ onOrderClick }) => {
     const navigate = useNavigate();
-    const { location } = useLocation();
-    const navLinksRef = useRef(null);
-
-    // ── Sliding Indicator Logic ──
-    const updateIndicator = useCallback((targetEl) => {
-        const ul = navLinksRef.current;
-        if (!ul || !targetEl) return;
-        const ulRect = ul.getBoundingClientRect();
-        const linkRect = targetEl.getBoundingClientRect();
-        ul.style.setProperty('--indicator-left', `${linkRect.left - ulRect.left}px`);
-        ul.style.setProperty('--indicator-width', `${linkRect.width}px`);
-    }, []);
-
-    useLayoutEffect(() => {
-        const ul = navLinksRef.current;
-        if (!ul) return;
-        const activeLink = ul.querySelector('.dmg-nav-link--active');
-        if (!activeLink) return;
-
-        const prevRaw = sessionStorage.getItem('nav-indicator');
-        const hasPrev = !!prevRaw;
-
-        ul.style.setProperty('--indicator-transition', 'none');
-
-        if (hasPrev) {
-            const { left, width } = JSON.parse(prevRaw);
-            ul.style.setProperty('--indicator-left', left);
-            ul.style.setProperty('--indicator-width', width);
-            sessionStorage.removeItem('nav-indicator');
-        } else {
-            updateIndicator(activeLink);
-        }
-
-        void ul.offsetHeight;
-        ul.style.removeProperty('--indicator-transition');
-
-        if (hasPrev) {
-            updateIndicator(activeLink);
-        }
-    }, [updateIndicator]);
-
-    const handleNavHover = (e) => {
-        updateIndicator(e.currentTarget);
-    };
-
-    const handleNavLeave = () => {
-        const ul = navLinksRef.current;
-        if (!ul) return;
-        const activeLink = ul.querySelector('.dmg-nav-link--active');
-        if (activeLink) {
-            updateIndicator(activeLink);
-        }
-    };
-
-    const handleNavClick = () => {
-        const ul = navLinksRef.current;
-        if (!ul) return;
-        const left = ul.style.getPropertyValue('--indicator-left');
-        const width = ul.style.getPropertyValue('--indicator-width');
-        if (left && width) {
-            sessionStorage.setItem('nav-indicator', JSON.stringify({ left, width }));
-        }
-    };
+    const { user, isAuthenticated, logout } = useAuth();
+    const [showProfileMenu, setShowProfileMenu] = useState(false);
 
     const [mitraList, setMitraList] = useState([]);
     const [mitraLoading, setMitraLoading] = useState(true);
@@ -176,21 +114,21 @@ const DetailMitraGas = ({ onOrderClick }) => {
                     </div>
 
                     {/* Navigation Links (Desktop) */}
-                    <ul className="dmg-nav-links" ref={navLinksRef} onMouseLeave={handleNavLeave}>
+                    <ul className="dmg-nav-links">
                         <li className="dmg-nav-item">
-                            <TransitionLink className="dmg-nav-link" to="/" onMouseEnter={handleNavHover} onClick={handleNavClick}>Home</TransitionLink>
+                            <Link className="dmg-nav-link" to="/">Home</Link>
                         </li>
                         <li className="dmg-nav-item">
-                            <a className="dmg-nav-link dmg-nav-link--active" href="#" onMouseEnter={handleNavHover} onClick={handleNavClick} aria-current="page">Gas &amp; Galon</a>
+                            <Link className="dmg-nav-link dmg-nav-link--active" to="/gas-galon">Gas &amp; Galon</Link>
                         </li>
                         <li className="dmg-nav-item">
-                            <TransitionLink className="dmg-nav-link" to="/laundry" onMouseEnter={handleNavHover} onClick={handleNavClick}>Laundry Express</TransitionLink>
+                            <Link className="dmg-nav-link" to="/laundry">Laundry Express</Link>
                         </li>
                         <li className="dmg-nav-item">
-                            <TransitionLink className="dmg-nav-link" to="/daily-cleaning" onMouseEnter={handleNavHover} onClick={handleNavClick}>Daily Cleaning</TransitionLink>
+                            <Link className="dmg-nav-link" to="/daily-cleaning">Daily Cleaning</Link>
                         </li>
                         <li className="dmg-nav-item">
-                            <TransitionLink className="dmg-nav-link" to="/tentang-kami" onMouseEnter={handleNavHover} onClick={handleNavClick}>Tentang Kami</TransitionLink>
+                            <Link className="dmg-nav-link" to="/tentang-kami">Tentang Kami</Link>
                         </li>
                     </ul>
 
