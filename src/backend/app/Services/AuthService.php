@@ -81,7 +81,9 @@ class AuthService{
                 }
             }
             else {
-                $user = $model::where('email', $credential)->first();
+                $user = $model::where('email', $credential)
+                              ->orWhere('nomor_telepon', $credential)
+                              ->first();
             }
 
             if ($user) {
@@ -129,8 +131,16 @@ class AuthService{
             $user = $mitra;
         }
         else {
-            if (! Auth::guard($guard)->attempt($credentials)) {
-                throw new AuthenticationException('Email atau password salah.');
+            // Check if the credential is an email or phone number
+            $authField = filter_var($credentials['email'], FILTER_VALIDATE_EMAIL) ? 'email' : 'nomor_telepon';
+            
+            $attemptCredentials = [
+                $authField => $credentials['email'],
+                'password' => $credentials['password']
+            ];
+
+            if (! Auth::guard($guard)->attempt($attemptCredentials)) {
+                throw new AuthenticationException('Email/nomor telepon atau password salah.');
             }
 
             $user = Auth::guard($guard)->user();
