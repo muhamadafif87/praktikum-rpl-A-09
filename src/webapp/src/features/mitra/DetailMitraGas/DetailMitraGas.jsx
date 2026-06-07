@@ -28,8 +28,9 @@ const DetailMitraGas = ({ onOrderClick }) => {
                 }
             });
             const { data } = response.data;
+            const dataArray = Array.isArray(data) ? data : [];
 
-            const transformedData = data.map((mitra) => ({
+            const transformedData = dataArray.map((mitra) => ({
                 id: mitra.id_mitra,
                 name: mitra.nama_mitra,
                 type: mitra.jenis_jasa,
