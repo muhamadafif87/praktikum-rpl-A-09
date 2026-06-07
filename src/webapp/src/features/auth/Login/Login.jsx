@@ -59,6 +59,13 @@ const Login = () => {
 
             // Redirect based on guard/role
             setTimeout(() => {
+                const redirectTarget = sessionStorage.getItem('redirectAfterLogin');
+                if (redirectTarget) {
+                    sessionStorage.removeItem('redirectAfterLogin');
+                    navigate(redirectTarget);
+                    return;
+                }
+
                 switch (data?.guard) {
                     case 'admin':
                         navigate('/dashboard/admin');

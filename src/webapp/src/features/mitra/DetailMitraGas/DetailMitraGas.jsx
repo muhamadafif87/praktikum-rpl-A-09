@@ -128,12 +128,12 @@ const DetailMitraGas = ({ onOrderClick }) => {
     const handleOrderClick = (mitra) => {
         const token = localStorage.getItem('token');
         if (!token) {
-            // User belum login → trigger auth interceptor
+            sessionStorage.setItem('redirectAfterLogin', `/gas-galon/${mitra.id}/pesan`);
             if (onOrderClick) {
                 onOrderClick(mitra);
             }
         } else {
-            console.log('Melanjutkan pemesanan untuk:', mitra.name);
+            navigate(`/gas-galon/${mitra.id}/pesan`);
         }
     };
 

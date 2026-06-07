@@ -7,6 +7,9 @@ import Register from './features/auth/Register/Register';
 import LaundryPage from './pages/LaundryPage';
 import GasGalonPage from './pages/GasGalonPage';
 import DailyCleaningPage from './pages/DailyCleaningPage';
+import DailyCleaningDetail from './pages/DailyCleaningDetail';
+import GasGalonDetail from './pages/GasGalonDetail';
+import LaundryDetail from './pages/LaundryDetail';
 import TentangKamiPage from './features/tentang-kami/TentangKamiPage';
 import MitraDashboardPage from './pages/MitraDashboardPage';
 import ChatMitra from './features/mitra/ChatMitra/ChatMitra';
@@ -32,8 +35,11 @@ const App = () => {
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/laundry" element={<LaundryPage />} />
+                <Route path="/laundry/:id_mitra/pesan" element={<LaundryDetail />} />
                 <Route path="/gas-galon" element={<GasGalonPage />} />
+                <Route path="/gas-galon/:id_mitra/pesan" element={<GasGalonDetail />} />
                 <Route path="/daily-cleaning" element={<DailyCleaningPage />} />
+                <Route path="/daily-cleaning/:id_mitra/pesan" element={<DailyCleaningDetail />} />
                 <Route path="/tentang-kami" element={<TentangKamiPage />} />
 
                 {/* Admin Dashboard routes */}
