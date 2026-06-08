@@ -6,6 +6,117 @@ import './LandingPage.css';
 const LandingPage = () => {
     const navigate = useNavigate();
     const servicesRef = useRef(null);
+    const navLinksRef = useRef(null);
+    const [isAuthOpen, setIsAuthOpen] = useState(false);
+
+    // ── Sliding Indicator Logic ──
+    const updateIndicator = useCallback((targetEl) => {
+        const ul = navLinksRef.current;
+        if (!ul || !targetEl) return;
+        const ulRect = ul.getBoundingClientRect();
+        const linkRect = targetEl.getBoundingClientRect();
+        ul.style.setProperty('--indicator-left', `${linkRect.left - ulRect.left}px`);
+        ul.style.setProperty('--indicator-width', `${linkRect.width}px`);
+    }, []);
+
+    useLayoutEffect(() => {
+        const ul = navLinksRef.current;
+        if (!ul) return;
+        const activeLink = ul.querySelector('.lp-nav-link--active');
+        if (!activeLink) return;
+
+        const prevRaw = sessionStorage.getItem('nav-indicator');
+        const hasPrev = !!prevRaw;
+
+        ul.style.setProperty('--indicator-transition', 'none');
+
+        if (hasPrev) {
+            const { left, width } = JSON.parse(prevRaw);
+            ul.style.setProperty('--indicator-left', left);
+            ul.style.setProperty('--indicator-width', width);
+            sessionStorage.removeItem('nav-indicator');
+        } else {
+            updateIndicator(activeLink);
+        }
+
+        void ul.offsetHeight;
+        ul.style.removeProperty('--indicator-transition');
+
+        if (hasPrev) {
+            updateIndicator(activeLink);
+        }
+    }, [updateIndicator]);
+
+    const handleNavHover = (e) => {
+        updateIndicator(e.currentTarget);
+    };
+
+    const handleNavLeave = () => {
+        const ul = navLinksRef.current;
+        if (!ul) return;
+        const activeLink = ul.querySelector('.lp-nav-link--active');
+        if (activeLink) {
+            updateIndicator(activeLink);
+        }
+    };
+
+    const handleNavClick = () => {
+        const ul = navLinksRef.current;
+        if (!ul) return;
+        const left = ul.style.getPropertyValue('--indicator-left');
+        const width = ul.style.getPropertyValue('--indicator-width');
+        if (left && width) {
+            sessionStorage.setItem('nav-indicator', JSON.stringify({ left, width }));
+        }
+    };
+
+    const { user, isAuthenticated, logout } = useAuth();
+    const [showProfileMenu, setShowProfileMenu] = useState(false);
+
+    const [stats, setStats] = useState({
+        jumlah_user_aktif: 0,
+        jumlah_mitra_bekerja_sama: 0,
+    });
+
+    const [statsLoading, setStatsLoading] = useState(true);
+    const [statsError, setStatsError] = useState('');
+
+    // ── Fetch Statistics ──
+    const fetchStatistics = async () => {
+        setStatsLoading(true);
+        setStatsError('');
+
+        try {
+            const response = await api.get('/v1/landing-page/statistic');
+            const { data } = response.data;
+
+            setStats({
+                jumlah_user_aktif: data?.jumlah_user_aktif || 0,
+                jumlah_mitra_bekerja_sama: data?.jumlah_mitra_bekerja_sama || 0,
+            });
+        } catch (err) {
+            console.error('Error fetching statistics:', err);
+            if (err.response) {
+                setStatsError(err.response.data?.message || 'Gagal memuat statistik');
+            } else if (err.request) {
+                setStatsError('Tidak dapat terhubung ke server.');
+            } else {
+                setStatsError('Terjadi kesalahan saat memuat statistik.');
+            }
+
+            setStats({
+                jumlah_user_aktif: 0,
+                jumlah_mitra_bekerja_sama: 0,
+            });
+        } finally {
+            setStatsLoading(false);
+        }
+    };
+
+    // Fetch statistics on component mount
+    useEffect(() => {
+        fetchStatistics();
+    }, []);
 
     // Intersection Observer for scroll animations
     useEffect(() => {
@@ -77,12 +188,69 @@ const LandingPage = () => {
 
                     {/* Trailing Action */}
                     <div className="lp-nav-actions">
-                        <button 
-                            onClick={() => navigate('/login')}
-                            className="lp-btn-primary"
-                        >
-                            Masuk / Daftar
-                        </button>
+                        {isAuthenticated ? (
+                            <div className="lp-profile-menu">
+                                <button
+                                    className="lp-profile-btn"
+                                    onClick={() => setShowProfileMenu(!showProfileMenu)}
+                                    title={user?.nama_lengkap || user?.nama_mitra || user?.nama || 'User'}
+                                >
+                                    <div className="lp-profile-avatar">
+                                        <span className="material-symbols-outlined">account_circle</span>
+                                    </div>
+                                </button>
+
+                                {showProfileMenu && (
+                                    <div className="lp-profile-dropdown">
+                                        <div className="lp-profile-info">
+                                            <p className="lp-profile-name">
+                                                {user?.nama_lengkap || user?.nama_mitra || user?.nama || 'User'}
+                                            </p>
+                                            <p className="lp-profile-email">{user?.email}</p>
+                                        </div>
+                                        <hr className="lp-profile-divider" />
+                                        <button
+                                            className="lp-profile-link"
+                                            onClick={() => {
+                                                navigate('/profile');
+                                                setShowProfileMenu(false);
+                                            }}
+                                        >
+                                            <span className="material-symbols-outlined">person</span>
+                                            Profil Saya
+                                        </button>
+                                        <button
+                                            className="lp-profile-link"
+                                            onClick={() => {
+                                                navigate('/settings');
+                                                setShowProfileMenu(false);
+                                            }}
+                                        >
+                                            <span className="material-symbols-outlined">settings</span>
+                                            Pengaturan
+                                        </button>
+                                        <button
+                                            className="lp-profile-link lp-profile-logout"
+                                            onClick={() => {
+                                                logout();
+                                                setShowProfileMenu(false);
+                                                navigate('/');
+                                            }}
+                                        >
+                                            <span className="material-symbols-outlined">logout</span>
+                                            Keluar
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <button
+                                onClick={() => navigate('/login')}
+                                className="lp-btn-primary"
+                            >
+                                Masuk / Daftar
+                            </button>
+                        )}
                     </div>
                 </div>
             </nav>
@@ -123,7 +291,7 @@ const LandingPage = () => {
                         <div className="lp-workflow-grid animate-on-scroll">
                             {/* Connector Line (Desktop Only) */}
                             <div className="lp-workflow-connector"></div>
-                            
+
                             {/* Step 1 */}
                             <div className="lp-workflow-step">
                                 <div className="lp-workflow-icon">
@@ -170,10 +338,10 @@ const LandingPage = () => {
                         <div className="lp-services-grid animate-on-scroll">
                             {/* Gas & Galon Card */}
                             <div className="lp-service-card">
-                                <img 
-                                    alt="Layanan Gas dan Galon" 
-                                    className="lp-service-img" 
-                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuDn68W3rFM4GudQFBrdGbGAcbh3fY2Hl7ApVpf5dQ3YCw5INPj172n_KRsTcKEJkJQ2XcXrpfQ1yqIRx3hrYqxpX8RsXzWuV9VsJcqYhjoJWY5sERqHASD4DSfwqn9mRTykLTx-aimRG6SbXzPT2RuSClhdGf7FljkGwz-bh4s0Jtz1GmV39Hi02xFIAnyRAuENhZQXkiqcS7uBGrrBYUnXOeX-6Y0Q7kamYKrBGcosh99_1bnXXJNuCnlHA9GaLhxbIAjEiwYY4V0" 
+                                <img
+                                    alt="Layanan Gas dan Galon"
+                                    className="lp-service-img"
+                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuDn68W3rFM4GudQFBrdGbGAcbh3fY2Hl7ApVpf5dQ3YCw5INPj172n_KRsTcKEJkJQ2XcXrpfQ1yqIRx3hrYqxpX8RsXzWuV9VsJcqYhjoJWY5sERqHASD4DSfwqn9mRTykLTx-aimRG6SbXzPT2RuSClhdGf7FljkGwz-bh4s0Jtz1GmV39Hi02xFIAnyRAuENhZQXkiqcS7uBGrrBYUnXOeX-6Y0Q7kamYKrBGcosh99_1bnXXJNuCnlHA9GaLhxbIAjEiwYY4V0"
                                 />
                                 <div className="lp-service-overlay"></div>
                                 <div className="lp-service-content">
@@ -186,10 +354,10 @@ const LandingPage = () => {
 
                             {/* Laundry Express Card */}
                             <div className="lp-service-card">
-                                <img 
-                                    alt="Laundry Express" 
-                                    className="lp-service-img" 
-                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuCLoMsMeQDJox5uHwi7g8W9LOMW0uI-_WBzencNuurllWzxLeyOKBxyUd3et-XUK27wMgmHR8JDyQ057CTdrU40vtsNbGwcAt8_GBiuMR_Clv_cE1zOiwv82VwfUYDaFITtplTOvrCvi5V_m9F4yY9N2iEaLClVFAnGSlocM9ay3pZvU67AH-fS2E-yIcingNhSLIXXiMOj7U56tCnplrEgjFSqkNkJ5FH4PbjiMGnrtBRsIYap0ZLagvUNCXlLQh-aD9SMIQbGlu8" 
+                                <img
+                                    alt="Laundry Express"
+                                    className="lp-service-img"
+                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuCLoMsMeQDJox5uHwi7g8W9LOMW0uI-_WBzencNuurllWzxLeyOKBxyUd3et-XUK27wMgmHR8JDyQ057CTdrU40vtsNbGwcAt8_GBiuMR_Clv_cE1zOiwv82VwfUYDaFITtplTOvrCvi5V_m9F4yY9N2iEaLClVFAnGSlocM9ay3pZvU67AH-fS2E-yIcingNhSLIXXiMOj7U56tCnplrEgjFSqkNkJ5FH4PbjiMGnrtBRsIYap0ZLagvUNCXlLQh-aD9SMIQbGlu8"
                                 />
                                 <div className="lp-service-overlay"></div>
                                 <div className="lp-service-content">
@@ -202,10 +370,10 @@ const LandingPage = () => {
 
                             {/* Daily Cleaning Card */}
                             <div className="lp-service-card">
-                                <img 
-                                    alt="Daily Cleaning" 
-                                    className="lp-service-img" 
-                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuBahTHHcsbnLrH2d1sYgl2LFaA_tYi3UBqcn0fMpk2ktaL-UTY9JikZaMr_UmYexLZKQYWGAYEq6XmBHUevi1G4Yra1sLbnyeQtPYh9464mRPv0OSOrdvMvKCe9kHzBTNItQVoFZ3CfWmOs56h3M97i-pqEgmBco2D-pE51ezyAN297xjp07ulfd2hFoCxAmYFY7PfmcvfwUmZqb_qfHFANXaz4as-TdnbVU4k0xz6vcIXSdxbDU7Rgfh0mhVJnsIVQH-aiYR7JkmU" 
+                                <img
+                                    alt="Daily Cleaning"
+                                    className="lp-service-img"
+                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuBahTHHcsbnLrH2d1sYgl2LFaA_tYi3UBqcn0fMpk2ktaL-UTY9JikZaMr_UmYexLZKQYWGAYEq6XmBHUevi1G4Yra1sLbnyeQtPYh9464mRPv0OSOrdvMvKCe9kHzBTNItQVoFZ3CfWmOs56h3M97i-pqEgmBco2D-pE51ezyAN297xjp07ulfd2hFoCxAmYFY7PfmcvfwUmZqb_qfHFANXaz4as-TdnbVU4k0xz6vcIXSdxbDU7Rgfh0mhVJnsIVQH-aiYR7JkmU"
                                 />
                                 <div className="lp-service-overlay"></div>
                                 <div className="lp-service-content">
