@@ -93,7 +93,7 @@ Semua endpoint mengembalikan format JSON yang konsisten:
 Mengambil semua aset gambar yang dimiliki oleh satu mitra berdasarkan `id_mitra`.
 
 ```
-GET /Api/V1/Dashboard/Mitra/{idMitra}/images
+GET /v1/mitra/{idMitra}/images
 ```
 
 **Path Parameter**
@@ -105,7 +105,7 @@ GET /Api/V1/Dashboard/Mitra/{idMitra}/images
 **Contoh Request**
 
 ```http
-GET /Api/V1/Dashboard/Mitra/3/images
+GET /v1/mitra/3/images
 Accept: application/json
 ```
 
@@ -149,7 +149,7 @@ Accept: application/json
 Mengambil satu aset gambar berdasarkan `id`.
 
 ```
-GET /Api/V1/Dashboard/Mitra-images/{id}
+GET /v1/mitra/mitra-images/{id}
 ```
 
 **Path Parameter**
@@ -161,7 +161,7 @@ GET /Api/V1/Dashboard/Mitra-images/{id}
 **Contoh Request**
 
 ```http
-GET /Api/V1/Dashboard/Mitra-images/1
+GET /v1/mitra/mitra-images/1
 Accept: application/json
 ```
 
@@ -197,7 +197,7 @@ Accept: application/json
 Mengupload gambar baru dan menghubungkannya ke mitra tertentu.
 
 ```
-POST /Api/V1/Dashboard/Mitra-images
+POST /v1/mitra/mitra-images
 Content-Type: multipart/form-data
 ```
 
@@ -212,7 +212,7 @@ Content-Type: multipart/form-data
 **Contoh Request (Postman / cURL)**
 
 ```bash
-curl -X POST https://<your-domain>/Api/V1/Dashboard/Mitra-images \
+curl -X POST https://<your-domain>/v1/mitra/mitra-images \
   -H "Accept: application/json" \
   -F "id_mitra=3" \
   -F "description=Foto kantor pusat" \
@@ -254,7 +254,7 @@ curl -X POST https://<your-domain>/Api/V1/Dashboard/Mitra-images \
 Memperbarui deskripsi dan/atau file gambar dari aset yang sudah ada.
 
 ```
-POST /Api/V1/Dashboard/Mitra-images/{id}
+POST /v1/mitra/mitra-images/{id}
 Content-Type: multipart/form-data
 ```
 
@@ -278,7 +278,7 @@ Content-Type: multipart/form-data
 **Contoh Request**
 
 ```bash
-curl -X POST https://<your-domain>/Api/V1/Dashboard/Mitra-images/5 \
+curl -X POST https://<your-domain>/v1/mitra/mitra-images/5 \
   -H "Accept: application/json" \
   -F "_method=PUT" \
   -F "description=Foto gedung baru" \
@@ -288,7 +288,7 @@ curl -X POST https://<your-domain>/Api/V1/Dashboard/Mitra-images/5 \
 **Hanya update deskripsi (tanpa ganti gambar):**
 
 ```bash
-curl -X POST https://<your-domain>/Api/V1/Dashboard/Mitra-images/5 \
+curl -X POST https://<your-domain>/v1/mitra/mitra-images/5 \
   -H "Accept: application/json" \
   -F "_method=PUT" \
   -F "description=Update deskripsi saja"
@@ -326,7 +326,7 @@ curl -X POST https://<your-domain>/Api/V1/Dashboard/Mitra-images/5 \
 Menghapus aset gambar secara permanen berdasarkan `id`.
 
 ```
-DELETE /Api/V1/Dashboard/Mitra-images/{id}
+DELETE /v1/mitra/mitra-images/{id}
 ```
 
 **Path Parameter**
@@ -338,7 +338,7 @@ DELETE /Api/V1/Dashboard/Mitra-images/{id}
 **Contoh Request**
 
 ```bash
-curl -X DELETE https://<your-domain>/Api/V1/Dashboard/Mitra-images/5 \
+curl -X DELETE https://<your-domain>/v1/mitra/mitra-images/5 \
   -H "Accept: application/json"
 ```
 
@@ -366,7 +366,7 @@ curl -X DELETE https://<your-domain>/Api/V1/Dashboard/Mitra-images/5 \
 
 ## Validasi & Error
 
-### Aturan Validasi Upload (`POST /Api/V1/Dashboard/Mitra-images`)
+### Aturan Validasi Upload (`POST /v1/mitra/mitra-images`)
 
 | Field | Aturan | Pesan Error |
 |-------|--------|-------------|
@@ -374,7 +374,7 @@ curl -X DELETE https://<your-domain>/Api/V1/Dashboard/Mitra-images/5 \
 | `description` | Opsional, string, maks 255 karakter | — |
 | `image` | Wajib, tipe file gambar, format jpeg/jpg/png/webp, maks 5 MB | `File gambar wajib diupload.` / `Format gambar harus jpeg, jpg, png, atau webp.` / `Ukuran gambar maksimal 5 MB.` |
 
-### Aturan Validasi Update (`POST /Api/V1/Dashboard/Mitra-images/{id}` + `_method=PUT`)
+### Aturan Validasi Update (`POST /v1/mitra/mitra-images/{id}` + `_method=PUT`)
 
 | Field | Aturan | Pesan Error |
 |-------|--------|-------------|
@@ -423,7 +423,7 @@ Langsung bisa digunakan di HTML tanpa request tambahan:
 Karena keterbatasan `multipart/form-data` dengan method `PUT`, gunakan:
 
 ```
-POST /Api/V1/Dashboard/Mitra-images/{id}
+POST /v1/mitra/mitra-images/{id}
 Body: _method=PUT, ...fields lainnya
 ```
 
@@ -456,7 +456,7 @@ formData.append('id_mitra', 3);
 formData.append('description', 'Foto kantor');
 formData.append('image', fileInput.files[0]);
 
-const response = await fetch('/Api/V1/Dashboard/Mitra-images', {
+const response = await fetch('/v1/mitra/mitra-images', {
     method: 'POST',
     headers: { 'Accept': 'application/json' },
     body: formData,
@@ -480,7 +480,7 @@ formData.append('_method', 'PUT');
 formData.append('description', 'Deskripsi baru');
 formData.append('image', newFileInput.files[0]); // opsional
 
-const response = await fetch('/Api/V1/Dashboard/Mitra-images/5', {
+const response = await fetch('/v1/mitra/mitra-images/5', {
     method: 'POST',
     headers: { 'Accept': 'application/json' },
     body: formData,
@@ -492,7 +492,7 @@ const result = await response.json();
 **Hapus gambar:**
 
 ```javascript
-const response = await fetch('/Api/V1/Dashboard/Mitra-images/5', {
+const response = await fetch('/v1/mitra/mitra-images/5', {
     method: 'DELETE',
     headers: { 'Accept': 'application/json' },
 });
@@ -512,7 +512,7 @@ formData.append('description', 'Foto kantor');
 formData.append('image', file);
 
 try {
-    const { data } = await axios.post('/Api/V1/Dashboard/Mitra-images', formData, {
+    const { data } = await axios.post('/v1/mitra/mitra-images', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
     });
     console.log(data);
@@ -530,7 +530,7 @@ const formData = new FormData();
 formData.append('_method', 'PUT');
 formData.append('description', 'Deskripsi baru');
 
-const { data } = await axios.post(`/Api/V1/Dashboard/Mitra-images/${id}`, formData);
+const { data } = await axios.post(`/v1/mitra/mitra-images/${id}`, formData);
 ```
 
 ---

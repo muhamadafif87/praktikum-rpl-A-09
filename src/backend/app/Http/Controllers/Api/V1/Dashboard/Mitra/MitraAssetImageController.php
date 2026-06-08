@@ -8,7 +8,6 @@ use App\Http\Requests\Dashboard\Mitra\UpdateMitraImageAssetRequest;
 use App\Services\MitraImageAssetService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Throwable;
 
 class MitraAssetImageController extends Controller
