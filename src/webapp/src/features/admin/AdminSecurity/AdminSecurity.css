@@ -1,0 +1,343 @@
+/* =============================================
+   KostHub Admin Security — Keamanan & Log Akses
+   Reuses CSS variables from AdminOverview.css
+   ============================================= */
+
+.admin-security-page {
+  background-color: var(--color-background);
+  color: var(--color-on-background);
+  font-family: var(--font-inter);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.admin-security-header {
+  margin-bottom: var(--spacing-stack-md);
+  margin-top: 0.5rem;
+}
+
+.admin-security-header h1 {
+  color: var(--color-on-surface);
+  margin-bottom: 0.25rem;
+}
+
+.admin-security-header p {
+  color: var(--color-on-surface-variant);
+}
+
+/* Stats Grid */
+.admin-security-stats {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-gutter);
+  margin-bottom: var(--spacing-stack-lg);
+}
+
+@media (min-width: 768px) {
+  .admin-security-stats { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (min-width: 1024px) {
+  .admin-security-stats { grid-template-columns: repeat(4, 1fr); }
+}
+
+.admin-security-stat {
+  background-color: var(--color-surface-container-lowest);
+  padding: 1.5rem;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-outline-variant);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: border-color 0.2s;
+}
+
+.admin-security-stat:hover {
+  border-color: var(--color-primary);
+}
+
+.admin-security-stat.hover-error:hover {
+  border-color: var(--color-error);
+}
+
+.admin-security-stat-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.admin-security-stat-label {
+  color: var(--color-on-surface-variant);
+  margin-bottom: 0.5rem;
+}
+
+.admin-security-stat-icon {
+  color: var(--color-primary);
+}
+
+.admin-security-stat-icon.error {
+  color: var(--color-error);
+}
+
+.admin-security-stat-icon.tertiary {
+  color: var(--color-tertiary);
+}
+
+.admin-security-stat-value {
+  color: var(--color-on-surface);
+  font-weight: bold;
+}
+
+.admin-security-stat-note {
+  margin-top: 0.5rem;
+}
+
+.admin-security-stat-note.primary {
+  color: var(--color-primary);
+}
+
+.admin-security-stat-note.error {
+  color: var(--color-error);
+}
+
+.admin-security-stat-note.tertiary {
+  color: var(--color-tertiary);
+}
+
+/* Log Section */
+.admin-security-section {
+  background-color: var(--color-surface-container-lowest);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-outline-variant);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-security-section + .admin-security-section {
+  margin-top: var(--spacing-stack-lg);
+}
+
+.admin-security-section-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--color-outline-variant);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .admin-security-section-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+.admin-security-section-title {
+  color: var(--color-on-surface);
+  font-weight: bold;
+}
+
+.admin-security-section-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+/* Search */
+.admin-security-search {
+  position: relative;
+}
+
+.admin-security-search-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-on-surface-variant);
+  font-size: 0.875rem;
+  pointer-events: none;
+}
+
+.admin-security-search-input {
+  background: var(--color-surface-container-low);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-xl);
+  padding: 0.5rem 1rem 0.5rem 2.25rem;
+  font-family: var(--font-inter);
+  outline: none;
+  width: 12rem;
+}
+
+.admin-security-search-input:focus {
+  box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+.admin-security-date-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--color-surface-container-low);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-xl);
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-family: var(--font-inter);
+  transition: background 0.2s;
+}
+
+.admin-security-date-btn:hover {
+  background: var(--color-surface-container-high);
+}
+
+/* Table */
+.admin-security-table-wrap {
+  overflow-x: auto;
+}
+
+.admin-security-table {
+  width: 100%;
+  text-align: left;
+  border-collapse: collapse;
+}
+
+.admin-security-table thead tr {
+  background: var(--color-surface-container-low);
+  border-bottom: 1px solid var(--color-outline-variant);
+}
+
+.admin-security-table th {
+  padding: 1rem;
+  font-weight: 500;
+  color: var(--color-on-surface-variant);
+  white-space: nowrap;
+}
+
+.admin-security-table th.right {
+  text-align: right;
+}
+
+.admin-security-table tbody tr {
+  border-bottom: 1px solid rgba(195, 198, 215, 0.3);
+  transition: background 0.2s;
+}
+
+.admin-security-table tbody tr:hover {
+  background: var(--color-surface-bright);
+}
+
+.admin-security-table td {
+  padding: 1rem;
+  color: var(--color-on-surface);
+}
+
+.admin-security-table td.right {
+  text-align: right;
+}
+
+.admin-security-table td.muted {
+  color: var(--color-on-surface-variant);
+}
+
+.admin-security-table td.bold {
+  font-weight: 500;
+}
+
+/* Status badge */
+.admin-security-badge {
+  display: inline-block;
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  font-weight: 500;
+}
+
+.admin-security-badge.success {
+  background: var(--color-surface-container-highest);
+  color: var(--color-on-surface);
+}
+
+.admin-security-badge.blocked {
+  background: var(--color-error-container);
+  color: var(--color-on-error-container);
+}
+
+.admin-security-badge.pending {
+  background: var(--color-surface-container-highest);
+  color: var(--color-on-surface);
+}
+
+/* Permissions badges */
+.admin-security-perms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.admin-security-perm-badge {
+  background: var(--color-surface-container-high);
+  color: var(--color-on-surface);
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-default);
+  font-size: 10px;
+  font-weight: 500;
+}
+
+/* Role sub-text */
+.admin-security-role-sub {
+  color: var(--color-on-surface-variant);
+}
+
+/* Edit button */
+.admin-security-edit-btn {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  cursor: pointer;
+  font-family: var(--font-inter);
+  font-weight: 500;
+}
+
+.admin-security-edit-btn:hover {
+  text-decoration: underline;
+}
+
+/* Add Role button */
+.admin-security-add-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-xl);
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-family: var(--font-inter);
+  transition: background 0.2s;
+}
+
+.admin-security-add-btn:hover {
+  background: var(--color-primary-container);
+}
+
+/* Loading */
+.admin-security-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40vh;
+}
+
+.admin-security-spinner {
+  font-size: 48px;
+  animation: admin-spin 1s linear infinite;
+  color: var(--color-primary);
+}
+
+@keyframes admin-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

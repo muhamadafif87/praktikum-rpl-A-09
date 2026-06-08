@@ -189,21 +189,15 @@ class LandingPageService {
                     ->orderByDesc('pesanan_count');
                 break;
             case 'Terbaik':
-                // Order by average rating
-                $query->leftJoin('pesanan', 'mitra.id_mitra', '=', 'pesanan.id_mitra')
-                    ->leftJoin('ulasan', 'pesanan.id_pesanan', '=', 'ulasan.id_pesanan')
-                    ->select('mitra.*')
-                    ->selectRaw('AVG(ulasan.rating) as avg_rating')
-                    ->groupBy('mitra.id_mitra')
-                    ->orderByDesc('avg_rating');
+                // Order by average rating using withAvg (already done in the caller)
+                $query->orderByDesc('avg_rating');
                 break;
             case 'Harga Bersahabat':
-                // Order by lowest price
-                $query->leftJoin('layanan', 'mitra.id_mitra', '=', 'layanan.id_mitra')
-                    ->select('mitra.*')
-                    ->selectRaw('MIN(layanan.harga) as min_harga')
-                    ->groupBy('mitra.id_mitra')
-                    ->orderBy('min_harga');
+                // Order by lowest price using subquery to avoid connection pool issues
+                $query->orderBy(
+                    Layanan::selectRaw('MIN(harga)')
+                        ->whereColumn('id_mitra', 'mitra.id_mitra')
+                );
                 break;
             default:
                 $query->orderByDesc('id_mitra');

@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import DetailMitra from '../features/mitra/DetailMitra/DetailMitra';
+import DetailMitraLaundry from '../features/mitra/DetailMitraLaundry/DetailMitraLaundry';
 import AuthInterceptor from '../features/auth/AuthInterceptor/AuthInterceptor';
 
 /**
  * LaundryPage — Page-level component
  * Menghubungkan DetailMitra (daftar mitra) dengan AuthInterceptor (modal autentikasi).
- * 
+ *
  * Flow:
  * 1. User melihat daftar mitra laundry (DetailMitra)
  * 2. User klik "Pesan Sekarang" pada salah satu mitra
@@ -31,7 +31,7 @@ const LaundryPage = () => {
 
     return (
         <>
-            <DetailMitra onOrderClick={handleOrderClick} />
+            <DetailMitraLaundry onOrderClick={handleOrderClick} />
 
             <AuthInterceptor
                 isOpen={showAuthModal}
