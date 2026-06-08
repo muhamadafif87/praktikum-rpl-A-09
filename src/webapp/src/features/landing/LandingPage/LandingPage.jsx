@@ -107,7 +107,6 @@ const LandingPage = () => {
                 setStatsError('Terjadi kesalahan saat memuat statistik.');
             }
 
-            // Keep default values even if error
             setStats({
                 jumlah_user_aktif: 0,
                 jumlah_mitra_bekerja_sama: 0,

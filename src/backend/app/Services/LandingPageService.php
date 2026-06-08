@@ -17,7 +17,7 @@ class LandingPageService {
     public function statistic(): array
     {
         $jumlahUserAktif = User::count();
-        $jumlahMitraBekerja = Mitra::where('status_verifikasi', true)->count();
+        $jumlahMitraBekerja = Mitra::whereRaw('status_verifikasi = true')->count();
 
         return [
             'jumlah_user_aktif' => $jumlahUserAktif,
