@@ -1,81 +1,140 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useRef, useLayoutEffect, useCallback, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import TransitionLink from '../../../components/ViewTransition/TransitionLink';
 import { useLocation } from '../../../context/LocationContext';
-import { calculateDistance } from '../../../utils/distance';
+import { useAuth } from '../../../context/AuthContext';
+import api from '../../../services/api';
 import './DetailMitra.css';
-
-// Data mitra laundry (static data - nanti bisa diganti dari API backend Laravel + Supabase)
-// Setiap mitra sekarang memiliki koordinat lat/lng untuk kalkulasi jarak
-const mitraData = [
-    {
-        id: 1,
-        name: 'Super Laundry UNS',
-        lat: -7.5600,
-        lng: 110.8550,
-        rating: 4.8,
-        reviewCount: 120,
-        description: 'Layanan laundry kiloan terbaik di sekitar UNS dengan proses pengerjaan 1 hari jadi. Menggunakan deterjen premium dan parfum tahan lama.',
-        price: 'Mulai dari Rp 6.000/kg',
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD2sTHRoVQPgOtt6O544pQtG5gy0gwW77ECi_DR6gJcfYUyBoeh4GV1M9FVuRYvUAxV6PJ6jjz8BSllW57EQacjxGmxQpnaliiO0qXxGpx0crhe_Q6j_S-3ae73kgKbMaMsK6R2yzqCerV-vpG3MerFJiCq8ARvLSULYu0d5r3jWWiloa7malq4nVW2JiqQnMy6mRAmEuqTvSzNxI2Ak4b6-sU1dLLtuGkcQ928wVxI25BaL_j1Ny6e6lM5hxRFDqmWUEv5qSnR4s8',
-        reviews: [
-            { name: 'Ade', rating: '5.0', text: 'Wangi banget, jemputan kilat!' },
-            { name: 'Afif', rating: '4.8', text: 'Cucian rapi, bedcover bersih pool' },
-            { name: 'Aerio', rating: '5.0', text: 'Suka banget langganan di sini' },
-        ],
-        marqueeSpeed: '30s',
-    },
-    {
-        id: 2,
-        name: 'Solo Clean Express',
-        lat: -7.5530,
-        lng: 110.8580,
-        rating: 4.9,
-        reviewCount: 210,
-        description: 'Spesialis express 6 jam jadi. Cocok buat mahasiswa yang butuh pakaian cepat bersih untuk acara mendadak.',
-        price: 'Mulai dari Rp 8.500/kg',
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBuutGa2SI-VZXt1A64IUr9ZChKBz0e1_OVvuFxCOpBToguYXLoLgw6kZmfg5rFPjbh1qf5x5X7cwFudfK-zUimxizVi6Rofd3GfN7IPhhO-c3WmeUUKwDABdn5JINc2g3SUjKGxB4DpuDt_NEv6O-CCn3y6qfkuG4cKckUHm5zF2g4JW69CmD5nvMBaNPo_nlWcLc_A5MmmjP6g2Fi_GZJy0eMUlT_k2kQhC5tt95zMflRvcXu1h3Fbrd0wQACNfd9LANBYm-ErdQ',
-        reviews: [
-            { name: 'Ade', rating: '5.0', text: 'Wangi banget, jemputan kilat!' },
-            { name: 'Afif', rating: '4.8', text: 'Cucian rapi, bedcover bersih pool' },
-            { name: 'Aerio', rating: '5.0', text: 'Suka banget langganan di sini' },
-        ],
-        marqueeSpeed: '25s',
-    },
-    {
-        id: 3,
-        name: 'Kentingan Laundry Pods',
-        lat: -7.5650,
-        lng: 110.8520,
-        rating: 4.7,
-        reviewCount: 85,
-        description: 'Layanan laundry mandiri dengan mesin modern. Bisa ditunggu sambil nugas karena ada area Wi-Fi gratis.',
-        price: 'Mulai dari Rp 10.000/kg',
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCjA_GMUuQr_j019v6Wvbu9tjBu3OJN4zkE01lZc_Kl9Zgpn7SMzvjk27rB-S38m6GqKQDo3N1UPin2ayJmp4x0G-Q5LKdJWTNe3xCvzi-5cGPgxBEH8TSV2fKWTcuwtc3F1duY_5TlxJ6ZIAkQMXkKN6iFJmqdX2bcyldLCuLhlh6XRULjdCicrhKfLlXjLvlsFBwFRpEGioUwXLzWS8rcygygALyQBKklZh6B9sCFyEUoOXxLYK7RXP_RUrN5ZtPKGL1pqf-AhOY',
-        reviews: [
-            { name: 'Ade', rating: '5.0', text: 'Wangi banget, jemputan kilat!' },
-            { name: 'Afif', rating: '4.8', text: 'Cucian rapi, bedcover bersih pool' },
-            { name: 'Aerio', rating: '5.0', text: 'Suka banget langganan di sini' },
-        ],
-        marqueeSpeed: '35s',
-    },
-];
 
 const DetailMitra = ({ onOrderClick }) => {
     const navigate = useNavigate();
     const { location } = useLocation();
-    const [selectedCategories, setSelectedCategories] = useState(['pakaian']);
-    const [sortBy, setSortBy] = useState('terdekat');
+    const { user, isAuthenticated, logout } = useAuth();
+    const [showProfileMenu, setShowProfileMenu] = useState(false);
+    const [selectedCategories, setSelectedCategories] = useState(['All']);
+    const [sortBy, setSortBy] = useState('Terbaik');
+    const navLinksRef = useRef(null);
 
-    // Hitung jarak dinamis untuk setiap mitra berdasarkan lokasi user
-    const mitraWithDistance = useMemo(() => {
-        return mitraData.map((mitra) => {
-            const distance = calculateDistance(
-                location.lat, location.lng,
-                mitra.lat, mitra.lng
+    // ── Sliding Indicator Logic ──
+    const updateIndicator = useCallback((targetEl) => {
+        const ul = navLinksRef.current;
+        if (!ul || !targetEl) return;
+        const ulRect = ul.getBoundingClientRect();
+        const linkRect = targetEl.getBoundingClientRect();
+        ul.style.setProperty('--indicator-left', `${linkRect.left - ulRect.left}px`);
+        ul.style.setProperty('--indicator-width', `${linkRect.width}px`);
+    }, []);
+
+    useLayoutEffect(() => {
+        const ul = navLinksRef.current;
+        if (!ul) return;
+        const activeLink = ul.querySelector('.dm-nav-link--active');
+        if (!activeLink) return;
+
+        const prevRaw = sessionStorage.getItem('nav-indicator');
+        const hasPrev = !!prevRaw;
+
+        ul.style.setProperty('--indicator-transition', 'none');
+
+        if (hasPrev) {
+            const { left, width } = JSON.parse(prevRaw);
+            ul.style.setProperty('--indicator-left', left);
+            ul.style.setProperty('--indicator-width', width);
+            sessionStorage.removeItem('nav-indicator');
+        } else {
+            updateIndicator(activeLink);
+        }
+
+        void ul.offsetHeight;
+        ul.style.removeProperty('--indicator-transition');
+
+        if (hasPrev) {
+            updateIndicator(activeLink);
+        }
+    }, [updateIndicator]);
+
+    const handleNavHover = (e) => {
+        updateIndicator(e.currentTarget);
+    };
+
+    const handleNavLeave = () => {
+        const ul = navLinksRef.current;
+        if (!ul) return;
+        const activeLink = ul.querySelector('.dm-nav-link--active');
+        if (activeLink) {
+            updateIndicator(activeLink);
+        }
+    };
+
+    const handleNavClick = () => {
+        const ul = navLinksRef.current;
+        if (!ul) return;
+        const left = ul.style.getPropertyValue('--indicator-left');
+        const width = ul.style.getPropertyValue('--indicator-width');
+        if (left && width) {
+            sessionStorage.setItem('nav-indicator', JSON.stringify({ left, width }));
+        }
+    };
+
+    const [mitraList, setMitraList] = useState([]);
+    const [mitraLoading, setMitraLoading] = useState(true);
+    const [mitraError, setMitraError] = useState('');
+
+    const fetchMitraData = async (kategori = ['All'], sortByValue = 'Terbaik') => {
+        setMitraLoading(true);
+        setMitraError('');
+
+        try {
+            const response = await api.get('/v1/landing-page/laundry-express', {
+                params: {
+                    kategori: kategori,
+                    sortBy: sortByValue,
+                }
+            });
+            const { data } = response.data;
+            const dataArray = Array.isArray(data) ? data : [];
+
+            setMitraList(
+                dataArray.map((mitra) => ({
+                    id: mitra.id_mitra,
+                    name: mitra.nama_mitra,
+                    type: mitra.jenis_jasa,
+                    location: mitra.lokasi_layanan,
+                    distance: '0.5 KM', // Nanti bisa diambil dari API jika ada
+                    rating: mitra.rating,
+                    reviewCount: mitra.jumlah_ulasan,
+                    description: `${mitra.jenis_jasa} terpercaya. ${mitra.layanan?.length || 0} jenis layanan tersedia.`,
+                    price: mitra.layanan?.length > 0
+                        ? `Mulai dari Rp ${parseInt(mitra.layanan[0].harga_satuan).toLocaleString('id-ID')}`
+                        : 'Hubungi untuk info harga',
+                    image: `https://via.placeholder.com/300x200?text=${encodeURIComponent(mitra.nama_mitra)}`,
+                    layanan: mitra.layanan || [],
+                    reviews: (mitra.sample_ulasan || []).map((ulasan) => ({
+                        name: ulasan.nama_user,
+                        rating: `${ulasan.rating}.0`,
+                        text: ulasan.komentar,
+                    })),
+                    marqueeSpeed: '30s',
+                }))
             );
-            return { ...mitra, distance };
-        });
-    }, [location.lat, location.lng]);
+        } catch (err) {
+            console.error('Error fetching mitra data:', err);
+            if (err.response) {
+                setMitraError(err.response.data?.message || 'Gagal memuat data mitra');
+            } else if (err.request) {
+                setMitraError('Tidak dapat terhubung ke server.');
+            } else {
+                setMitraError('Terjadi kesalahan saat memuat data.');
+            }
+        } finally {
+            setMitraLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        const kategoriParam = selectedCategories.length > 0 ? selectedCategories : ['All'];
+        fetchMitraData(kategoriParam, sortBy);
+    }, [selectedCategories, sortBy]);
 
     const handleCategoryChange = (category) => {
         setSelectedCategories((prev) =>
@@ -112,32 +171,89 @@ const DetailMitra = ({ onOrderClick }) => {
                     </div>
 
                     {/* Navigation Links (Desktop) */}
-                    <ul className="dm-nav-links">
+                    <ul className="dm-nav-links" ref={navLinksRef} onMouseLeave={handleNavLeave}>
                         <li className="dm-nav-item">
-                            <Link className="dm-nav-link" to="/">Home</Link>
+                            <TransitionLink className="dm-nav-link" to="/" onMouseEnter={handleNavHover} onClick={handleNavClick}>Home</TransitionLink>
                         </li>
                         <li className="dm-nav-item">
-                            <Link className="dm-nav-link" to="/gas-galon">Gas &amp; Galon</Link>
+                            <TransitionLink className="dm-nav-link" to="/gas-galon" onMouseEnter={handleNavHover} onClick={handleNavClick}>Gas &amp; Galon</TransitionLink>
                         </li>
                         <li className="dm-nav-item">
-                            <Link className="dm-nav-link dm-nav-link--active" to="/laundry">Laundry Express</Link>
+                            <a className="dm-nav-link dm-nav-link--active" href="#" onMouseEnter={handleNavHover} onClick={handleNavClick} aria-current="page">Laundry Express</a>
                         </li>
                         <li className="dm-nav-item">
-                            <Link className="dm-nav-link" to="/daily-cleaning">Daily Cleaning</Link>
+                            <TransitionLink className="dm-nav-link" to="/daily-cleaning" onMouseEnter={handleNavHover} onClick={handleNavClick}>Daily Cleaning</TransitionLink>
                         </li>
                         <li className="dm-nav-item">
-                            <a className="dm-nav-link" href="#">Tentang Kami</a>
+                            <TransitionLink className="dm-nav-link" to="/tentang-kami" onMouseEnter={handleNavHover} onClick={handleNavClick}>Tentang Kami</TransitionLink>
                         </li>
                     </ul>
 
                     {/* Trailing Action */}
-                    <div className="dm-nav-actions">
-                        <button
-                            onClick={() => navigate('/login')}
-                            className="dm-btn-nav"
-                        >
-                            Masuk / Daftar
-                        </button>
+                    <div className="dmg-nav-actions">
+                        {isAuthenticated ? (
+                            <div className="dmg-profile-menu">
+                                <button
+                                    className="dmg-profile-btn"
+                                    onClick={() => setShowProfileMenu(!showProfileMenu)}
+                                    title={user?.nama_lengkap || user?.nama_mitra || user?.nama || 'User'}
+                                >
+                                    <div className="dmg-profile-avatar">
+                                        <span className="material-symbols-outlined">account_circle</span>
+                                    </div>
+                                </button>
+
+                                {showProfileMenu && (
+                                    <div className="dmg-profile-dropdown">
+                                        <div className="dmg-profile-info">
+                                            <p className="dmg-profile-name">
+                                                {user?.nama_lengkap || user?.nama_mitra || user?.nama || 'User'}
+                                            </p>
+                                            <p className="dmg-profile-email">{user?.email}</p>
+                                        </div>
+                                        <hr className="dmg-profile-divider" />
+                                        <button
+                                            className="dmg-profile-link"
+                                            onClick={() => {
+                                                navigate('/profile');
+                                                setShowProfileMenu(false);
+                                            }}
+                                        >
+                                            <span className="material-symbols-outlined">person</span>
+                                            Profil Saya
+                                        </button>
+                                        <button
+                                            className="dmg-profile-link"
+                                            onClick={() => {
+                                                navigate('/settings');
+                                                setShowProfileMenu(false);
+                                            }}
+                                        >
+                                            <span className="material-symbols-outlined">settings</span>
+                                            Pengaturan
+                                        </button>
+                                        <button
+                                            className="dmg-profile-link dmg-profile-logout"
+                                            onClick={() => {
+                                                logout();
+                                                setShowProfileMenu(false);
+                                                navigate('/');
+                                            }}
+                                        >
+                                            <span className="material-symbols-outlined">logout</span>
+                                            Keluar
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <button
+                                onClick={() => navigate('/login')}
+                                className="dmg-btn-nav"
+                            >
+                                Masuk / Daftar
+                            </button>
+                        )}
                     </div>
                 </div>
             </nav>
@@ -169,7 +285,7 @@ const DetailMitra = ({ onOrderClick }) => {
                                 <h2 className="dm-filter-title">Filter</h2>
                                 <button
                                     className="dm-filter-reset"
-                                    onClick={() => setSelectedCategories(['pakaian'])}
+                                    onClick={() => setSelectedCategories(['All'])}
                                 >
                                     Reset
                                 </button>
@@ -180,7 +296,7 @@ const DetailMitra = ({ onOrderClick }) => {
                                 <div className="dm-filter-group">
                                     <label className="dm-filter-label">Kategori</label>
                                     <div className="dm-filter-options">
-                                        {['pakaian', 'sprei', 'bedcover', 'semuanya'].map((cat) => (
+                                        {['Pakaian', 'Sprei', 'BedCover', 'All'].map((cat) => (
                                             <label key={cat} className="dm-checkbox-label">
                                                 <input
                                                     type="checkbox"
@@ -189,7 +305,7 @@ const DetailMitra = ({ onOrderClick }) => {
                                                     onChange={() => handleCategoryChange(cat)}
                                                 />
                                                 <span className="dm-checkbox-text">
-                                                    {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                                                    {cat === 'All' ? 'Semua' : cat}
                                                 </span>
                                             </label>
                                         ))}
@@ -203,9 +319,10 @@ const DetailMitra = ({ onOrderClick }) => {
                                         value={sortBy}
                                         onChange={(e) => setSortBy(e.target.value)}
                                     >
-                                        <option value="terdekat">Terdekat</option>
-                                        <option value="harga">Harga Terendah</option>
-                                        <option value="rating">Rating Tertinggi</option>
+                                        <option value="Terdekat">Terdekat</option>
+                                        <option value="Terlaris">Terlaris</option>
+                                        <option value="Terbaik">Terbaik</option>
+                                        <option value="Harga Bersahabat">Harga Bersahabat</option>
                                     </select>
                                 </div>
                             </div>
@@ -214,63 +331,86 @@ const DetailMitra = ({ onOrderClick }) => {
 
                     {/* Card List */}
                     <section className="dm-card-list">
-                        {mitraWithDistance.map((mitra) => (
-                            <article key={mitra.id} className="dm-card">
-                                <div className="dm-card-body">
-                                    <div className="dm-card-img-wrapper">
-                                        <img
-                                            className="dm-card-img"
-                                            src={mitra.image}
-                                            alt={mitra.name}
-                                        />
-                                    </div>
-                                    <div className="dm-card-content">
-                                        <div>
-                                            <div className="dm-card-header">
-                                                <h3 className="dm-card-title">{mitra.name}</h3>
-                                                <span className="dm-card-badge">
-                                                    Berada dalam jangkauan ({mitra.distance} KM)
-                                                </span>
-                                            </div>
-                                            <div className="dm-card-rating">
-                                                <span className="material-symbols-outlined">star</span>
-                                                <span className="dm-card-rating-value">{mitra.rating}</span>
-                                                <span className="dm-card-rating-count">({mitra.reviewCount} Ulasan)</span>
-                                            </div>
-                                            <p className="dm-card-desc">{mitra.description}</p>
+                        {mitraLoading ? (
+                            <div className="dmg-loading-container">
+                                <div className="dmg-spinner"></div>
+                                <p>Memuat data mitra...</p>
+                            </div>
+                        ) : mitraError ? (
+                            <div className="dmg-error-container">
+                                <span className="material-symbols-outlined">error_outline</span>
+                                <p>{mitraError}</p>
+                                <button
+                                    onClick={() => fetchMitraData()}
+                                    className="dmg-retry-btn"
+                                >
+                                    Coba Lagi
+                                </button>
+                            </div>
+                        ) : mitraList.length === 0 ? (
+                            <div className="dmg-empty-container">
+                                <span className="material-symbols-outlined">inbox</span>
+                                <p>Tidak ada data mitra tersedia</p>
+                            </div>
+                        ) : (
+                            mitraList.map((mitra) => (
+                                <article key={mitra.id} className="dm-card">
+                                    <div className="dm-card-body">
+                                        <div className="dm-card-img-wrapper">
+                                            <img
+                                                className="dm-card-img"
+                                                src={mitra.image}
+                                                alt={mitra.name}
+                                            />
                                         </div>
-                                        <div className="dm-card-footer">
-                                            <div className="dm-card-price">{mitra.price}</div>
-                                            <button
-                                                className="dm-card-order-btn"
-                                                onClick={() => handleOrderClick(mitra)}
-                                            >
-                                                Pesan Sekarang
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Marquee Reviews */}
-                                <div className="dm-marquee-section">
-                                    <div className="dm-marquee-container">
-                                        <div
-                                            className="dm-marquee-content"
-                                            style={{ animationDuration: mitra.marqueeSpeed }}
-                                        >
-                                            {/* Original + Duplicate for seamless loop */}
-                                            {[...mitra.reviews, ...mitra.reviews].map((review, idx) => (
-                                                <div key={idx} className="dm-review-chip">
-                                                    <span className="dm-review-name">{review.name}</span>
-                                                    <span className="dm-review-rating">{review.rating}★</span>
-                                                    <span className="dm-review-text">"{review.text}"</span>
+                                        <div className="dm-card-content">
+                                            <div>
+                                                <div className="dm-card-header">
+                                                    <h3 className="dm-card-title">{mitra.name}</h3>
+                                                    <span className="dm-card-badge">
+                                                        Berada dalam jangkauan ({mitra.distance} KM)
+                                                    </span>
                                                 </div>
-                                            ))}
+                                                <div className="dm-card-rating">
+                                                    <span className="material-symbols-outlined">star</span>
+                                                    <span className="dm-card-rating-value">{mitra.rating}</span>
+                                                    <span className="dm-card-rating-count">({mitra.reviewCount} Ulasan)</span>
+                                                </div>
+                                                <p className="dm-card-desc">{mitra.description}</p>
+                                            </div>
+                                            <div className="dm-card-footer">
+                                                <div className="dm-card-price">{mitra.price}</div>
+                                                <button
+                                                    className="dm-card-order-btn"
+                                                    onClick={() => handleOrderClick(mitra)}
+                                                >
+                                                    Pesan Sekarang
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </article>
-                        ))}
+
+                                    {/* Marquee Reviews */}
+                                    <div className="dm-marquee-section">
+                                        <div className="dm-marquee-container">
+                                            <div
+                                                className="dm-marquee-content"
+                                                style={{ animationDuration: mitra.marqueeSpeed }}
+                                            >
+                                                {/* Original + Duplicate for seamless loop */}
+                                                {[...mitra.reviews, ...mitra.reviews].map((review, idx) => (
+                                                    <div key={idx} className="dm-review-chip">
+                                                        <span className="dm-review-name">{review.name}</span>
+                                                        <span className="dm-review-rating">{review.rating}★</span>
+                                                        <span className="dm-review-text">"{review.text}"</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </article>
+                            ))
+                        )}
                     </section>
                 </div>
             </main>

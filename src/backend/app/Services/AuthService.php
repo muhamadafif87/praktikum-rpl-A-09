@@ -64,20 +64,26 @@ class AuthService{
     /**
      * @throws AuthenticationException
      */
-    public function detectGuard(string $email){
+    public function detectGuard(string $credential){
         $guardMap = [
-            'admin' => Admin::class,
             'mitra' => Mitra::class,
+            'admin' => Admin::class,
             'web' => User::class,
         ];
 
         foreach ($guardMap as $guard => $model) {
             if ($guard === 'mitra') {
-                $user = Mitra::whereHas('MitraAccess', function ($q) use ($email) {
-                    $q->where('email', $email);
-                })->with('MitraAccess')->first();
-            } else {
-                $user = $model::where('email', $email)->first();
+                $mitraAccess = MitraLoginAccess::where('email', $credential)->first();
+                if ($mitraAccess) {
+                    $user = Mitra::find($mitraAccess->id_mitra);
+                } else {
+                    $user = Mitra::where('nomor_telepon', $credential)->first();
+                }
+            }
+            else {
+                $user = $model::where('email', $credential)
+                              ->orWhere('nomor_telepon', $credential)
+                              ->first();
             }
 
             if ($user) {
@@ -99,21 +105,45 @@ class AuthService{
     public function login(array $credentials): array {
         ['guard' => $guard] = $this->detectGuard($credentials['email']);
 
-        if (! Auth::guard($guard)->attempt($credentials)) {
-            throw new AuthenticationException('Email atau password salah.');
+        if ($guard === 'mitra') {
+            $mitraAccess = MitraLoginAccess::where('email', $credentials['email'])->first();
+            if ($mitraAccess) {
+                $mitra = Mitra::with('MitraAccess')->find($mitraAccess->id_mitra);
+            } else {
+                $mitra = Mitra::with('MitraAccess')->where('nomor_telepon', $credentials['email'])->first();
+            }
+
+            if (! $mitra || ! Hash::check($credentials['password'], $mitra->MitraAccess->password)) {
+                throw new AuthenticationException('Email/nomor telepon atau password salah.');
+            }
+
+            if ($mitra->status_verifikasi !== true) {
+                throw new AuthenticationException(
+                    match($mitra->status_verifikasi) {
+                        'pending'   => 'Akun mitra anda sedang dalam proses verifikasi',
+                        'nonaktif'  => 'Akun mitra anda telah dinonaktifkan',
+                        default     => 'Akun anda tidak dapat digunakan',
+                    }
+                );
+            }
+
+            Auth::guard('mitra')->login($mitra);
+            $user = $mitra;
         }
+        else {
+            // Check if the credential is an email or phone number
+            $authField = filter_var($credentials['email'], FILTER_VALIDATE_EMAIL) ? 'email' : 'nomor_telepon';
+            
+            $attemptCredentials = [
+                $authField => $credentials['email'],
+                'password' => $credentials['password']
+            ];
 
-        $user = Auth::guard($guard)->user();
+            if (! Auth::guard($guard)->attempt($attemptCredentials)) {
+                throw new AuthenticationException('Email/nomor telepon atau password salah.');
+            }
 
-        if($guard === 'mitra' && isset($user->status_verifikasi) && $user->status_verifikasi !== 'aktif'){
-            Auth::guard($guard)->logout();
-            throw new AuthenticationException(
-                match($user->status_verifikasi){
-                    'pending' => 'Akun mitra anda sedang dalam proses verifikasi',
-                    'nonaktif' => 'Akun mitra anda telah dinonaktifkan',
-                    default => 'Akun anda tidak dapat digunakan',
-                }
-            );
+            $user = Auth::guard($guard)->user();
         }
 
         $user->tokens()->delete();

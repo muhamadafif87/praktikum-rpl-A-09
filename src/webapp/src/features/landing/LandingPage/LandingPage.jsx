@@ -1,7 +1,10 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useLayoutEffect, useCallback, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import TransitionLink from '../../../components/ViewTransition/TransitionLink';
 import LocationSearch from '../../location/LocationSearch/LocationSearch';
 import './LandingPage.css';
+import { useAuth } from '../../../context/AuthContext';
+import api from '../../../services/api';
 
 const LandingPage = () => {
     const navigate = useNavigate();
@@ -168,25 +171,24 @@ const LandingPage = () => {
                     </div>
 
                     {/* Navigation Links (Center) */}
-                    <ul className="lp-nav-links">
+                    <ul className="lp-nav-links" ref={navLinksRef} onMouseLeave={handleNavLeave}>
                         <li className="lp-nav-item">
-                            <a className="lp-nav-link lp-nav-link--active" href="#">Home</a>
+                            <a className="lp-nav-link lp-nav-link--active" href="#" onMouseEnter={handleNavHover} onClick={handleNavClick} aria-current="page">Home</a>
                         </li>
                         <li className="lp-nav-item">
-                            <Link className="lp-nav-link" to="/gas-galon">Gas &amp; Galon</Link>
+                            <TransitionLink className="lp-nav-link" to="/gas-galon" onMouseEnter={handleNavHover} onClick={handleNavClick}>Gas &amp; Galon</TransitionLink>
                         </li>
                         <li className="lp-nav-item">
-                            <Link className="lp-nav-link" to="/laundry">Laundry Express</Link>
+                            <TransitionLink className="lp-nav-link" to="/laundry" onMouseEnter={handleNavHover} onClick={handleNavClick}>Laundry Express</TransitionLink>
                         </li>
                         <li className="lp-nav-item">
-                            <Link className="lp-nav-link" to="/daily-cleaning">Daily Cleaning</Link>
+                            <TransitionLink className="lp-nav-link" to="/daily-cleaning" onMouseEnter={handleNavHover} onClick={handleNavClick}>Daily Cleaning</TransitionLink>
                         </li>
                         <li className="lp-nav-item">
-                            <a className="lp-nav-link" href="#">Tentang Kami</a>
+                            <TransitionLink className="lp-nav-link" to="/tentang-kami" onMouseEnter={handleNavHover} onClick={handleNavClick}>Tentang Kami</TransitionLink>
                         </li>
                     </ul>
 
-                    {/* Trailing Action */}
                     <div className="lp-nav-actions">
                         {isAuthenticated ? (
                             <div className="lp-profile-menu">
@@ -388,6 +390,7 @@ const LandingPage = () => {
                 </section>
 
                 {/* Trust Section */}
+                {/* Trust Section */}
                 <section className="lp-trust">
                     <div className="lp-container lp-trust-inner animate-on-scroll">
                         <div className="lp-trust-content">
@@ -396,15 +399,19 @@ const LandingPage = () => {
                         </div>
                         <div className="lp-trust-stats">
                             <div className="lp-stat">
-                                <div className="lp-stat-value">1.2k+</div>
-                                <div className="lp-stat-label">Mahasiswa Aktif</div>
+                                <div className="lp-stat-value">
+                                    {statsLoading ? '...' : `${stats.jumlah_user_aktif}+`}
+                                </div>
+                                <div className="lp-stat-label">Pengguna Aktif</div>
                             </div>
                             <div className="lp-stat">
                                 <div className="lp-stat-value">100%</div>
                                 <div className="lp-stat-label">Garansi Aman</div>
                             </div>
                             <div className="lp-stat">
-                                <div className="lp-stat-value">50+</div>
+                                <div className="lp-stat-value">
+                                    {statsLoading ? '...' : `${stats.jumlah_mitra_bekerja_sama}+`}
+                                </div>
                                 <div className="lp-stat-label">Mitra Terverifikasi</div>
                             </div>
                         </div>

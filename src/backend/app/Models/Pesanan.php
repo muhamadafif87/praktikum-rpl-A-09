@@ -14,15 +14,19 @@ class Pesanan extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'id_unique_pesanan',
         'id_user',
         'id_mitra',
-        'status_pesanan'
+        'status_pesanan',
+        'tgl_pesanan',
+        'catatan'
     ];
 
     #[Override]
     protected function casts(){
         return [
-            'tgl_pesanan' => 'datetime'
+            'tgl_pesanan' => 'datetime',
+            'catatan' => 'array'
         ];
     }
 

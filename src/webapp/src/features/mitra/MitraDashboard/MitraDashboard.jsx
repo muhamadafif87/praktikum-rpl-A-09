@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../../services/api';
+import MitraOrders from '../MitraOrders/MitraOrders';
+import MitraInventory from '../MitraInventory/MitraInventory';
+import MitraFinance from '../MitraFinance/MitraFinance';
 import './MitraDashboard.css';
 
 /**
@@ -10,10 +13,10 @@ import './MitraDashboard.css';
  * komponen menampilkan empty/zero state secara graceful.
  * 
  * API Endpoints:
- * - GET /api/v1/mitra/dashboard/stats
- * - GET /api/v1/mitra/dashboard/orders?status=incoming
- * - GET /api/v1/mitra/dashboard/inventory
- * - GET /api/v1/mitra/dashboard/performance
+ * - GET /api/v1/dashboard/mitra/stats
+ * - GET /api/v1/dashboard/mitra/orders?status=incoming
+ * - GET /api/v1/dashboard/mitra/inventory
+ * - GET /api/v1/dashboard/mitra/performance
  */
 
 const SIDEBAR_ITEMS = [
@@ -53,10 +56,10 @@ const MitraDashboard = () => {
             setLoading(true);
             try {
                 const [statsRes, ordersRes, inventoryRes, perfRes] = await Promise.allSettled([
-                    api.get('/v1/mitra/dashboard/stats'),
-                    api.get('/v1/mitra/dashboard/orders', { params: { status: 'incoming' } }),
-                    api.get('/v1/mitra/dashboard/inventory'),
-                    api.get('/v1/mitra/dashboard/performance'),
+                    api.get('/v1/dashboard/mitra/stats'),
+                    api.get('/v1/dashboard/mitra/orders', { params: { status: 'incoming' } }),
+                    api.get('/v1/dashboard/mitra/inventory'),
+                    api.get('/v1/dashboard/mitra/performance'),
                 ]);
 
                 if (statsRes.status === 'fulfilled') setStats(statsRes.value.data.data || statsRes.value.data);
@@ -135,7 +138,14 @@ const MitraDashboard = () => {
                         <button
                             key={item.key}
                             className={`md-sidebar-link ${activeSidebar === item.key ? 'md-sidebar-link--active' : ''}`}
-                            onClick={() => setActiveSidebar(item.key)}
+                            onClick={() => {
+                                setActiveSidebar(item.key);
+                                if (item.key === 'chat') {
+                                    navigate('/dashboard/mitra/chat');
+                                } else if (item.key === 'reviews') {
+                                    navigate('/dashboard/mitra/reviews');
+                                }
+                            }}
                         >
                             <span className="material-symbols-outlined">{item.icon}</span>
                             <span>{item.label}</span>
@@ -150,7 +160,13 @@ const MitraDashboard = () => {
 
             {/* ═══ Main Content ═══ */}
             <main className="md-main">
-                {loading ? (
+                {activeSidebar === 'orders' ? (
+                    <MitraOrders />
+                ) : activeSidebar === 'inventory' ? (
+                    <MitraInventory />
+                ) : activeSidebar === 'finance' ? (
+                    <MitraFinance />
+                ) : loading ? (
                     <div className="md-loading">
                         <span className="material-symbols-outlined md-spinner">progress_activity</span>
                     </div>
@@ -214,7 +230,7 @@ const MitraDashboard = () => {
                                 <div className="md-orders-panel">
                                     <div className="md-panel-header">
                                         <h2 className="md-panel-title">Incoming Orders</h2>
-                                        <button className="md-panel-action">View All</button>
+                                        <button className="md-panel-action" onClick={() => setActiveSidebar('orders')}>View All</button>
                                     </div>
                                     <div className="md-table-wrap">
                                         <table className="md-table">

@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../../services/api';
+import { useAuth } from '../../../context/AuthContext';
 import './Register.css';
 
 const Register = () => {
     const navigate = useNavigate();
+    const { login: authLogin } = useAuth();
 
     // ── Form State ──
     const [formData, setFormData] = useState({
@@ -72,18 +74,14 @@ const Register = () => {
 
             const { data } = response.data;
 
-            // Save auth token securely to localStorage
-            if (data?.token) {
-                localStorage.setItem('token', data.token);
+            // Update AuthContext and LocalStorage seamlessly
+            if (data?.user && data?.token) {
+                const guard = data.guard || 'web';
+                authLogin(data.user, data.token, guard);
             }
 
-            // Save user profile data
-            if (data?.user) {
-                localStorage.setItem('user', JSON.stringify(data.user));
-            }
-
-            // Redirect to dashboard after successful registration
-            navigate('/dashboard');
+            // Redirect to home after successful registration for user
+            navigate('/');
         } catch (err) {
             if (err.response) {
                 const status = err.response.status;
