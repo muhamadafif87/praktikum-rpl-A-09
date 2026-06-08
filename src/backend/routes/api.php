@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\Auth\AuthController;
+use App\Http\Controllers\Api\V1\Dashboard\Mitra\MitraAssetImageController;
 use App\Http\Controllers\Api\V1\Page\LandingPageController;
 use Illuminate\Support\Facades\Route;
 
@@ -32,6 +33,16 @@ Route::prefix('v1')->group(function () {
             Route::get('/daily-cleaning', [LandingPageController::class, 'dailyCleaning'])->name('daily-cleaning');
         });
     });
+
+    Route::get('mitra/{idMitra}/images', [MitraAssetImageController::class, 'index']);
+
+    Route::prefix('mitra-images')->group(function () {
+        Route::get('{id}',    [MitraAssetImageController::class, 'show']);
+        Route::post('/',      [MitraAssetImageController::class, 'store']);
+        Route::post('{id}',   [MitraAssetImageController::class, 'update']);
+        Route::delete('{id}', [MitraAssetImageController::class, 'destroy']);
+    });
+
 
     //------
     // Routes get list layanan
