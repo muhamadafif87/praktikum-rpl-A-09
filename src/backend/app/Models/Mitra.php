@@ -39,6 +39,10 @@ class Mitra extends Authenticatable {
         return $this->hasOne(MitraLoginAccess::class, 'id_mitra');
     }
 
+    public function MitraImageAsset(){
+        return $this->hasMany(MitraImageAsset::class, 'id_mitra');
+    }
+
     public function Layanan(){
         return $this->hasMany(Layanan::class, 'id_mitra', 'id_mitra');
     }
