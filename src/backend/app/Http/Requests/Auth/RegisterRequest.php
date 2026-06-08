@@ -17,7 +17,7 @@ class RegisterRequest extends FormRequest
         $registAs = $this->input('regist_as', 'user');
 
         $baseRules = [
-            'regist_as'     => ['required', Rule::in(['user', 'mitra'])],
+            'regist_as'     => ['nullable', Rule::in(['user', 'mitra']), 'default:user'],
             'nama_lengkap'  => ['required', 'string', 'max:155'],
             'email'         => ['required', 'email', 'max:255', $this->getEmailUniqueRule()],
             'password'      => ['required', 'string', 'min:8', 'confirmed'],
