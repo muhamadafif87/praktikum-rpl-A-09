@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\Dashboard\Mitra\MitraAssetImageController;
+use App\Http\Controllers\Api\V1\Location\NearbyMitraController;
+use App\Http\Controllers\Api\V1\Location\UserAddressController;
 use App\Http\Controllers\Api\V1\Order\PesananController;
 use App\Http\Controllers\Api\V1\Page\LandingPageController;
 use Illuminate\Support\Facades\Route;
@@ -30,6 +32,19 @@ Route::prefix('v1')->group(function () {
         Route::prefix('daily-cleaning')->name('daily-cleaning.')->group(function () {
             Route::get('/', [LandingPageController::class, 'dailyCleaning'])->name('index');
         });
+
+        Route::prefix('/mitra')->group(function() {
+            Route::get('/nearby', [NearbyMitraController::class, 'index']);
+            Route::post('/nearby', [NearbyMitraController::class, 'searchByAddress']);
+            Route::get('/nearby/categories', [NearbyMitraController::class, 'categories']);
+        });
+    });
+
+    //User Address CRUD
+    Route::prefix('/user')->middleware('auth:sanctum')->name('address.')->group(function() {
+        Route::get('/address', [UserAddressController::class, 'show']);
+        Route::put('/address', [UserAddressController::class, 'update']);
+        Route::delete('/address', [UserAddressController::class, 'destroy']);
     });
 
     Route::middleware('auth:sanctum')->group(function () {
@@ -80,12 +95,11 @@ Route::prefix('v1')->group(function () {
     // -------------------------------------------------------------------------
     Route::prefix('mitra')->middleware('auth:sanctum,guard:mitra')->name('mitra.')->group(function () {
 
-        // ----------------------------------------------------------------
-        // Pesanan — aksi mitra
-        // ----------------------------------------------------------------
+        // --------
+        // Pesanan
+        // --------
         Route::prefix('pesanan')->name('pesanan.')->group(function () {
 
-            // Riwayat pesanan masuk ke mitra yang login
             // GET /mitra/pesanan/riwayat?status=diproses&per_page=10
             Route::get('/riwayat', [PesananController::class, 'riwayatPesananMitra'])->name('riwayat');
 
@@ -95,23 +109,15 @@ Route::prefix('v1')->group(function () {
             // Cancel pesanan — mitra bisa cancel kecuali status selesai/dibatalkan
             Route::patch('/{idUniquePesanan}/cancel', [PesananController::class, 'cancelPesananMitra'])->name('cancel');
         });
-    });
 
-    Route::get('mitra/{idMitra}/images', [MitraAssetImageController::class, 'index']);
+        Route::get('{idMitra}/images', [MitraAssetImageController::class, 'index']);
 
-    Route::prefix('mitra-images')->group(function () {
-        Route::get('{id}',    [MitraAssetImageController::class, 'show']);
-        Route::post('/',      [MitraAssetImageController::class, 'store']);
-        Route::post('{id}',   [MitraAssetImageController::class, 'update']);
-        Route::delete('{id}', [MitraAssetImageController::class, 'destroy']);
-    });
-
-
-    //----------------
-    // Routes Dashboard Mitra
-    //----------------
-    Route::prefix('mitra')->middleware('auth:sanctum,guard:mitra')->name('mitra.')->group(function() {
-        //
+        Route::prefix('mitra-images')->group(function () {
+            Route::get('{id}',    [MitraAssetImageController::class, 'show']);
+            Route::post('/',      [MitraAssetImageController::class, 'store']);
+            Route::post('{id}',   [MitraAssetImageController::class, 'update']);
+            Route::delete('{id}', [MitraAssetImageController::class, 'destroy']);
+        });
     });
 
     //------
