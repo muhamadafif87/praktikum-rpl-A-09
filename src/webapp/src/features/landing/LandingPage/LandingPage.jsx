@@ -192,66 +192,33 @@ const LandingPage = () => {
                     <div className="lp-nav-actions">
                         {isAuthenticated ? (
                             <div className="lp-profile-menu">
-                                <button
-                                    className="lp-profile-btn"
-                                    onClick={() => setShowProfileMenu(!showProfileMenu)}
-                                    title={user?.nama_lengkap || user?.nama_mitra || user?.nama || 'User'}
-                                >
+                                <button className="lp-profile-btn" onClick={() => setShowProfileMenu(!showProfileMenu)} title={user?.nama_lengkap || user?.nama_mitra || user?.nama || 'User'}>
                                     <div className="lp-profile-avatar">
-                                        <span className="material-symbols-outlined">account_circle</span>
-                                    </div>
+                                        {(() => {
+                                            const name = user?.nama_lengkap || user?.nama_mitra || user?.nama || 'User';
+                                            const names = name.trim().split(' ');
+                                            return names.length >= 2 ? (names[0][0] + names[1][0]).toUpperCase() : name.substring(0, 2).toUpperCase();
+                                        })()}
+                                   </div>
                                 </button>
-
                                 {showProfileMenu && (
                                     <div className="lp-profile-dropdown">
                                         <div className="lp-profile-info">
-                                            <p className="lp-profile-name">
-                                                {user?.nama_lengkap || user?.nama_mitra || user?.nama || 'User'}
-                                            </p>
+                                            <p className="lp-profile-name">{user?.nama_lengkap || user?.nama_mitra || user?.nama || 'User'}</p>
                                             <p className="lp-profile-email">{user?.email}</p>
                                         </div>
                                         <hr className="lp-profile-divider" />
-                                        <button
-                                            className="lp-profile-link"
-                                            onClick={() => {
-                                                navigate('/profile');
-                                                setShowProfileMenu(false);
-                                            }}
-                                        >
-                                            <span className="material-symbols-outlined">person</span>
-                                            Profil Saya
+                                        <button className="lp-profile-link" onClick={() => { navigate('/profile'); setShowProfileMenu(false); }}>
+                                            <span className="material-symbols-outlined">person</span> Profil Saya
                                         </button>
-                                        <button
-                                            className="lp-profile-link"
-                                            onClick={() => {
-                                                navigate('/settings');
-                                                setShowProfileMenu(false);
-                                            }}
-                                        >
-                                            <span className="material-symbols-outlined">settings</span>
-                                            Pengaturan
-                                        </button>
-                                        <button
-                                            className="lp-profile-link lp-profile-logout"
-                                            onClick={() => {
-                                                logout();
-                                                setShowProfileMenu(false);
-                                                navigate('/');
-                                            }}
-                                        >
-                                            <span className="material-symbols-outlined">logout</span>
-                                            Keluar
+                                        <button className="lp-profile-link lp-profile-logout" onClick={() => { logout(); setShowProfileMenu(false); navigate('/'); }}>
+                                            <span className="material-symbols-outlined">logout</span> Keluar
                                         </button>
                                     </div>
                                 )}
                             </div>
                         ) : (
-                            <button
-                                onClick={() => navigate('/login')}
-                                className="lp-btn-primary"
-                            >
-                                Masuk / Daftar
-                            </button>
+                            <button onClick={() => navigate('/login')} className="lp-btn-primary">Masuk / Daftar</button>
                         )}
                     </div>
                 </div>
