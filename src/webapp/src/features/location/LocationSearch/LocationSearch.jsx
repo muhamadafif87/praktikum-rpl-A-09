@@ -2,7 +2,9 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { useLocation } from '../../../context/LocationContext';
+import { useAuth } from '../../../context/AuthContext';
 import { useDebounce } from '../../../hooks/useDebounce';
+import api from '../../../services/api';
 import './LocationSearch.css';
 
 // ══════════════════════════════════════════════════════════════
@@ -89,6 +91,7 @@ const DraggableMarker = ({ position, onDragEnd }) => {
  */
 const LocationSearch = ({ onConfirm, onSearchSubmit }) => {
     const { location, setLocation } = useLocation();
+    const { isAuthenticated, updateUser } = useAuth();
 
     // Input & autocomplete state
     const [query, setQuery] = useState('');
@@ -255,12 +258,28 @@ const LocationSearch = ({ onConfirm, onSearchSubmit }) => {
     };
 
     /**
-     * Tombol "Konfirmasi Lokasi" — simpan ke context.
+     * Tombol "Konfirmasi Lokasi" — simpan ke context dan database jika login.
      */
-    const handleConfirmLocation = () => {
+    const handleConfirmLocation = async () => {
         if (pinLat && pinLng && selectedAddress) {
             setLocation(selectedAddress, pinLat, pinLng);
             setIsConfirmed(true);
+            
+            // Save to database if authenticated
+            if (isAuthenticated) {
+                try {
+                    const response = await api.put('/v1/auth/me', {
+                        latitude: pinLat,
+                        longitude: pinLng,
+                        address_detail: selectedAddress
+                    });
+                    // Update AuthContext user data seamlessly
+                    updateUser(response.data.data);
+                } catch (error) {
+                    console.error("Gagal menyimpan lokasi ke profil:", error);
+                }
+            }
+
             if (onConfirm) onConfirm();
         }
     };

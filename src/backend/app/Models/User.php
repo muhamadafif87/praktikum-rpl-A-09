@@ -26,6 +26,9 @@ class User extends Authenticatable {
         'password',
         'nomor_telepon',
         'alamat_kost',
+        'latitude',
+        'longitude',
+        'address_detail',
     ];
 
     protected $hidden = [
