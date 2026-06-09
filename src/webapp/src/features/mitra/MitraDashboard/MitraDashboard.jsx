@@ -33,7 +33,7 @@ const SIDEBAR_ITEMS = [
 const CHART_Y_LABELS = ['1M', '800k', '600k', '400k', '200k', '0'];
 const CHART_X_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-const MitraDashboard = () => {
+const MitraDashboard = ({ initialTab = 'overview' }) => {
     const navigate = useNavigate();
 
     // ── Data State ──
@@ -44,7 +44,11 @@ const MitraDashboard = () => {
         avgRating: 0, responseTime: '-', completionRate: '-', topService: '-', repeatCustomerGrowth: '-'
     });
     const [loading, setLoading] = useState(true);
-    const [activeSidebar, setActiveSidebar] = useState('overview');
+    const [activeSidebar, setActiveSidebar] = useState(initialTab);
+
+    useEffect(() => {
+        setActiveSidebar(initialTab);
+    }, [initialTab]);
 
     // ── User data from localStorage ──
     const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -144,6 +148,10 @@ const MitraDashboard = () => {
                                     navigate('/dashboard/mitra/chat');
                                 } else if (item.key === 'reviews') {
                                     navigate('/dashboard/mitra/reviews');
+                                } else if (item.key === 'support') {
+                                    navigate('/dashboard/mitra/support');
+                                } else if (item.key === 'settings') {
+                                    navigate('/dashboard/mitra/settings');
                                 }
                             }}
                         >
