@@ -40,6 +40,8 @@ class User extends Authenticatable {
         return [
             'password'   => 'hashed',
             'created_at' => 'datetime',
+            'latitude' => 'decimal:7',
+            'longitude' => 'decimal:7',
         ];
     }
 

@@ -57,9 +57,9 @@ const App = () => {
                 <Route path="/dashboard/mitra/chat" element={<ChatMitra />} />
                 <Route path="/dashboard/mitra/reviews" element={<ReviewMitra />} />
                 <Route path="/dashboard/mitra/settings" element={<PengaturanMitra />} />
-                <Route path="/dashboard/mitra/finance" element={<MitraFinance />} />
-                <Route path="/dashboard/mitra/inventory" element={<MitraInventory />} />
-                <Route path="/dashboard/mitra/orders" element={<MitraOrders />} />
+                <Route path="/dashboard/mitra/finance" element={<MitraDashboardPage tab="finance" />} />
+                <Route path="/dashboard/mitra/inventory" element={<MitraDashboardPage tab="inventory" />} />
+                <Route path="/dashboard/mitra/orders" element={<MitraDashboardPage tab="orders" />} />
                 <Route path="/dashboard/mitra/support" element={<HelpSupportMitra />} />
 
                 {/* Profile routes */}

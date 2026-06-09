@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Models\MitraImageAsset;
 
 class Mitra extends Authenticatable {
     use HasApiTokens, HasFactory, Notifiable;
@@ -26,13 +27,28 @@ class Mitra extends Authenticatable {
         'status_verifikasi',
         'id_admin',
         'nomor_telepon',
-        'catatan'
+        'catatan',
+        'latitude',
+        'longitude',
+        'radius_layanan'
     ];
 
     protected function casts(){
         return [
-            'verified_at' => 'datetime'
+            'verified_at' => 'datetime',
+            'latitude' => 'decimal:7',
+            'longitude' => 'decimal:7',
         ];
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('status_verifikasi', true);
+    }
+
+    // Scope: berdasarkan kategori
+    public function scopeByCategory($query, string $jenisLayanan){
+        return $query->where('jenis_jasa', $jenisLayanan);
     }
 
     public function MitraAccess(){
