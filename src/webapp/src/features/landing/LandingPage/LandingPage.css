@@ -281,6 +281,274 @@
     filter: brightness(0.9);
 }
 
+/* ── Location Button & Modal ── */
+.lp-hero-location-btn {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1.25rem;
+    background-color: #ffffff;
+    border: 1px solid var(--lp-outline-variant);
+    border-radius: 9999px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    max-width: 100%;
+    margin-top: 1.5rem;
+    outline: none;
+}
+
+.lp-hero-location-btn:hover {
+    box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.15);
+    border-color: var(--lp-primary-container);
+    transform: translateY(-2px);
+}
+
+.lp-hero-location-icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    background-color: var(--lp-surface-container-low);
+    border-radius: 50%;
+    color: var(--lp-primary-container);
+}
+
+.lp-hero-location-icon {
+    font-size: 1.25rem;
+}
+
+.lp-hero-location-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    overflow: hidden;
+}
+
+.lp-hero-location-label {
+    font-size: 0.75rem;
+    color: var(--lp-secondary);
+    font-weight: 500;
+}
+
+.lp-hero-location-value {
+    font-size: 0.9375rem;
+    color: var(--lp-on-surface);
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 220px;
+}
+@media (min-width: 768px) {
+    .lp-hero-location-value {
+        max-width: 380px;
+    }
+}
+
+.lp-hero-location-chevron {
+    color: var(--lp-secondary);
+    margin-left: 0.5rem;
+    transition: transform 0.3s ease;
+}
+.lp-hero-location-btn:hover .lp-hero-location-chevron {
+    color: var(--lp-primary-container);
+}
+
+/* Modal Overlay */
+.lp-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(11, 28, 48, 0.6);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+    animation: lp-fadeIn 0.25s ease-out;
+}
+
+@keyframes lp-fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.lp-modal-content {
+    background-color: #ffffff;
+    border-radius: 1.25rem;
+    width: 100%;
+    max-width: 48rem;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    animation: lp-slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: visible;
+}
+
+@keyframes lp-slideUp {
+    from { opacity: 0; transform: translateY(2rem) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.lp-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--lp-outline-variant);
+    background-color: #fcfcfd;
+    border-top-left-radius: 1.25rem;
+    border-top-right-radius: 1.25rem;
+}
+
+.lp-modal-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--lp-on-surface);
+    margin: 0;
+}
+
+.lp-modal-close {
+    background: none;
+    border: none;
+    padding: 0.5rem;
+    cursor: pointer;
+    color: var(--lp-secondary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.lp-modal-close:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    color: var(--lp-on-surface);
+}
+
+.lp-modal-body {
+    padding: 1.5rem;
+    overflow: visible;
+}
+
+/* Adjust LocationSearch when inside modal */
+.lp-modal-body .loc-search {
+    margin-top: 0;
+}
+
+/* Modal Location Options (Sesuai Profil vs Sementara) */
+.lp-location-options {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.lp-location-options-title {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.9375rem;
+    color: var(--lp-secondary);
+    font-weight: 500;
+}
+
+.lp-loc-option {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background-color: #ffffff;
+    border: 1px solid var(--lp-outline-variant);
+    border-radius: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.lp-loc-option:hover {
+    border-color: var(--lp-primary-container);
+    background-color: var(--lp-surface-container-low);
+    transform: translateY(-1px);
+}
+
+.lp-loc-option--active {
+    border-color: var(--lp-primary);
+    background-color: var(--lp-surface-container-low);
+    box-shadow: 0 0 0 1px var(--lp-primary);
+}
+
+.lp-loc-option-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    background-color: var(--lp-surface-container);
+    color: var(--lp-primary);
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.lp-loc-option--active .lp-loc-option-icon {
+    background-color: var(--lp-primary);
+    color: #ffffff;
+}
+
+.lp-loc-option-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    overflow: hidden;
+}
+
+.lp-loc-option-text h4 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--lp-on-surface);
+}
+
+.lp-loc-option-text p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--lp-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.lp-loc-check {
+    color: var(--lp-primary);
+    font-size: 1.25rem;
+}
+
+.lp-loc-arrow {
+    color: var(--lp-outline-variant);
+    font-size: 1.25rem;
+}
+
+.lp-loc-back-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: none;
+    border: none;
+    color: var(--lp-secondary);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    padding: 0;
+    margin-bottom: 1.25rem;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.lp-loc-back-btn:hover {
+    color: var(--lp-primary);
+}
+
 .lp-hero-bg {
     position: absolute;
     inset: 0;
