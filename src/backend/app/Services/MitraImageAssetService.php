@@ -9,6 +9,10 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class MitraImageAssetService
 {
+    public function __construct(
+        private readonly SupabaseStorageService $storage
+    ) {}
+
     public function getByMitra(int $idMitra): Collection
     {
         return MitraImageAsset::where('id_mitra', $idMitra)->get();
@@ -29,12 +33,16 @@ class MitraImageAssetService
      */
     public function store(array $data): MitraImageAsset
     {
-        $binary = $this->readBinary($data['image']);
+        // Upload to Supabase Storage
+        $imageUrl = $this->storage->upload(
+            $data['image'],
+            'mitra/' . $data['id_mitra']  // Organize by mitra ID
+        );
 
         return MitraImageAsset::create([
             'id_mitra'    => $data['id_mitra'],
             'description' => $data['description'] ?? null,
-            'image_file'  => $binary,
+            'image_url'   => $imageUrl,  // Store URL instead of binary
         ]);
     }
 
@@ -55,7 +63,13 @@ class MitraImageAssetService
         }
 
         if (!empty($data['image'])) {
-            $payload['image_file'] = $this->readBinary($data['image']);
+            // Update image in Supabase Storage
+            $newImageUrl = $this->storage->update(
+                $asset->image_url,
+                $data['image'],
+                'mitra/' . $asset->id_mitra
+            );
+            $payload['image_url'] = $newImageUrl;
         }
 
         if (!empty($payload)) {
@@ -72,14 +86,12 @@ class MitraImageAssetService
     public function destroy(int $id): void
     {
         $asset = $this->findOrFail($id);
-        $asset->delete();
-    }
 
-    /**
-     * PostgreSQL BYTEA membutuhkan konten binary mentah — bukan path file.
-     */
-    private function readBinary(UploadedFile $file): string
-    {
-        return file_get_contents($file->getRealPath());
+        // Delete from Supabase Storage
+        if ($asset->image_url) {
+            $this->storage->delete($asset->image_url);
+        }
+
+        $asset->delete();
     }
 }
