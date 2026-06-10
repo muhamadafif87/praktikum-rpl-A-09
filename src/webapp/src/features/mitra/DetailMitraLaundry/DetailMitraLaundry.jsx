@@ -99,6 +99,7 @@ const DetailMitraLaundry = ({ onOrderClick }) => {
                 data.map((mitra) => ({
                     id: mitra.id_mitra,
                     name: mitra.nama_mitra,
+                    image: mitra.profil_image,
                     type: mitra.jenis_jasa,
                     location: mitra.lokasi_layanan,
                     distance: '0.5 KM', // Nanti bisa diambil dari API jika ada
@@ -108,7 +109,6 @@ const DetailMitraLaundry = ({ onOrderClick }) => {
                     price: mitra.layanan?.length > 0
                         ? `Mulai dari Rp ${parseInt(mitra.layanan[0].harga_satuan).toLocaleString('id-ID')}`
                         : 'Hubungi untuk info harga',
-                    image: `https://via.placeholder.com/300x200?text=${encodeURIComponent(mitra.nama_mitra)}`,
                     layanan: mitra.layanan || [],
                     reviews: (mitra.sample_ulasan || [])
                         .map((ulasan) => ({
@@ -322,7 +322,7 @@ const DetailMitraLaundry = ({ onOrderClick }) => {
                                     </div>
 
                                     {mitra.reviews.length > 0 && (
-                                        <div className="dmg-marquee-section">
+                                        <div className="dmg-mar                                                                                                                                                                                                                                                     uee-section">
                                             <div className="dmg-marquee-container">
                                                 <div
                                                     className="dmg-marquee-content"

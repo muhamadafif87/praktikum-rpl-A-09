@@ -52,18 +52,43 @@ class GenerateFeeRequest extends FormRequest
     {
         $serviceTypes = ['laundry', 'galon_gas', 'daily_cleaning'];
 
-        return [
-            'idMitra'   => ['required', 'string', 'exists:mitra,id_mitra'],
-            'idLayanan' => ['required', 'string', 'exists:layanan,id_layanan'],
-            'typeLayanan' => ['required', 'string', Rule::in($serviceTypes)],
-            'qty'         => ['required', 'integer', 'min:1'],
-            'jarakOngkir' => ['required', 'integer', 'min:0'],
-            'biayaTambahan'        => ['nullable', 'array'],
-            'biayaTambahan.*'      => ['nullable', 'numeric', 'min:0'],
-            'biayaTambahan.beli_baru' => [
+        return  [
+            'idMitra'       => ['required', 'string', 'exists:mitra,id_mitra'],
+            'typeLayanan'   => ['required', 'string', Rule::in($serviceTypes)],
+            'items'       => ['required', 'array', 'min:1'],
+            'items.*.idLayanan' => ['required', 'string', 'exists:layanan,id_layanan'],
+            'items.*.qty'       => ['required', 'integer', 'min:1'],
+
+            'layanan' => [
+                function ($attribute, $value, $fail) {
+                    if (request()->input('typeLayanan') === 'laundry' && count($value) > 1) {
+                        $fail('Untuk layanan laundry, hanya boleh memesan 1 layanan dalam satu waktu.');
+                    }
+                },
+            ],
+
+            'jarakOngkir'   => ['required', 'integer', 'min:0'],
+
+            'biayaTambahan' => ['nullable', 'array'],
+            'biayaTambahan.*.idLayanan' => ['required_if:typeLayanan,galon_gas', 'string'],
+            'biayaTambahan.*.beli_baru' => [
                 'required_if:typeLayanan,galon_gas', 'nullable', 'numeric', 'min:0'
             ],
+
+            'biayaTambahan.durasi_pengerjaan' => [
+                'required_if:typeLayanan,laundry', 'nullable', 'array'
+            ],
+            'biayaTambahan.durasi_pengerjaan.biaya' => [
+                'required_with:biayaTambahan.durasi_pengerjaan', 'numeric', 'min:0'
+            ],
+            'biayaTambahan.durasi_pengerjaan.type' => [
+                'required_with:biayaTambahan.durasi_pengerjaan', 'string'
+            ],
+
+            'biayaTambahanAlat' => ['nullable', 'array'],
+            'biayaTambahanAlat.*' => ['numeric', 'min:0']
         ];
+
     }
 
     /**
@@ -88,6 +113,9 @@ class GenerateFeeRequest extends FormRequest
             'biayaTambahan.*.numeric' => 'Setiap nilai biayaTambahan harus berupa angka.',
             'biayaTambahan.beli_baru.required_if' => 'Untuk layanan galon_gas, biayaTambahan.beli_baru wajib diisi.',
             'biayaTambahan.beli_baru.numeric' => 'biayaTambahan.beli_baru harus berupa angka.',
+            'layanan.*.qty.required' => 'Qty untuk setiap layanan wajib diisi',
+            'layanan.*.qty.min' => 'Qty minimal 1 untuk setiap layanan',
+            'biayaTambahan.*.idLayanan.required_if' => 'ID Layanan untuk biaya tambahan wajib diisi'
         ];
     }
 }

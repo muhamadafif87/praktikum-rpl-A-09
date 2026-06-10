@@ -116,7 +116,6 @@ const LocationSearch = ({ onConfirm, onSearchSubmit }) => {
 
     // Close suggestions dropdown when clicking outside
     useEffect(() => {
-        console.log("Token loaded:", import.meta.env.VITE_MAPBOX_TOKEN ? "Yes" : "No", "Token value:", import.meta.env.VITE_MAPBOX_TOKEN);
         const handleClickOutside = (e) => {
             if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
                 setShowSuggestions(false);
@@ -225,7 +224,7 @@ const LocationSearch = ({ onConfirm, onSearchSubmit }) => {
             const retrieveUrl = `${MAPBOX_RETRIEVE_URL}/${feature.mapbox_id}?access_token=${MAPBOX_TOKEN}&session_token=${sessionToken}`;
             const response = await fetch(retrieveUrl);
             const data = await response.json();
-            
+
             if (data.features && data.features.length > 0) {
                 const fullFeature = data.features[0];
                 const [lng, lat] = fullFeature.geometry.coordinates;
@@ -289,7 +288,7 @@ const LocationSearch = ({ onConfirm, onSearchSubmit }) => {
      */
     const handleSearchSubmit = (e) => {
         if (e) e.preventDefault();
-        
+
         // Hanya lanjut jika lokasi sudah dikonfirmasi
         if (!isConfirmed) return;
 

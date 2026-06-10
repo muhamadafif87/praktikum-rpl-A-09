@@ -31,7 +31,8 @@ class PesananController extends Controller {
                 typeLayanan:       $request->input('typeLayanan'),
                 items:             $request->input('items'),
                 jarakOngkir:       $request->input('jarakOngkir'),
-                estimasi:          $request->input('estimasi'),
+                jadwalLayanan:     $request->input('jadwal_layanan', []),
+                estimasi:          $request->input('estimasi', []),
                 biayaTambahan:     $request->input('biayaTambahan', []),
                 catatanPengiriman: $request->input('catatanPengiriman'),
             );
@@ -219,15 +220,20 @@ class PesananController extends Controller {
     public function estimateFeePesanan(GenerateFeeRequest $request)
     {
         try {
-            $idMitra       = $request->input('idMitra');
-            $idLayanan     = $request->input('idLayanan');
-            $typeLayanan   = $request->input('typeLayanan');
-            $qty           = $request->input('qty');
-            $jarakOngkir   = $request->input('jarakOngkir');
-            $biayaTambahan = $request->input('biayaTambahan', []);
+            $idMitra           = $request->input('idMitra');
+            $typeLayanan       = $request->input('typeLayanan');
+            $layananList       = $request->input('items');
+            $jarakOngkir       = $request->input('jarakOngkir');
+            $biayaTambahan     = $request->input('biayaTambahan', []);
+            $biayaTambahanAlat = $request->input('biayaTambahanAlat', []); // khusus daily_cleaning
 
             $data = $this->PesananService->estimateFeePesanan(
-                $idMitra, $idLayanan, $typeLayanan, $qty, $jarakOngkir, $biayaTambahan ?? []
+                $idMitra,
+                $typeLayanan,
+                $layananList,
+                $jarakOngkir,
+                $biayaTambahan,
+                $biayaTambahanAlat
             );
 
             return response()->json([
