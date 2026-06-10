@@ -9,25 +9,6 @@ use Illuminate\Support\Facades\DB;
 
 class PesananService
 {
-
-    // {
-    //     "idMitra": "6",
-    //     "typeLayanan": "daily_cleaning",
-    //     "items": [
-    //         { "idLayanan": "9", "qty": 2 },
-    //         { "idLayanan": "10", "qty": 1 }
-    //     ],
-    //     "jarakOngkir": 3,
-    //     "biayaTambahan": { "Sapu": 5000, "Pel": 7000 },
-    //     "estimasi": {
-    //         "subtotal": 80000,
-    //         "biaya_ongkir": 9000,
-    //         "biaya_aplikasi": 1000,
-    //         "biaya_tambahan_alat": 12000,
-    //         "total_pembayaran": 102000
-    //     },
-    //     "catatanPengiriman": "Tolong datang pagi"
-    // }
     // -------------------------------------------------------------------------
     // Format: ORD-{typeLayanan uppercase}-{YYYYMMDD}-{6 char random}
     // Contoh: ORD-LAUNDRY-20250607-A3F9K1
@@ -49,12 +30,13 @@ class PesananService
         string $typeLayanan,
         array  $items,
         int    $jarakOngkir,
+        array  $jadwalLayanan,
         array  $estimasi,
         array  $biayaTambahan,
         ?string $catatanPengiriman
     ): array {
         return DB::transaction(function () use (
-            $idUser, $idMitra, $typeLayanan, $items,
+            $idUser, $idMitra, $jadwalLayanan, $typeLayanan, $items,
             $jarakOngkir, $estimasi, $biayaTambahan, $catatanPengiriman
         ) {
             $mitra = Mitra::find($idMitra);
@@ -78,6 +60,7 @@ class PesananService
                 'jarak_ongkir'       => $jarakOngkir,
                 'biaya_aplikasi'     => 1000,
                 'biaya_tambahan'     => $biayaTambahan ?: null,
+                'jadwal_layanan'     => $jadwalLayanan ?: null,
                 'total_pembayaran'   => $estimasi['total_pembayaran'],
                 'catatan_pengiriman' => $catatanPengiriman,
             ];
@@ -88,7 +71,8 @@ class PesananService
                 $catatanPesanan_s['detail_alat_tambahan'] = array_keys($biayaTambahan);
             }
             if($typeLayanan === 'laundry'){
-                $catatanPesanan_s['biaya_ongkir'] = $estimasi['biaya_ongkir'] ?? 0;
+                $catatanPesanan_s['biaya_ongkir']      = $estimasi['biaya_ongkir'] ?? 0;
+                $catatanPesanan_s['durasi_pengerjaan'] = $biayaTambahan['durasi_pengerjaan']['type'] ?? 'reguler';
             }
             if ($typeLayanan === 'galon_gas') {
                 $catatanPesanan_s['biaya_ongkir'] = $estimasi['biaya_ongkir'] ?? 0;
@@ -132,17 +116,17 @@ class PesananService
 
             if ($typeLayanan === 'daily_cleaning') {
                 return [
-                    'id_pesanan'         => $pesanan->id_pesanan,
-                    'id_unique_pesanan'  => $pesanan->id_unique_pesanan,
-                    'status_pesanan'     => $pesanan->status_pesanan,
-                    'detail_layanan'     => $detailList, //array
-                    'detail_alat_tambahan'   => array_keys($biayaTambahan),
-                    'ringkasan_biaya'    => [
-                        'subtotal'          => $estimasi['subtotal'],
-                        'biaya_transportasi'=> $estimasi['biaya_transportasi'],
-                        'biaya_tambahan_alat' => $estimasi['biaya_tambahan_alat'],
-                        'biaya_aplikasi'    => 1000,
-                        'total_pembayaran'  => $estimasi['total_pembayaran'],
+                    'id_pesanan'        => $pesanan->id_pesanan,
+                    'id_unique_pesanan' => $pesanan->id_unique_pesanan,
+                    'status_pesanan'    => $pesanan->status_pesanan,
+                    'detail_layanan'    => $detailList,
+                    'detail_alat_tambahan' => array_keys($biayaTambahan),
+                    'ringkasan_biaya'   => [
+                        'subtotal'            => $estimasi['subtotal'],
+                        'biaya_transportasi'  => $estimasi['biaya_transportasi'] ?? 0,
+                        'biaya_tambahan_alat' => $estimasi['biaya_tambahan_alat'] ?? 0,
+                        'biaya_aplikasi'      => 1000,
+                        'total_pembayaran'    => $estimasi['total_pembayaran'],
                     ],
                     'catatan_pengiriman' => $catatanPengiriman,
                 ];
@@ -153,11 +137,13 @@ class PesananService
                     'id_unique_pesanan'  => $pesanan->id_unique_pesanan,
                     'status_pesanan'     => $pesanan->status_pesanan,
                     'detail_layanan'     => $detailList,
-                    'ringkasan_biaya'    => [
-                        'subtotal'          => $estimasi['subtotal'],
-                        'biaya_ongkir'      => $estimasi['biaya_ongkir'],
-                        'biaya_aplikasi'    => 1000,
-                        'total_pembayaran'  => $estimasi['total_pembayaran'],
+                    'ringkasan_biaya' => [
+                        'subtotal'              => $estimasi['subtotal'],
+                        'biaya_ongkir'          => $estimasi['biaya_ongkir'] ?? 0,
+                        'biaya_tambahan_durasi' => $estimasi['biaya_tambahan_durasi'] ?? 0, // tambah
+                        'durasi_pengerjaan'     => $biayaTambahan['durasi_pengerjaan']['type'] ?? 'reguler', // tambah
+                        'biaya_aplikasi'        => 1000,
+                        'total_pembayaran'      => $estimasi['total_pembayaran'],
                     ],
                     'catatan_pengiriman' => $catatanPengiriman,
                 ];
@@ -397,51 +383,148 @@ class PesananService
 
     public function estimateFeePesanan(
         string $idMitra,
-        string $idLayanan,
         string $typeLayanan,
-        int $qty,
+        ?array $layananList,
         int $jarakOngkir,
-        array $biayaTambahan
-    ){
+        ?array $biayaTambahan,
+        ?array $biayaTambahanAlat
+    ) {
         $mitra = Mitra::find($idMitra);
         if (!$mitra) {
             throw new \Exception('Mitra tidak ditemukan');
         }
 
-        $layanan = $mitra->Layanan()->where('id_layanan', $idLayanan)->first();
-        if (!$layanan) {
-            throw new \Exception('Layanan tidak ditemukan');
+        $detailLayanan = [];
+        $totalBiayaPokok = 0;
+        $totalBiayaTambahanKhusus = 0;
+
+        foreach ($layananList as $index => $item) {
+            $idLayanan = $item['idLayanan'];
+            $qty = $item['qty'];
+
+            $layanan = $mitra->Layanan()->where('id_layanan', $idLayanan)->first();
+            if (!$layanan) {
+                throw new \Exception("Layanan dengan ID {$idLayanan} tidak ditemukan pada mitra ini");
+            }
+
+            $biayaPokok = (float)$layanan->harga * $qty;
+            $totalBiayaPokok += $biayaPokok;
+
+            if ($typeLayanan === 'laundry') {
+                $durasiObj = $biayaTambahan['durasi_pengerjaan'] ?? [];
+                $durasi    = is_array($durasiObj) ? (float)($durasiObj['biaya'] ?? 0) : (float)$durasiObj;
+                $biayaTambahanKhusus = $durasi * $qty;
+
+                $detailLayanan[] = [
+                    'id_layanan' => $idLayanan,
+                    'nama_layanan' => $layanan->nama_layanan,
+                    'qty' => $qty,
+                    'satuan' => 'kg',
+                    'harga_satuan' => (float)$layanan->harga,
+                    'subtotal' => $biayaPokok,
+                    'durasi_pengerjaan' => $durasi,
+                    'biaya_tambahan_durasi' => $biayaTambahanKhusus
+                ];
+
+            } elseif ($typeLayanan === 'galon_gas') {
+                $beliBaru = 0;
+                foreach ($biayaTambahan as $tambahan) {
+                    if (isset($tambahan['idLayanan']) && $tambahan['idLayanan'] == $idLayanan) {
+                        $beliBaru = (float)($tambahan['beli_baru'] ?? 0);
+                        break;
+                    }
+                }
+
+                $biayaTambahanKhusus = $beliBaru * $qty;
+                $totalBiayaTambahanKhusus += $biayaTambahanKhusus;
+
+                $detailLayanan[] = [
+                    'id_layanan' => $idLayanan,
+                    'nama_layanan' => $layanan->nama_layanan,
+                    'qty' => $qty,
+                    'satuan' => 'item',
+                    'harga_satuan' => (float)$layanan->harga,
+                    'subtotal' => $biayaPokok,
+                    'beli_baru_per_item' => $beliBaru,
+                    'total_beli_baru' => $biayaTambahanKhusus
+                ];
+
+            } else {
+                $detailLayanan[] = [
+                    'id_layanan' => $idLayanan,
+                    'nama_layanan' => $layanan->nama_layanan,
+                    'qty' => $qty,
+                    'satuan' => 'jam',
+                    'harga_satuan' => (float)$layanan->harga,
+                    'subtotal' => $biayaPokok
+                ];
+            }
         }
 
-        $biayaPokok    = $layanan->harga * $qty;
-        $biayaOngkir   = ($layanan->catatan['biaya_ongkir'] ?? 0) * $jarakOngkir;
-        $biayaTransport = ($layanan->catatan['biaya_transportasi'] ?? 0) * $jarakOngkir;
+        $biayaOngkir = 0;
+        $biayaTransport = 0;
         $biayaAplikasi = 1000;
+        $totalBiayaTambahanAlat = 0;
+
+        $firstLayananId = $layananList[0]['idLayanan'];
+        $firstLayanan = $mitra->Layanan()->where('id_layanan', $firstLayananId)->first();
+
+        if ($typeLayanan === 'daily_cleaning') {
+            $biayaTransport = (float)($firstLayanan->catatan['biaya_transportasi'] ?? 0) * $jarakOngkir;
+
+            if (!empty($biayaTambahanAlat)) {
+                $totalBiayaTambahanAlat = array_sum(array_map('floatval', $biayaTambahanAlat));
+            }
+
+        } elseif ($typeLayanan === 'laundry' || $typeLayanan === 'galon_gas') {
+            $biayaOngkir = (float)($firstLayanan->catatan['biaya_ongkir'] ?? 0) * $jarakOngkir;
+        }
+
+        $totalPembayaran = $totalBiayaPokok
+            + $biayaOngkir
+            + $biayaTransport
+            + $biayaAplikasi
+            + $totalBiayaTambahanKhusus
+            + $totalBiayaTambahanAlat;
 
         if ($typeLayanan === 'laundry') {
             return [
-                'subtotal'          => $biayaPokok,
-                'biaya_ongkir'      => $biayaOngkir,
-                'biaya_layanan'     => $biayaAplikasi,
-                'total_pembayaran'  => $biayaPokok + $biayaOngkir + $biayaAplikasi
+                'type_layanan' => 'laundry',
+                'detail_layanan' => $detailLayanan,
+                'ringkasan' => [
+                    'subtotal' => $totalBiayaPokok,
+                    'biaya_ongkir' => $biayaOngkir,
+                    'biaya_layanan_aplikasi' => $biayaAplikasi,
+                    'biaya_tambahan_durasi' => $totalBiayaTambahanKhusus,
+                    'total_pembayaran' => $totalPembayaran
+                ]
             ];
+
         } elseif ($typeLayanan === 'galon_gas') {
-            $tambahan = ($biayaTambahan['beli_baru'] ?? 0) * $qty;
             return [
-                'subtotal'         => $biayaPokok,
-                'biaya_ongkir'     => $biayaOngkir,
-                'biaya_layanan'    => $biayaAplikasi,
-                'beli_baru'        => $tambahan,
-                'total_pembayaran' => $biayaPokok + $biayaOngkir + $biayaAplikasi + $tambahan
+                'type_layanan' => 'galon_gas',
+                'detail_layanan' => $detailLayanan,
+                'ringkasan' => [
+                    'subtotal' => $totalBiayaPokok,
+                    'biaya_ongkir' => $biayaOngkir,
+                    'biaya_layanan_aplikasi' => $biayaAplikasi,
+                    'total_beli_baru' => $totalBiayaTambahanKhusus,
+                    'total_pembayaran' => $totalPembayaran
+                ]
             ];
+
         } else {
-            $totalBiayaTambahan = array_sum($biayaTambahan);
             return [
-                'subtotal'              => $biayaPokok,
-                'biaya_tambahan_alat'   => $totalBiayaTambahan,
-                'biaya_transportasi'    => $biayaTransport,
-                'biaya_layanan'         => $biayaAplikasi,
-                'total_pembayaran'      => $biayaPokok + $totalBiayaTambahan + $biayaTransport + $biayaAplikasi
+                'type_layanan' => 'daily_cleaning',
+                'detail_layanan' => $detailLayanan,
+                'biaya_tambahan_alat' => $biayaTambahanAlat,
+                'ringkasan' => [
+                    'subtotal' => $totalBiayaPokok,
+                    'biaya_tambahan_alat' => $totalBiayaTambahanAlat,
+                    'biaya_transportasi' => $biayaTransport,
+                    'biaya_layanan_aplikasi' => $biayaAplikasi,
+                    'total_pembayaran' => $totalPembayaran
+                ]
             ];
         }
     }
@@ -471,6 +554,7 @@ class PesananService
                     'harga_layanan' => $l->harga
                 ])->toArray(),
                 'jenis_kain' => $catatan['jenis_kain'] ?? null,
+                'durasi_pengerjaan' => $catatan['durasi_pengerjaan'] ?? null,
                 'jadwal_penjemputan' => $catatan['jadwal_penjemputan'] ?? null
             ];
         }

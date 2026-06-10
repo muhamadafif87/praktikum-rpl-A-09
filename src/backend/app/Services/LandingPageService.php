@@ -244,6 +244,7 @@ class LandingPageService {
                 'id_mitra'       => $mitra->id_mitra,
                 'nama_mitra'     => $mitra->nama_mitra,
                 'deskripsi'      => $mitra->deskripsi,
+                'profil_image'   => $mitra->MitraImageAsset()->first()?->image_file,
                 'jenis_jasa'     => $mitra->jenis_jasa,
                 'lokasi_layanan' => $mitra->alamat_mitra,
                 'rating'         => round((float) $rating, 1),

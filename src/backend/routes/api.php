@@ -66,11 +66,9 @@ Route::prefix('v1')->group(function () {
             Route::prefix('laundry-express')->name('laundry-express.')->group(function () {
                 Route::get('/detail-pesanan', [PesananController::class, 'seedingDetailPesanan'])->name('detail-pesanan');
             });
-
             Route::prefix('galon-gas')->name('galon-gas.')->group(function () {
                 Route::get('/detail-pesanan', [PesananController::class, 'seedingDetailPesanan'])->name('detail-pesanan');
             });
-
             Route::prefix('daily-cleaning')->name('daily-cleaning.')->group(function () {
                 Route::get('/detail-pesanan', [PesananController::class, 'seedingDetailPesanan'])->name('detail-pesanan');
             });
