@@ -17,6 +17,117 @@
   --outline: #737686;
 }
 
+/* ── Alat Pembersih Tambahan ── */
+
+.dp-alat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+}
+
+.dp-alat-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 12px;
+    background: #fff;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.dp-alat-item:hover {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.08);
+}
+
+.dp-alat-item--selected {
+    border-color: #6366f1;
+    background: #f5f3ff;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+.dp-alat-input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+}
+
+.dp-alat-icon {
+    font-size: 22px;
+    color: #9ca3af;
+    flex-shrink: 0;
+    transition: color 0.2s;
+}
+
+.dp-alat-item--selected .dp-alat-icon {
+    color: #6366f1;
+}
+
+.dp-alat-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+}
+
+.dp-alat-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #111827;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dp-alat-price {
+    font-size: 12px;
+    font-weight: 500;
+    color: #6b7280;
+}
+
+.dp-alat-item--selected .dp-alat-price {
+    color: #6366f1;
+}
+
+.dp-alat-check {
+    font-size: 18px;
+    color: #6366f1;
+    flex-shrink: 0;
+}
+
+.dp-alat-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 12px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: #f5f3ff;
+    border: 1px dashed #a5b4fc;
+}
+
+.dp-alat-summary-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #6366f1;
+}
+
+.dp-alat-summary-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: #4f46e5;
+}
+
+.dp-qty-stepper{
+    margin-top: 1.2rem;
+}
+
 .dp-page { background-color: var(--background); color: var(--on-background); min-height: 100vh; display: flex; flex-direction: column; font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
 .dp-nav { position: sticky; top: 0; z-index: 50; background-color: var(--surface-container-lowest); border-bottom: 1px solid var(--outline-variant); width: 100%; }
 .dp-nav-inner { display: flex; align-items: center; height: 4rem; width: 100%; padding: 0 1rem; max-width: 80rem; margin: 0 auto; }

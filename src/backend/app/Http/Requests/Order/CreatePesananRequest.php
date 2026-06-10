@@ -41,28 +41,29 @@ class CreatePesananRequest extends FormRequest
             'idMitra'     => ['required', 'string', 'exists:mitra,id_mitra'],
             'typeLayanan' => ['required', 'string', Rule::in(['laundry', 'galon_gas', 'daily_cleaning'])],
 
-            'items'                => ['required', 'array', 'min:1'],
-            'items.*.idLayanan'    => ['required', 'string', 'exists:layanan,id_layanan'],
-            'items.*.qty'          => ['required', 'integer', 'min:1'],
+            'items'             => ['required', 'array', 'min:1'],
+            'items.*.idLayanan' => ['required', 'string', 'exists:layanan,id_layanan'],
+            'items.*.qty'       => ['required', 'integer', 'min:1'],
 
             'jarakOngkir' => ['required', 'integer', 'min:0'],
 
-            'biayaTambahan'   => ['nullable', 'array'],
-            'biayaTambahan.*' => ['nullable', 'numeric', 'min:0'],
+            'jadwal_layanan'            => ['required', 'array', 'min:1'],
+            'jadwal_layanan.*.jam'      => ['required', 'date_format:H:i'],
+            'jadwal_layanan.*.tanggal'  => ['nullable', 'date', 'required_if:typeLayanan,daily_cleaning'],
 
-            // Khusus galon_gas
-            'biayaTambahan.beli_baru' => [
-                'required_if:typeLayanan,galon_gas', 'nullable', 'numeric', 'min:0'
-            ],
+            'biayaTambahan'                         => ['nullable', 'array'],
+            'biayaTambahan.beli_baru'               => ['nullable', 'numeric', 'min:0'],
+            'biayaTambahan.durasi_pengerjaan'      => ['nullable', 'array'],
+            'biayaTambahan.durasi_pengerjaan.biaya'=> ['required_with:biayaTambahan.durasi_pengerjaan','numeric','min:0'],
+            'biayaTambahan.durasi_pengerjaan.type' => ['required_with:biayaTambahan.durasi_pengerjaan','string'],
 
-            // Hasil estimasi fee dari FE
-            'estimasi'                    => ['required', 'array'],
-            'estimasi.subtotal'           => ['required', 'numeric', 'min:0'],
-            'estimasi.biaya_ongkir'       => ['nullable', 'numeric', 'min:0'],
-            'estimasi.total_pembayaran'   => ['required', 'numeric', 'min:0'],
-            'estimasi.beli_baru'          => ['nullable', 'numeric', 'min:0'],
-            'estimasi.biaya_transportasi' => ['nullable', 'numeric', 'min:0'],
-            'estimasi.biaya_tambahan_alat' => ['nullable', 'numeric', 'min:0'],
+            'estimasi'                      => ['required', 'array'],
+            'estimasi.subtotal'             => ['required', 'numeric', 'min:0'],
+            'estimasi.biaya_ongkir'         => ['nullable', 'numeric', 'min:0'],
+            'estimasi.total_pembayaran'     => ['required', 'numeric', 'min:0'],
+            'estimasi.beli_baru'            => ['nullable', 'numeric', 'min:0'],
+            'estimasi.biaya_transportasi'   => ['nullable', 'numeric', 'min:0'],
+            'estimasi.biaya_tambahan_alat'  => ['nullable', 'numeric', 'min:0'],
 
             'catatanPengiriman' => ['nullable', 'string', 'max:500'],
         ];

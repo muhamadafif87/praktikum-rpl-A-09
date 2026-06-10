@@ -19,25 +19,13 @@ class MitraImageAsset extends Model
         'image_file'
     ];
 
-    protected $hidden = ['image_file'];
-
-    protected $appends = ['image_base64'];
-
     public function Mitra(): BelongsTo
     {
         return $this->belongsTo(Mitra::class, 'id_mitra', 'id_mitra');
     }
 
-    public function getImageBase64Attribute(): ?string
+    public function getImageFileAttribute(): ?string
     {
-        if (is_null($this->image_file)) {
-            return null;
-        }
-
-        $binary = is_resource($this->image_file)
-            ? stream_get_contents($this->image_file)
-            : $this->image_file;
-
-        return 'data:image/jpeg;base64,' . base64_encode($binary);
+        return $this->attributes['image_file'] ?? null;
     }
 }

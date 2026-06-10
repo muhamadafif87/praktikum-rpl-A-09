@@ -76,6 +76,7 @@ const DetailMitraGas = ({ onOrderClick }) => {
             const transformedData = dataArray.map((mitra) => ({
                 id: mitra.id_mitra,
                 name: mitra.nama_mitra,
+                image: mitra.profil_image,
                 type: mitra.jenis_jasa,
                 location: mitra.lokasi_layanan,
                 distance: mitra.jarak_km ? `${mitra.jarak_km.toFixed(1)} KM` : 'Jarak Tidak Diketahui',
@@ -85,7 +86,6 @@ const DetailMitraGas = ({ onOrderClick }) => {
                 price: mitra.layanan?.length > 0
                     ? `Mulai dari Rp ${parseInt(mitra.layanan[0].harga_satuan).toLocaleString('id-ID')}`
                     : 'Hubungi untuk info harga',
-                image: `https://via.placeholder.com/300x200?text=${encodeURIComponent(mitra.nama_mitra)}`,
                 layanan: mitra.layanan || [],
                 reviews: (mitra.sample_ulasan || []).map((ulasan) => ({
                     name: ulasan.nama_user,
