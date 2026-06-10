@@ -53,7 +53,7 @@ class LandingPageService {
             ->with([
                 'Layanan' => fn($q) => $q->select('id_mitra', 'id_layanan', 'nama_layanan', 'harga', 'satuan'),
 
-                'Pesanan.Ulasan.Pesanan.User:id_user,nama_lengkap',
+                'Ulasan.Pesanan.User:id_user,nama_lengkap',
             ])
             ->withAvg('Ulasan as avg_rating', 'rating')
             ->withCount('Ulasan as jumlah_ulasan');
@@ -89,7 +89,7 @@ class LandingPageService {
             ->with([
                 'Layanan' => fn($q) => $q->select('id_mitra', 'id_layanan', 'nama_layanan', 'harga', 'satuan'),
 
-                'Pesanan.Ulasan.Pesanan.User:id_user,nama_lengkap',
+                'Ulasan.Pesanan.User:id_user,nama_lengkap',
             ])
             ->withAvg('Ulasan as avg_rating', 'rating')
             ->withCount('Ulasan as jumlah_ulasan');
@@ -134,7 +134,7 @@ class LandingPageService {
             ->with([
                 'Layanan' => fn($q) => $q->select('id_mitra', 'id_layanan', 'nama_layanan', 'harga', 'satuan'),
 
-                'Pesanan.Ulasan.Pesanan.User:id_user,nama_lengkap',
+                'Ulasan.Pesanan.User:id_user,nama_lengkap',
             ])
             ->withAvg('Ulasan as avg_rating', 'rating')
             ->withCount('Ulasan as jumlah_ulasan');
@@ -189,8 +189,7 @@ class LandingPageService {
     {
         if ($lat !== null && $lng !== null) {
             $haversineSql = DistanceLocationService::haversineSqlExpression($lat, $lng);
-            $query->selectRaw("mitra.*, {$haversineSql} as jarak_km")
-                  ->whereRaw("{$haversineSql} <= COALESCE(mitra.radius_layanan, 10)");
+            $query->selectRaw("mitra.*, {$haversineSql} as jarak_km");
         }
 
         switch ($sortBy) {
@@ -221,6 +220,9 @@ class LandingPageService {
                 $query->orderByDesc('id_mitra');
         }
 
+        // Tambahkan fallback sorting stabil untuk mencegah perubahan urutan pada nilai yang sama (mencegah blink/jumping di UI)
+        $query->orderBy('mitra.id_mitra');
+
         return $query;
     }
 
@@ -234,14 +236,14 @@ class LandingPageService {
             $rating = $mitra->avg_rating ?? 0;
             $jumlahUlasan = $mitra->jumlah_ulasan ?? 0;
 
-            $reviews = $mitra->Pesanan
-                    ->flatMap(fn($p) => $p->Ulasan ?? collect())
+            $reviews = $mitra->Ulasan
                     ->sortByDesc('created_at')
                     ->take(5);
 
             return [
                 'id_mitra'       => $mitra->id_mitra,
                 'nama_mitra'     => $mitra->nama_mitra,
+                'deskripsi'      => $mitra->deskripsi,
                 'jenis_jasa'     => $mitra->jenis_jasa,
                 'lokasi_layanan' => $mitra->alamat_mitra,
                 'rating'         => round((float) $rating, 1),
@@ -253,6 +255,7 @@ class LandingPageService {
                     'satuan'       => $l->satuan,
                 ])->toArray(),
                 'jarak_km'       => isset($mitra->jarak_km) ? (float) $mitra->jarak_km : null,
+                'is_dalam_jangkauan' => isset($mitra->jarak_km) ? ((float) $mitra->jarak_km <= (float) ($mitra->radius_layanan ?? 10)) : true,
                 'sample_ulasan' => $reviews->map(function ($ulasan) {
                     $user = $ulasan->Pesanan?->User;
                     return [

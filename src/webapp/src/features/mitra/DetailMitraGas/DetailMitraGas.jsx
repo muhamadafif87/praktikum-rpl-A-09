@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { useLocation } from '../../../context/LocationContext';
+import '../skeleton.css';
 import api from '../../../services/api';
 import './DetailMitraGas.css';
 import '../../landing/LandingPage/LandingPage.css';
@@ -79,13 +80,14 @@ const DetailMitraGas = ({ onOrderClick }) => {
                 type: mitra.jenis_jasa,
                 location: mitra.lokasi_layanan,
                 distance: mitra.jarak_km ? `${mitra.jarak_km.toFixed(1)} KM` : 'Jarak Tidak Diketahui',
+                isDalamJangkauan: mitra.is_dalam_jangkauan !== false,
                 rating: mitra.rating,
                 reviewCount: mitra.jumlah_ulasan,
-                description: `${mitra.jenis_jasa === 'gas' ? 'Agen gas LPG' : 'Layanan galon'} terpercaya. ${mitra.layanan?.length || 0} jenis layanan tersedia.`,
+                description: mitra.deskripsi || `${mitra.jenis_jasa === 'gas' ? 'Agen gas LPG' : mitra.jenis_jasa === 'galon' ? 'Agen air galon' : 'Agen Gas & Galon'} terpercaya. ${mitra.layanan?.length || 0} jenis layanan tersedia.`,
                 price: mitra.layanan?.length > 0
                     ? `Mulai dari Rp ${parseInt(mitra.layanan[0].harga_satuan).toLocaleString('id-ID')}`
                     : 'Hubungi untuk info harga',
-                image: `https://via.placeholder.com/300x200?text=${encodeURIComponent(mitra.nama_mitra)}`,
+                image: `https://ui-avatars.com/api/?name=${encodeURIComponent(mitra.nama_mitra)}&background=random&color=fff&size=300`,
                 layanan: mitra.layanan || [],
                 reviews: (mitra.sample_ulasan || []).map((ulasan) => ({
                     name: ulasan.nama_user,
@@ -287,10 +289,27 @@ const DetailMitraGas = ({ onOrderClick }) => {
 
                     <section className="dmg-card-list">
                         {mitraLoading ? (
-                            <div className="dmg-loading-container">
-                                <div className="dmg-spinner"></div>
-                                <p>Memuat data mitra...</p>
-                            </div>
+                            <>
+                                {[1, 2, 3].map((n) => (
+                                    <div key={n} className="skeleton-card">
+                                        <div className="skeleton-img-wrapper skeleton"></div>
+                                        <div className="skeleton-content">
+                                            <div>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                    <div className="skeleton-title skeleton"></div>
+                                                    <div className="skeleton-badge skeleton"></div>
+                                                </div>
+                                                <div className="skeleton-rating skeleton"></div>
+                                                <div className="skeleton-desc skeleton"></div>
+                                            </div>
+                                            <div className="skeleton-footer">
+                                                <div className="skeleton-price skeleton"></div>
+                                                <div className="skeleton-btn skeleton"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </>
                         ) : mitraError ? (
                             <div className="dmg-error-container">
                                 <span className="material-symbols-outlined">error_outline</span>
@@ -329,13 +348,22 @@ const DetailMitraGas = ({ onOrderClick }) => {
                                         <article key={mitra.id} className="dmg-card">
                                             <div className="dmg-card-body">
                                                 <div className="dmg-card-img-wrapper">
-                                                    <img className="dmg-card-img" src={mitra.image} alt={mitra.name} />
+                                                    <img 
+                                                        className="dmg-card-img" 
+                                                        src={mitra.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(mitra.name)}&background=random&color=fff&size=300`}
+                                                        alt={mitra.name} 
+                                                    />
                                                 </div>
                                                 <div className="dmg-card-content">
                                                     <div>
                                                         <div className="dmg-card-header">
                                                             <h3 className="dmg-card-title">{mitra.name}</h3>
-                                                            <span className="dmg-card-badge">Berada dalam jangkauan ({mitra.distance})</span>
+                                                            <span 
+                                                                className="dmg-card-badge"
+                                                                style={!mitra.isDalamJangkauan ? { backgroundColor: '#fee2e2', color: '#ef4444' } : {}}
+                                                            >
+                                                                {mitra.isDalamJangkauan ? `Berada dalam jangkauan (${mitra.distance})` : `Di luar jangkauan (${mitra.distance})`}
+                                                            </span>
                                                         </div>
                                                         <div className="dmg-card-rating">
                                                             <span className="material-symbols-outlined">star</span>
@@ -347,18 +375,20 @@ const DetailMitraGas = ({ onOrderClick }) => {
                                                     <div className="dmg-card-footer">
                                                         <div className="dmg-card-price">{mitra.price}</div>
                                                         <button
-                                                            className={`dmg-card-order-btn ${!location.isConfirmed ? 'dmc-mitra-order-btn-disabled' : ''}`}
-                                                            onClick={() => location.isConfirmed && handleOrderClick(mitra)}
-                                                            disabled={!location.isConfirmed}
+                                                            className={`dmg-card-order-btn ${(!location.isConfirmed || !mitra.isDalamJangkauan) ? 'dmg-card-order-btn-disabled' : ''}`}
+                                                            onClick={() => location.isConfirmed && mitra.isDalamJangkauan && handleOrderClick(mitra)}
+                                                            disabled={!location.isConfirmed || !mitra.isDalamJangkauan}
+                                                            style={{ opacity: (!location.isConfirmed || !mitra.isDalamJangkauan) ? 0.5 : 1, cursor: (!location.isConfirmed || !mitra.isDalamJangkauan) ? 'not-allowed' : 'pointer' }}
                                                         >
-                                                            {location.isConfirmed ? 'Pesan Sekarang' : 'Atur Lokasi'}
+                                                            {!location.isConfirmed ? 'Atur Lokasi' : (!mitra.isDalamJangkauan ? 'Di Luar Jangkauan' : 'Pesan Sekarang')}
                                                         </button>
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            {mitra.reviews.length > 0 && (
-                                                <div className="dmg-marquee-section">
+                                            <div className="dmg-card-marquee">
+                                                {mitra.reviews.length > 0 && (
+                                                    <div className="dmg-marquee-section">
                                                     <div className="dmg-marquee-container">
                                                         <div
                                                             className="dmg-marquee-content"
@@ -373,8 +403,9 @@ const DetailMitraGas = ({ onOrderClick }) => {
                                                             ))}
                                                         </div>
                                                     </div>
-                                                </div>
-                                            )}
+                                                    </div>
+                                                )}
+                                            </div>
                                         </article>
                                     ))
                                 ) : null}

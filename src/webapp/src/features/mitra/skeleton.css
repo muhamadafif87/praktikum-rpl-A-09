@@ -1,0 +1,96 @@
+/* =============================================
+   Skeleton Loading Animation
+   ============================================= */
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
+    }
+    100% {
+        background-position: 1000px 0;
+    }
+}
+
+.skeleton {
+    animation: shimmer 2s infinite linear;
+    background: #f6f7f8;
+    background: linear-gradient(to right, #eeeeee 8%, #dddddd 18%, #eeeeee 33%);
+    background-size: 1000px 100%;
+    border-radius: 0.25rem;
+}
+
+.skeleton-card {
+    background-color: var(--dmg-surface-container-lowest, #ffffff);
+    border: 1px solid var(--dmg-outline-variant, #c3c6d7);
+    border-radius: 0.75rem;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+@media (min-width: 768px) {
+    .skeleton-card {
+        flex-direction: row;
+    }
+}
+
+.skeleton-img-wrapper {
+    width: 100%;
+    height: 12rem;
+    flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+    .skeleton-img-wrapper {
+        width: 16rem;
+        height: auto;
+    }
+}
+
+.skeleton-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 1rem;
+    gap: 1rem;
+}
+
+.skeleton-title {
+    height: 1.5rem;
+    width: 60%;
+    margin-bottom: 0.5rem;
+}
+
+.skeleton-badge {
+    height: 1.25rem;
+    width: 30%;
+}
+
+.skeleton-rating {
+    height: 1rem;
+    width: 40%;
+    margin-bottom: 1rem;
+}
+
+.skeleton-desc {
+    height: 3rem;
+    width: 100%;
+}
+
+.skeleton-price {
+    height: 1.5rem;
+    width: 40%;
+}
+
+.skeleton-btn {
+    height: 2.5rem;
+    width: 30%;
+    border-radius: 0.5rem;
+}
+
+.skeleton-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 1rem;
+}

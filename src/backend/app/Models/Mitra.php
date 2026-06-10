@@ -22,6 +22,7 @@ class Mitra extends Authenticatable {
 
     protected $fillable = [
         'nama_mitra',
+        'deskripsi',
         'jenis_jasa',
         'alamat_mitra',
         'status_verifikasi',
