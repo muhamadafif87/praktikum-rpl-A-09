@@ -25,6 +25,7 @@ const LocationContext = createContext(undefined);
 
 export const LocationProvider = ({ children }) => {
     const [location, setLocationState] = useState(DEFAULT_LOCATION);
+    const [isMapOpen, setIsMapOpen] = useState(false);
 
     const setLocation = useCallback((address, lat, lng, isFromProfile = false) => {
         setLocationState({
@@ -52,8 +53,11 @@ export const LocationProvider = ({ children }) => {
         }
     }, []);
 
+    const openMap = useCallback(() => setIsMapOpen(true), []);
+    const closeMap = useCallback(() => setIsMapOpen(false), []);
+
     return (
-        <LocationContext.Provider value={{ location, setLocation, clearLocation, syncWithUser }}>
+        <LocationContext.Provider value={{ location, setLocation, clearLocation, syncWithUser, isMapOpen, openMap, closeMap }}>
             {children}
         </LocationContext.Provider>
     );

@@ -25,6 +25,7 @@ import AdminPartner from './features/admin/AdminPartner/AdminPartner';
 import AdminSecurity from './features/admin/AdminSecurity/AdminSecurity';
 import AdminMaintenance from './features/admin/AdminMaintenance/AdminMaintenance';
 import AdminSettings from './features/admin/AdminSettings/AdminSettings';
+import LocationModal from './features/location/LocationModal/LocationModal';
 
 import ProfilePage from './features/profile/ProfilePage';
 const SettingsPage = () => <div style={{ padding: '20px' }}><h1>Pengaturan</h1></div>;
@@ -66,6 +67,7 @@ const App = () => {
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/settings" element={<SettingsPage />} />
             </Routes>
+            <LocationModal />
         </AuthProvider>
     );
 };
