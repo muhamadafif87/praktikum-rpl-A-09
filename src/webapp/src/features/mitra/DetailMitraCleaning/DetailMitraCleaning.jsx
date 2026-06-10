@@ -143,7 +143,7 @@ const DetailMitraCleaning = ({ onOrderClick }) => {
                     price: mitra.layanan?.length > 0
                         ? `Mulai dari Rp ${parseInt(mitra.layanan[0].harga_satuan).toLocaleString('id-ID')}`
                         : 'Hubungi untuk info harga',
-                    image: `https://via.placeholder.com/300x200?text=${encodeURIComponent(mitra.nama_mitra)}`,
+                    image: mitra.profil_image,
                     layanan: mitra.layanan || [],
                     reviews: (mitra.sample_ulasan || [])
                         .map((ulasan) => ({

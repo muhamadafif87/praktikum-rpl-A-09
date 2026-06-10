@@ -9,17 +9,28 @@ const DailyCleaningDetail = () => {
     const { id_mitra } = useParams();
     const navigate = useNavigate();
     const { user, isAuthenticated, logout } = useAuth();
-    
+
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     // Form state
-    const [selectedDuration, setSelectedDuration] = useState(null);
-    const [sewaAlat, setSewaAlat] = useState(false);
+    const [selectedLayananIds, setSelectedLayananIds] = useState(new Set()); // multi-select
+    const [qtyLayanan, setQtyLayanan] = useState({});         // { id_layanan: qty }
+    const [selectedAlat, setSelectedAlat] = useState(new Set());
+    const [jarakOngkir, setJarakOngkir] = useState(1);
     const [tanggal, setTanggal] = useState('');
     const [jam, setJam] = useState('');
     const [catatan, setCatatan] = useState('');
+
+    // Estimate fee state
+    const [estimate, setEstimate] = useState(null);
+    const [estimateLoading, setEstimateLoading] = useState(false);
+    const [estimateError, setEstimateError] = useState(null);
+
+    // Submit state
+    const [submitLoading, setSubmitLoading] = useState(false);
+    const [submitError, setSubmitError] = useState(null);
 
     const navLinksRef = useRef(null);
     const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -77,9 +88,13 @@ const DailyCleaningDetail = () => {
                 const response = await api.get('/v1/landing-page/daily-cleaning/detail-pesanan', {
                     params: { id_mitra, type_layanan: 'daily_cleaning' }
                 });
-                setData(response.data.data);
-                if (response.data.data?.layanan?.length > 0) {
-                    setSelectedDuration(response.data.data.layanan[0]);
+                const resData = response.data.data;
+                setData(resData);
+                if (resData?.layanan?.length > 0) {
+                    const first = resData.layanan[0];
+                    const firstId = String(first.id_layanan);
+                    setSelectedLayananIds(new Set([firstId]));
+                    setQtyLayanan({ [firstId]: 1 });
                 }
             } catch (err) {
                 setError(err.response?.data?.message || 'Terjadi kesalahan saat memuat data');
@@ -89,6 +104,48 @@ const DailyCleaningDetail = () => {
         };
         fetchData();
     }, [id_mitra]);
+
+    useEffect(() => {
+        if (!data) return;
+
+        if (selectedLayananIds.size === 0) {
+            setEstimate(null);
+            return;
+        }
+
+        const layananPayload = [...selectedLayananIds].map(id => ({
+            idLayanan: String(id),
+            qty: qtyLayanan[String(id)] || 1,
+        }));
+
+        const biayaTambahanAlat = {};
+        if (data.alat_pembersih_tambahan) {
+            Object.entries(data.alat_pembersih_tambahan).forEach(([nama, harga]) => {
+                if (selectedAlat.has(nama)) biayaTambahanAlat[nama] = harga;
+            });
+        }
+
+        const timer = setTimeout(async () => {
+            setEstimateLoading(true);
+            setEstimateError(null);
+            try {
+                const res = await api.post('/v1/landing-page/generate-fee-pesanan', {
+                    idMitra: String(id_mitra),
+                    typeLayanan: 'daily_cleaning',
+                    items: layananPayload,
+                    jarakOngkir,
+                    ...(Object.keys(biayaTambahanAlat).length > 0 && { biayaTambahan: biayaTambahanAlat }),
+                });
+                setEstimate(res.data.data);
+            } catch (err) {
+                setEstimateError(err.response?.data?.message || 'Gagal menghitung estimasi');
+            } finally {
+                setEstimateLoading(false);
+            }
+        }, 600);
+
+        return () => clearTimeout(timer);
+    }, [data, selectedLayananIds, qtyLayanan, selectedAlat, jarakOngkir, id_mitra]);
 
     if (loading || error || !data) {
         return (
@@ -104,8 +161,8 @@ const DailyCleaningDetail = () => {
                         {loading ? 'Mohon tunggu sebentar.' : error || 'Data pesanan tidak ditemukan.'}
                     </p>
                     {!loading && (
-                        <button 
-                            onClick={() => navigate(-1)} 
+                        <button
+                            onClick={() => navigate(-1)}
                             className="dp-fallback-btn"
                         >
                             Kembali ke Halaman Sebelumnya
@@ -116,10 +173,69 @@ const DailyCleaningDetail = () => {
         );
     }
 
-    const hargaPaket = selectedDuration ? selectedDuration.harga_layanan : 0;
-    const biayaAlat = sewaAlat ? 15000 : 0; // Example static
-    const biayaTransport = 10000;
-    const total = (parseInt(hargaPaket) || 0) + biayaAlat + biayaTransport;
+    const ringkasan = estimate?.ringkasan ?? null;
+
+    const biayaAlat = data?.alat_pembersih_tambahan
+        ? Object.entries(data.alat_pembersih_tambahan)
+            .filter(([nama]) => selectedAlat.has(nama))
+            .reduce((sum, [, harga]) => sum + harga, 0)
+        : 0;
+
+    const handleSubmit = async () => {
+        if (!estimate || !isAuthenticated) {
+            if (!isAuthenticated) navigate('/login');
+            return;
+        }
+
+        const biayaTambahanAlat = {};
+        if (data.alat_pembersih_tambahan) {
+            Object.entries(data.alat_pembersih_tambahan).forEach(([nama, harga]) => {
+                if (selectedAlat.has(nama)) biayaTambahanAlat[nama] = harga;
+            });
+        }
+
+        const items = [...selectedLayananIds].map(id => ({
+            idLayanan: String(id),
+            qty: qtyLayanan[String(id)] || 1,
+        }));
+
+        const jadwal_layanan = [
+            { jam: jam || null, tanggal: tanggal || null }
+        ];
+
+        const subtotal = estimate?.detail_layanan?.reduce(
+            (sum, item) => sum + (item.subtotal || 0), 0
+        ) || 0;
+
+        const estimasiPayload = {
+            subtotal,
+            biaya_ongkir: 0,
+            biaya_transportasi: estimate?.ringkasan?.biaya_transportasi ?? 0,
+            biaya_tambahan_alat: estimate?.ringkasan?.biaya_tambahan_alat ?? 0,
+            total_pembayaran: estimate?.ringkasan?.total_pembayaran ?? 0,
+            beli_baru: 0,
+        };
+
+        setSubmitLoading(true);
+        setSubmitError(null);
+        try {
+            const res = await api.post('/v1/landing-page/pesanan/', {
+                idMitra: String(data.id_mitra),
+                typeLayanan: 'daily_cleaning',
+                items,
+                jarakOngkir,
+                jadwal_layanan,
+                ...(Object.keys(biayaTambahanAlat).length > 0 && { biayaTambahan: biayaTambahanAlat }),
+                estimasi: estimasiPayload,
+                catatanPengiriman: catatan || null,
+            });
+            navigate(`/pesanan/${res.data.data.id_unique_pesanan}/sukses`);
+        } catch (err) {
+            setSubmitError(err.response?.data?.message || 'Gagal membuat pesanan. Silakan coba lagi.');
+        } finally {
+            setSubmitLoading(false);
+        }
+    };
 
     return (
         <div className="dp-page">
@@ -198,26 +314,62 @@ const DailyCleaningDetail = () => {
                             <span className="material-symbols-outlined dp-section-icon" style={{fontVariationSettings: "'FILL' 1"}}>timer</span>
                             <h2 className="dp-section-title">Pilih Paket Durasi</h2>
                         </div>
+                        <p className="dp-section-desc" style={{marginBottom: 0}}>Pilih satu atau lebih paket durasi sesuai kebutuhan</p>
                         <div className="dp-grid-3">
                             {data.layanan.map((layanan) => {
-                                const isChecked = selectedDuration?.id_layanan === layanan.id_layanan;
+                                const sid = String(layanan.id_layanan);
+                                const isChecked = selectedLayananIds.has(sid);
+                                const qty = qtyLayanan[sid] || 1;
                                 return (
-                                    <label key={layanan.id_layanan} className="dp-card-radio">
-                                        <input 
-                                            className="dp-card-radio-input" 
-                                            name="duration" 
-                                            type="radio" 
-                                            value={layanan.id_layanan} 
+                                    <label key={layanan.id_layanan} className={`dp-card-radio ${isChecked ? 'checked' : ''}`}>
+                                        <input
+                                            className="dp-card-radio-input"
+                                            type="checkbox"
                                             checked={isChecked}
-                                            onChange={() => setSelectedDuration(layanan)}
+                                            onChange={() => {
+                                                const sid = String(layanan.id_layanan);
+                                                setSelectedLayananIds(prev => {
+                                                    const next = new Set(prev);
+                                                    if (next.has(sid)) {
+                                                        next.delete(sid);
+                                                        // Bug 4: hapus qty saat uncheck supaya tidak stale
+                                                        setQtyLayanan(q => {
+                                                            const copy = { ...q };
+                                                            delete copy[sid];
+                                                            return copy;
+                                                        });
+                                                    } else {
+                                                        next.add(sid);
+                                                        // Bug 6: key pakai String
+                                                        setQtyLayanan(q => ({ ...q, [sid]: q[sid] || 1 }));
+                                                    }
+                                                    return next;
+                                                });
+                                            }}
                                         />
                                         <div className="dp-card-radio-content">
                                             <div className="dp-card-title">{layanan.nama_layanan}</div>
-                                            <div className="dp-card-price">Rp {parseInt(layanan.harga_layanan).toLocaleString('id-ID')}</div>
+                                            <div className="dp-card-price">Rp {parseInt(layanan.harga_layanan).toLocaleString('id-ID')} / jam</div>
                                             {isChecked && (
-                                                <div className="dp-card-check">
-                                                    <span className="material-symbols-outlined" style={{fontVariationSettings: "'FILL' 1"}}>check_circle</span>
-                                                </div>
+                                                <>
+                                                    <div className="dp-qty-row" onClick={e => e.preventDefault()}>
+                                                        <span className="dp-qty-label">Durasi (jam):</span>
+                                                        <div className="dp-qty-stepper">
+                                                            <button
+                                                                className="dp-qty-btn"
+                                                                onClick={e => { e.preventDefault(); setQtyLayanan(prev => ({ ...prev, [String(layanan.id_layanan)]: Math.max(1, (prev[String(layanan.id_layanan)] || 1) - 1) })); }}
+                                                            >−</button>
+                                                            <span className="dp-qty-value">{qty}</span>
+                                                            <button
+                                                                className="dp-qty-btn"
+                                                                onClick={e => { e.preventDefault(); setQtyLayanan(prev => ({ ...prev, [String(layanan.id_layanan)]: (prev[String(layanan.id_layanan)] || 1) + 1 })); }}
+                                                            >+</button>
+                                                        </div>
+                                                    </div>
+                                                    <div className="dp-card-check">
+                                                        <span className="material-symbols-outlined" style={{fontVariationSettings: "'FILL' 1"}}>check_circle</span>
+                                                    </div>
+                                                </>
                                             )}
                                         </div>
                                     </label>
@@ -229,22 +381,47 @@ const DailyCleaningDetail = () => {
                     <section className="dp-section">
                         <div className="dp-section-header">
                             <span className="material-symbols-outlined dp-section-icon" style={{fontVariationSettings: "'FILL' 1"}}>cleaning_services</span>
-                            <h2 className="dp-section-title">Alat Pembersih</h2>
+                            <h2 className="dp-section-title">Alat Pembersih Tambahan</h2>
                         </div>
-                        <div className="dp-checkbox-wrap">
-                            <label className="dp-checkbox-label">
-                                <input 
-                                    className="dp-checkbox-input" 
-                                    type="checkbox" 
-                                    checked={sewaAlat}
-                                    onChange={(e) => setSewaAlat(e.target.checked)}
-                                />
-                                <div>
-                                    <div className="dp-checkbox-title">Sewa Alat Pembersih Tambahan dari Mitra</div>
-                                    <div className="dp-checkbox-subtitle">+ Rp 15.000</div>
-                                </div>
-                            </label>
+                        <div className="dp-alat-grid">
+                            {data?.alat_pembersih_tambahan && Object.entries(data.alat_pembersih_tambahan).map(([nama, harga]) => {
+                                const isChecked = selectedAlat.has(nama);
+                                return (
+                                    <label key={nama} className={`dp-alat-item ${isChecked ? 'dp-alat-item--selected' : ''}`}>
+                                        <input
+                                            className="dp-alat-input"
+                                            type="checkbox"
+                                            checked={isChecked}
+                                            onChange={() => {
+                                                setSelectedAlat(prev => {
+                                                    const next = new Set(prev);
+                                                    next.has(nama) ? next.delete(nama) : next.add(nama);
+                                                    return next;
+                                                });
+                                            }}
+                                        />
+                                        <span className="material-symbols-outlined dp-alat-icon" style={{fontVariationSettings: "'FILL' 1"}}>
+                                            cleaning_services
+                                        </span>
+                                        <div className="dp-alat-info">
+                                            <div className="dp-alat-name">{nama}</div>
+                                            <div className="dp-alat-price">+ Rp {harga.toLocaleString('id-ID')}</div>
+                                        </div>
+                                        {isChecked && (
+                                            <span className="material-symbols-outlined dp-alat-check" style={{fontVariationSettings: "'FILL' 1"}}>
+                                                check_circle
+                                            </span>
+                                        )}
+                                    </label>
+                                );
+                            })}
                         </div>
+                        {selectedAlat.size > 0 && (
+                            <div className="dp-alat-summary">
+                                <span className="dp-alat-summary-label">{selectedAlat.size} alat dipilih</span>
+                                <span className="dp-alat-summary-value">+ Rp {biayaAlat.toLocaleString('id-ID')}</span>
+                            </div>
+                        )}
                     </section>
 
                     <section className="dp-section">
@@ -255,9 +432,9 @@ const DailyCleaningDetail = () => {
                         <div className="dp-grid-2">
                             <div className="dp-form-group">
                                 <label className="dp-form-label">Tanggal</label>
-                                <input 
-                                    className="dp-input" 
-                                    type="date" 
+                                <input
+                                    className="dp-input"
+                                    type="date"
                                     value={tanggal}
                                     onChange={(e) => setTanggal(e.target.value)}
                                 />
@@ -265,10 +442,10 @@ const DailyCleaningDetail = () => {
                             <div className="dp-form-group">
                                 <label className="dp-form-label">Pilih Jam</label>
                                 <div className="dp-time-grid">
-                                    {['09:00', '10:00', '11:00', '13:00', '14:00', '15:00'].map((time) => {
+                                    {(data?.jadwal_pembersihan || []).map((time) => {
                                         const isSelected = jam === time;
                                         return (
-                                            <button 
+                                            <button
                                                 key={time}
                                                 className={`dp-time-btn ${isSelected ? 'active' : ''}`}
                                                 onClick={() => setJam(time)}
@@ -280,6 +457,17 @@ const DailyCleaningDetail = () => {
                                 </div>
                             </div>
                         </div>
+                        <div className="dp-form-group" style={{marginTop: '12px'}}>
+                            <label className="dp-form-label">Jarak ke Lokasi (km)</label>
+                            <input
+                                className="dp-input"
+                                type="number"
+                                min="1"
+                                value={jarakOngkir}
+                                onChange={(e) => setJarakOngkir(Math.max(1, parseInt(e.target.value) || 1))}
+                                style={{maxWidth: '160px'}}
+                            />
+                        </div>
                     </section>
 
                     <section className="dp-section">
@@ -288,8 +476,8 @@ const DailyCleaningDetail = () => {
                             <h2 className="dp-section-title">Catatan untuk Mitra (Opsional)</h2>
                         </div>
                         <div className="dp-form-group">
-                            <textarea 
-                                className="dp-textarea" 
+                            <textarea
+                                className="dp-textarea"
                                 placeholder="Contoh: Tolong fokus bersihkan area kamar mandi..."
                                 value={catatan}
                                 onChange={(e) => setCatatan(e.target.value)}
@@ -304,33 +492,69 @@ const DailyCleaningDetail = () => {
                             <span className="material-symbols-outlined dp-section-icon" style={{fontVariationSettings: "'FILL' 1"}}>receipt_long</span>
                             <h2 className="dp-summary-title">Ringkasan Pembayaran</h2>
                         </div>
-                        <div className="dp-summary-list">
-                            <div className="dp-summary-item">
-                                <span className="dp-summary-item-label">Harga Paket</span>
-                                <span className="dp-summary-item-value">Rp {parseInt(hargaPaket).toLocaleString('id-ID')}</span>
+                        {estimateLoading ? (
+                            <div className="dp-summary-loading">
+                                <span className="material-symbols-outlined dp-summary-loading-icon">hourglass_empty</span>
+                                <span>Menghitung estimasi...</span>
                             </div>
-                            <div className="dp-summary-item">
-                                <span className="dp-summary-item-label">Biaya Tambahan Alat</span>
-                                <span className="dp-summary-item-value">{biayaAlat > 0 ? `Rp ${biayaAlat.toLocaleString('id-ID')}` : '-'}</span>
+                        ) : estimateError ? (
+                            <div className="dp-summary-error">
+                                <span className="material-symbols-outlined">error</span>
+                                <span>{estimateError}</span>
                             </div>
-                            <div className="dp-summary-item">
-                                <span className="dp-summary-item-label">Biaya Transportasi</span>
-                                <span className="dp-summary-item-value">Rp {biayaTransport.toLocaleString('id-ID')}</span>
+                        ) : (
+                            <div className="dp-summary-list">
+                                {estimate?.detail_layanan?.map((item, i) => (
+                                    <div key={item.id_layanan ?? i} className="dp-summary-item">
+                                        <span className="dp-summary-item-label">{item.nama_layanan} ({item.qty} {item.satuan})</span>
+                                        <span className="dp-summary-item-value">Rp {(item.subtotal ?? 0).toLocaleString('id-ID')}</span>
+                                    </div>
+                                ))}
+                                    {(ringkasan?.biaya_tambahan_alat ?? 0) > 0 && (
+                                        <div className="dp-summary-item">
+                                            <span className="dp-summary-item-label">Biaya Tambahan Alat</span>
+                                            <span className="dp-summary-item-value">Rp {ringkasan.biaya_tambahan_alat.toLocaleString('id-ID')}</span>
+                                        </div>
+                                    )}
+                                <div className="dp-summary-item">
+                                    <span className="dp-summary-item-label">Biaya Transportasi</span>
+                                    <span className="dp-summary-item-value">
+                                        {ringkasan ? `Rp ${ringkasan.biaya_transportasi.toLocaleString('id-ID')}` : '-'}
+                                    </span>
+                                </div>
+                                <div className="dp-summary-item">
+                                    <span className="dp-summary-item-label">Biaya Layanan Aplikasi</span>
+                                    <span className="dp-summary-item-value">
+                                        {ringkasan ? `Rp ${ringkasan.biaya_layanan_aplikasi.toLocaleString('id-ID')}` : '-'}
+                                    </span>
+                                </div>
+                                <div className="dp-summary-total">
+                                    <span className="dp-summary-total-label">Total Pembayaran</span>
+                                    <span className="dp-summary-total-value">
+                                        {ringkasan ? `Rp ${ringkasan.total_pembayaran.toLocaleString('id-ID')}` : 'Rp -'}
+                                    </span>
+                                </div>
                             </div>
-                            <div className="dp-summary-total">
-                                <span className="dp-summary-total-label">Total Pembayaran</span>
-                                <span className="dp-summary-total-value">Rp {total.toLocaleString('id-ID')}</span>
+                        )}
+                        {submitError && (
+                            <div className="dp-summary-error" style={{marginTop: '10px'}}>
+                                <span className="material-symbols-outlined">error</span>
+                                <span>{submitError}</span>
                             </div>
-                        </div>
+                        )}
                         <div className="dp-info-box">
                             <span className="material-symbols-outlined dp-info-icon">info</span>
                             <p className="dp-info-text">
                                 Transaksi Anda dilindungi oleh Sistem Escrow KostHub. Dana akan diteruskan ke mitra hanya setelah layanan selesai sesuai pesanan Anda.
                             </p>
                         </div>
-                        <button className="dp-btn-primary">
-                            Lanjutkan ke Pembayaran
-                            <span className="material-symbols-outlined">arrow_forward</span>
+                        <button
+                            className="dp-btn-primary"
+                            disabled={!ringkasan || submitLoading || selectedLayananIds.size === 0}
+                            onClick={handleSubmit}
+                        >
+                            {submitLoading ? 'Memproses...' : 'Lanjutkan ke Pembayaran'}
+                            {!submitLoading && <span className="material-symbols-outlined">arrow_forward</span>}
                         </button>
                     </div>
                 </div>
