@@ -82,12 +82,14 @@ class LandingPageController extends Controller
         try {
             $kategori = $request->input('kategori', ['All']);
             $sortBy = $request->input('sortBy', 'Terbaik');
+            $lat = $request->input('lat');
+            $lng = $request->input('lng');
 
             if (!is_array($kategori)) {
                 $kategori = ['All'];
             }
 
-            $data = $this->landingPageService->laundryExpress($kategori, $sortBy);
+            $data = $this->landingPageService->laundryExpress($kategori, $sortBy, $lat, $lng);
 
             return response()->json([
                 'success' => true,
@@ -112,12 +114,14 @@ class LandingPageController extends Controller
         try {
             $kategori = $request->input('kategori', ['All']);
             $sortBy = $request->input('sortBy', 'Terbaik');
+            $lat = $request->input('lat');
+            $lng = $request->input('lng');
 
             if (!is_array($kategori)) {
                 $kategori = ['All'];
             }
 
-            $data = $this->landingPageService->galonGas($kategori, $sortBy);
+            $data = $this->landingPageService->galonGas($kategori, $sortBy, $lat, $lng);
 
             return response()->json([
                 'success' => true,
@@ -142,12 +146,14 @@ class LandingPageController extends Controller
         try {
             $kategori = $request->input('kategori', ['All']);
             $sortBy = $request->input('sortBy', 'Terbaik');
+            $lat = $request->input('lat');
+            $lng = $request->input('lng');
 
             if (!is_array($kategori)) {
                 $kategori = ['All'];
             }
 
-            $data = $this->landingPageService->dailyCleaning($kategori, $sortBy);
+            $data = $this->landingPageService->dailyCleaning($kategori, $sortBy, $lat, $lng);
 
             return response()->json([
                 'success' => true,

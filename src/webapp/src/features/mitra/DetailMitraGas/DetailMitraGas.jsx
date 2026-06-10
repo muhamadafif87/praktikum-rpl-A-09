@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
+import { useLocation } from '../../../context/LocationContext';
 import api from '../../../services/api';
 import './DetailMitraGas.css';
 import '../../landing/LandingPage/LandingPage.css';
@@ -9,6 +10,7 @@ import TransitionLink from '../../../components/ViewTransition/TransitionLink';
 const DetailMitraGas = ({ onOrderClick }) => {
     const navigate = useNavigate();
     const { user, isAuthenticated, logout } = useAuth();
+    const { location, openMap } = useLocation();
     const [showProfileMenu, setShowProfileMenu] = useState(false);
 
     const navLinksRef = useRef(null);
@@ -57,12 +59,17 @@ const DetailMitraGas = ({ onOrderClick }) => {
         setMitraError('');
 
         try {
-            const response = await api.get('/v1/landing-page/galon-gas', {
-                params: {
-                    kategori: kategori,
-                    sortBy: sortByValue,
-                }
-            });
+            const params = {
+                kategori: kategori,
+                sortBy: sortByValue,
+            };
+
+            if (location.isConfirmed && location.lat && location.lng) {
+                params.lat = location.lat;
+                params.lng = location.lng;
+            }
+
+            const response = await api.get('/v1/landing-page/galon-gas', { params });
             const { data } = response.data;
             const dataArray = Array.isArray(data) ? data : [];
 
@@ -71,7 +78,7 @@ const DetailMitraGas = ({ onOrderClick }) => {
                 name: mitra.nama_mitra,
                 type: mitra.jenis_jasa,
                 location: mitra.lokasi_layanan,
-                distance: '0.5 KM', // Nanti bisa diambil dari API jika ada
+                distance: mitra.jarak_km ? `${mitra.jarak_km.toFixed(1)} KM` : 'Jarak Tidak Diketahui',
                 rating: mitra.rating,
                 reviewCount: mitra.jumlah_ulasan,
                 description: `${mitra.jenis_jasa === 'gas' ? 'Agen gas LPG' : 'Layanan galon'} terpercaya. ${mitra.layanan?.length || 0} jenis layanan tersedia.`,
@@ -107,11 +114,10 @@ const DetailMitraGas = ({ onOrderClick }) => {
         fetchMitraData(['All'], 'Terbaik');
     }, []);
 
-    // Effect untuk listen perubahan filter (kategori dan sortBy)
     useEffect(() => {
         const kategoriParam = selectedCategories.length > 0 ? selectedCategories : ['All'];
         fetchMitraData(kategoriParam, sortBy);
-    }, [selectedCategories, sortBy]);
+    }, [selectedCategories, sortBy, location.lat, location.lng]);
 
     const handleCategoryChange = (category) => {
         setSelectedCategories((prev) => {
@@ -143,7 +149,6 @@ const DetailMitraGas = ({ onOrderClick }) => {
             {/* TopNavBar */}
             <nav className="dmg-navbar">
                 <div className="dmg-navbar-inner">
-                    {/* Brand Logo */}
                     <div className="dmg-brand">
                         <Link to="/" className="dmg-brand-link">
                             KostHub<span className="dmg-brand-dot">.</span>
@@ -161,14 +166,13 @@ const DetailMitraGas = ({ onOrderClick }) => {
                             <TransitionLink className="dmc-nav-link" to="/laundry" onMouseEnter={handleNavHover} onClick={handleNavClick}>Laundry Express</TransitionLink>
                         </li>
                         <li className="dmc-nav-item">
-                            <TransitionLink className="lp-nav-link" to="/daily-cleaning" onMouseEnter={handleNavHover} onClick={handleNavClick}>Daily Cleaning</TransitionLink>
+                            <TransitionLink className="dmc-nav-link" to="/daily-cleaning" onMouseEnter={handleNavHover} onClick={handleNavClick}>Daily Cleaning</TransitionLink>
                         </li>
                         <li className="dmc-nav-item">
                             <TransitionLink className="dmc-nav-link" to="/tentang-kami" onMouseEnter={handleNavHover} onClick={handleNavClick}>Tentang Kami</TransitionLink>
                         </li>
                     </ul>
 
-                    {/* Trailing Action */}
                     <div className="lp-nav-actions">
                         {isAuthenticated ? (
                             <div className="lp-profile-menu">
@@ -205,7 +209,6 @@ const DetailMitraGas = ({ onOrderClick }) => {
             </nav>
 
             <main>
-                {/* Sub-header */}
                 <section className="dmg-subheader">
                     <div className="dmg-subheader-inner">
                         <nav className="dmg-breadcrumb">
@@ -216,15 +219,16 @@ const DetailMitraGas = ({ onOrderClick }) => {
                         <div className="dmg-location">
                             <span className="material-symbols-outlined">location_on</span>
                             <h1 className="dmg-location-title">
-                                Menampilkan mitra di dekat: <span className="dmg-location-highlight">Jl. Ir. Sutami, Jebres, Surakarta</span>
+                                Menampilkan mitra di dekat:{' '}
+                                <span className="dmg-location-highlight">
+                                    {location.isConfirmed ? location.address : 'Lokasi Belum Diatur'}
+                                </span>
                             </h1>
                         </div>
                     </div>
                 </section>
 
-                {/* Main Layout */}
                 <div className="dmg-main-layout">
-                    {/* Sidebar Filters */}
                     <aside className="dmg-sidebar">
                         <div className="dmg-sidebar-inner">
                             <div className="dmg-filter-header">
@@ -281,7 +285,6 @@ const DetailMitraGas = ({ onOrderClick }) => {
                         </div>
                     </aside>
 
-                    {/* Card List */}
                     <section className="dmg-card-list">
                         {mitraLoading ? (
                             <div className="dmg-loading-container">
@@ -305,64 +308,77 @@ const DetailMitraGas = ({ onOrderClick }) => {
                                 <p>Tidak ada data mitra tersedia</p>
                             </div>
                         ) : (
-                            mitraList.map((mitra) => (
-                                <article key={mitra.id} className="dmg-card">
-                                    <div className="dmg-card-body">
-                                        <div className="dmg-card-img-wrapper">
-                                            <img
-                                                className="dmg-card-img"
-                                                src={mitra.image}
-                                                alt={mitra.name}
-                                            />
-                                        </div>
-                                        <div className="dmg-card-content">
-                                            <div>
-                                                <div className="dmg-card-header">
-                                                    <h3 className="dmg-card-title">{mitra.name}</h3>
-                                                    <span className="dmg-card-badge">
-                                                        Berada dalam jangkauan ({mitra.distance})
-                                                    </span>
-                                                </div>
-                                                <div className="dmg-card-rating">
-                                                    <span className="material-symbols-outlined">star</span>
-                                                    <span className="dmg-card-rating-value">{mitra.rating}</span>
-                                                    <span className="dmg-card-rating-count">({mitra.reviewCount} Ulasan)</span>
-                                                </div>
-                                                <p className="dmg-card-desc">{mitra.description}</p>
-                                            </div>
-                                            <div className="dmg-card-footer">
-                                                <div className="dmg-card-price">{mitra.price}</div>
-                                                <button
-                                                    className="dmg-card-order-btn"
-                                                    onClick={() => handleOrderClick(mitra)}
-                                                >
-                                                    Pesan Sekarang
-                                                </button>
-                                            </div>
-                                        </div>
+                            <div className="dmg-mitra-list">
+                                {!location.isConfirmed ? (
+                                    <div className="dmg-empty-container" style={{ gridColumn: '1 / -1', padding: '4rem 1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                                        <span className="material-symbols-outlined" style={{ fontSize: '64px', color: '#9ca3af' }}>location_off</span>
+                                        <h4 style={{ margin: '1rem 0 0.5rem', color: '#1f2937', fontSize: '1.25rem', fontWeight: '600', textAlign: 'center' }}>Lokasi Pengiriman Belum Diatur</h4>
+                                        <p style={{ color: '#6b7280', textAlign: 'center', maxWidth: '400px', margin: '0 auto 1.5rem', lineHeight: '1.5' }}>Silakan atur lokasi pengiriman terlebih dahulu di Beranda untuk melihat daftar mitra yang menjangkau areamu.</p>
+                                        <button 
+                                            onClick={() => navigate('/')}
+                                            style={{ padding: '0.75rem 1.5rem', background: '#2563eb', color: 'white', border: 'none', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.5rem', transition: 'background-color 0.2s' }}
+                                            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#1d4ed8'}
+                                            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
+                                        >
+                                            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>home</span>
+                                            Kembali ke Beranda
+                                        </button>
                                     </div>
-
-                                    {/* Marquee Reviews */}
-                                    {mitra.reviews.length > 0 && (
-                                        <div className="dmg-marquee-section">
-                                            <div className="dmg-marquee-container">
-                                                <div
-                                                    className="dmg-marquee-content"
-                                                    style={{ animationDuration: mitra.marqueeSpeed }}
-                                                >
-                                                    {[...mitra.reviews, ...mitra.reviews].map((review, idx) => (
-                                                        <div key={idx} className="dmg-review-chip">
-                                                            <span className="dmg-review-name">{review.name}</span>
-                                                            <span className="dmg-review-rating">{review.rating}★</span>
-                                                            <span className="dmg-review-text">"{review.text}"</span>
+                                ) : mitraList.length > 0 ? (
+                                    mitraList.map((mitra) => (
+                                        <article key={mitra.id} className="dmg-card">
+                                            <div className="dmg-card-body">
+                                                <div className="dmg-card-img-wrapper">
+                                                    <img className="dmg-card-img" src={mitra.image} alt={mitra.name} />
+                                                </div>
+                                                <div className="dmg-card-content">
+                                                    <div>
+                                                        <div className="dmg-card-header">
+                                                            <h3 className="dmg-card-title">{mitra.name}</h3>
+                                                            <span className="dmg-card-badge">Berada dalam jangkauan ({mitra.distance})</span>
                                                         </div>
-                                                    ))}
+                                                        <div className="dmg-card-rating">
+                                                            <span className="material-symbols-outlined">star</span>
+                                                            <span className="dmg-card-rating-value">{mitra.rating}</span>
+                                                            <span className="dmg-card-rating-count">({mitra.reviewCount} Ulasan)</span>
+                                                        </div>
+                                                        <p className="dmg-card-desc">{mitra.description}</p>
+                                                    </div>
+                                                    <div className="dmg-card-footer">
+                                                        <div className="dmg-card-price">{mitra.price}</div>
+                                                        <button
+                                                            className={`dmg-card-order-btn ${!location.isConfirmed ? 'dmc-mitra-order-btn-disabled' : ''}`}
+                                                            onClick={() => location.isConfirmed && handleOrderClick(mitra)}
+                                                            disabled={!location.isConfirmed}
+                                                        >
+                                                            {location.isConfirmed ? 'Pesan Sekarang' : 'Atur Lokasi'}
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    )}
-                                </article>
-                            ))
+
+                                            {mitra.reviews.length > 0 && (
+                                                <div className="dmg-marquee-section">
+                                                    <div className="dmg-marquee-container">
+                                                        <div
+                                                            className="dmg-marquee-content"
+                                                            style={{ animationDuration: mitra.marqueeSpeed }}
+                                                        >
+                                                            {[...mitra.reviews, ...mitra.reviews].map((review, idx) => (
+                                                                <div key={idx} className="dmg-review-chip">
+                                                                    <span className="dmg-review-name">{review.name}</span>
+                                                                    <span className="dmg-review-rating">{review.rating}★</span>
+                                                                    <span className="dmg-review-text">"{review.text}"</span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </article>
+                                    ))
+                                ) : null}
+                            </div>
                         )}
                     </section>
                 </div>
