@@ -261,24 +261,8 @@ const LocationSearch = ({ onConfirm, onSearchSubmit }) => {
      */
     const handleConfirmLocation = async () => {
         if (pinLat && pinLng && selectedAddress) {
-            setLocation(selectedAddress, pinLat, pinLng);
+            setLocation(selectedAddress, pinLat, pinLng, false); // isFromProfile = false
             setIsConfirmed(true);
-            
-            // Save to database if authenticated
-            if (isAuthenticated) {
-                try {
-                    const response = await api.put('/v1/auth/me', {
-                        latitude: pinLat,
-                        longitude: pinLng,
-                        address_detail: selectedAddress
-                    });
-                    // Update AuthContext user data seamlessly
-                    updateUser(response.data.data);
-                } catch (error) {
-                    console.error("Gagal menyimpan lokasi ke profil:", error);
-                }
-            }
-
             if (onConfirm) onConfirm();
         }
     };

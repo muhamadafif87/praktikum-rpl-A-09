@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
+import { useLocation } from '../../../context/LocationContext';
 import './Login.css';
 
 const Login = () => {
     const navigate = useNavigate();
     const { login: authLogin } = useAuth();
+    const { syncWithUser, location } = useLocation();
 
     // ── Form State ──
     const [identifier, setIdentifier] = useState('');
@@ -52,6 +54,11 @@ const Login = () => {
             // Update auth context
             if (data?.user && data?.token && data?.guard) {
                 authLogin(data.user, data.token, data.guard);
+                
+                // Jika user login, prioritaskan alamat profilnya
+                if (!location.isConfirmed || (data.user.latitude && data.user.longitude)) {
+                    syncWithUser(data.user);
+                }
             }
 
             // Show success state briefly before redirect
