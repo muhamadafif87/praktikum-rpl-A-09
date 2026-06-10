@@ -92,10 +92,6 @@ Route::prefix('v1')->group(function () {
     // Protected — auth:sanctum,guard:mitra (Mitra)
     // -------------------------------------------------------------------------
     Route::prefix('mitra')->middleware('auth:sanctum,guard:mitra')->name('mitra.')->group(function () {
-
-        // --------
-        // Pesanan
-        // --------
         Route::prefix('pesanan')->name('pesanan.')->group(function () {
 
             // GET /mitra/pesanan/riwayat?status=diproses&per_page=10

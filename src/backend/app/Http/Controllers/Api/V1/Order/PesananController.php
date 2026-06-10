@@ -7,6 +7,7 @@ use App\Http\Requests\Order\CreatePesananRequest;
 use App\Http\Requests\Order\GenerateFeeRequest;
 use App\Http\Requests\Order\RiwayatPesananRequest;
 use App\Http\Requests\Order\DetailPesananRequest;
+use App\Http\Requests\Order\RiwayatPesananRequest as RequestsRiwayatPesananRequest;
 use App\Services\PesananService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -54,7 +55,7 @@ class PesananController extends Controller {
     // -------------------------------------------------------------------------
     // GET /landing-page/pesanan/riwayat  (user)
     // -------------------------------------------------------------------------
-    public function riwayatPesananUser(RiwayatPesananRequest $request): JsonResponse
+    public function riwayatPesananUser(RequestsRiwayatPesananRequest $request): JsonResponse
     {
         try {
             /** @var \App\Models\User $user */
@@ -123,7 +124,9 @@ class PesananController extends Controller {
     public function showDetailPesanan(Request $request, string $idUniquePesanan): JsonResponse
     {
         try {
-            $data = $this->PesananService->showDetailPesanan($idUniquePesanan);
+            $user = $request->user();
+            $idUser = $user->id_user;
+            $data = $this->PesananService->showDetailPesanan($idUniquePesanan, $idUser);
 
             return response()->json([
                 'success' => true,
@@ -142,8 +145,7 @@ class PesananController extends Controller {
     // -------------------------------------------------------------------------
     // PATCH /landing-page/pesanan/{idUniquePesanan}/cancel  (user)
     // -------------------------------------------------------------------------
-    public function cancelPesananUser(Request $request, string $idUniquePesanan): JsonResponse
-    {
+    public function cancelPesananUser(Request $request, string $idUniquePesanan): JsonResponse {
         try {
             /** @var \App\Models\User $user */
             $user = $request->user();
