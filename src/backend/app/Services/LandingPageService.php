@@ -53,7 +53,7 @@ class LandingPageService {
             ->with([
                 'Layanan' => fn($q) => $q->select('id_mitra', 'id_layanan', 'nama_layanan', 'harga', 'satuan'),
 
-                'Pesanan.Ulasan.Pesanan.User:id_user,nama_lengkap',
+                'Ulasan.Pesanan.User:id_user,nama_lengkap',
             ])
             ->withAvg('Ulasan as avg_rating', 'rating')
             ->withCount('Ulasan as jumlah_ulasan');
@@ -89,7 +89,7 @@ class LandingPageService {
             ->with([
                 'Layanan' => fn($q) => $q->select('id_mitra', 'id_layanan', 'nama_layanan', 'harga', 'satuan'),
 
-                'Pesanan.Ulasan.Pesanan.User:id_user,nama_lengkap',
+                'Ulasan.Pesanan.User:id_user,nama_lengkap',
             ])
             ->withAvg('Ulasan as avg_rating', 'rating')
             ->withCount('Ulasan as jumlah_ulasan');
@@ -134,7 +134,7 @@ class LandingPageService {
             ->with([
                 'Layanan' => fn($q) => $q->select('id_mitra', 'id_layanan', 'nama_layanan', 'harga', 'satuan'),
 
-                'Pesanan.Ulasan.Pesanan.User:id_user,nama_lengkap',
+                'Ulasan.Pesanan.User:id_user,nama_lengkap',
             ])
             ->withAvg('Ulasan as avg_rating', 'rating')
             ->withCount('Ulasan as jumlah_ulasan');
@@ -221,6 +221,9 @@ class LandingPageService {
                 $query->orderByDesc('id_mitra');
         }
 
+        // Tambahkan fallback sorting stabil untuk mencegah perubahan urutan pada nilai yang sama (mencegah blink/jumping di UI)
+        $query->orderBy('mitra.id_mitra');
+
         return $query;
     }
 
@@ -234,14 +237,14 @@ class LandingPageService {
             $rating = $mitra->avg_rating ?? 0;
             $jumlahUlasan = $mitra->jumlah_ulasan ?? 0;
 
-            $reviews = $mitra->Pesanan
-                    ->flatMap(fn($p) => $p->Ulasan ?? collect())
+            $reviews = $mitra->Ulasan
                     ->sortByDesc('created_at')
                     ->take(5);
 
             return [
                 'id_mitra'       => $mitra->id_mitra,
                 'nama_mitra'     => $mitra->nama_mitra,
+                'deskripsi'      => $mitra->deskripsi,
                 'profil_image'   => $mitra->MitraImageAsset()->first()?->image_file,
                 'jenis_jasa'     => $mitra->jenis_jasa,
                 'lokasi_layanan' => $mitra->alamat_mitra,

@@ -76,13 +76,13 @@ const DetailMitraGas = ({ onOrderClick }) => {
             const transformedData = dataArray.map((mitra) => ({
                 id: mitra.id_mitra,
                 name: mitra.nama_mitra,
-                image: mitra.profil_image,
+                image: mitra.profil_image || `https://ui-avatars.com/api/?name=${encodeURIComponent(mitra.nama_mitra)}&background=random&color=fff&size=300`,
                 type: mitra.jenis_jasa,
                 location: mitra.lokasi_layanan,
                 distance: mitra.jarak_km ? `${mitra.jarak_km.toFixed(1)} KM` : 'Jarak Tidak Diketahui',
                 rating: mitra.rating,
                 reviewCount: mitra.jumlah_ulasan,
-                description: `${mitra.jenis_jasa === 'gas' ? 'Agen gas LPG' : 'Layanan galon'} terpercaya. ${mitra.layanan?.length || 0} jenis layanan tersedia.`,
+                description: mitra.deskripsi || `${mitra.jenis_jasa === 'gas' ? 'Agen gas LPG' : mitra.jenis_jasa === 'galon' ? 'Agen air galon' : 'Agen Gas & Galon'} terpercaya. ${mitra.layanan?.length || 0} jenis layanan tersedia.`,
                 price: mitra.layanan?.length > 0
                     ? `Mulai dari Rp ${parseInt(mitra.layanan[0].harga_satuan).toLocaleString('id-ID')}`
                     : 'Hubungi untuk info harga',
@@ -287,10 +287,27 @@ const DetailMitraGas = ({ onOrderClick }) => {
 
                     <section className="dmg-card-list">
                         {mitraLoading ? (
-                            <div className="dmg-loading-container">
-                                <div className="dmg-spinner"></div>
-                                <p>Memuat data mitra...</p>
-                            </div>
+                            <>
+                                {[1, 2, 3].map((n) => (
+                                    <div key={n} className="skeleton-card">
+                                        <div className="skeleton-img-wrapper skeleton"></div>
+                                        <div className="skeleton-content">
+                                            <div>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                    <div className="skeleton-title skeleton"></div>
+                                                    <div className="skeleton-badge skeleton"></div>
+                                                </div>
+                                                <div className="skeleton-rating skeleton"></div>
+                                                <div className="skeleton-desc skeleton"></div>
+                                            </div>
+                                            <div className="skeleton-footer">
+                                                <div className="skeleton-price skeleton"></div>
+                                                <div className="skeleton-btn skeleton"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </>
                         ) : mitraError ? (
                             <div className="dmg-error-container">
                                 <span className="material-symbols-outlined">error_outline</span>
