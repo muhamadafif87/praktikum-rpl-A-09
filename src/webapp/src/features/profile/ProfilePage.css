@@ -396,3 +396,18 @@
     background-color: #fef3c7;
     border-color: #f59e0b;
 }
+
+.profile-location-card.info {
+    background-color: #eff6ff;
+    border-color: #bfdbfe;
+}
+
+.profile-location-card.info .profile-location-icon,
+.profile-location-card.info .profile-location-title {
+    color: #2563eb !important;
+}
+
+.profile-location-card.info .profile-location-address,
+.profile-location-card.info .profile-location-coords {
+    color: #1e3a8a !important;
+}

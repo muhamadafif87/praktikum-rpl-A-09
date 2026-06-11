@@ -48,6 +48,10 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         localStorage.removeItem('guard');
+        sessionStorage.removeItem('userLocation');
+
+        // Force a full page reload to ensure all states (like LocationContext) are fully reset
+        window.location.href = '/';
     };
 
     const updateUser = (newData) => {

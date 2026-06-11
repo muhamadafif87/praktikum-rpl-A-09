@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useLocation as useGlobalLocation } from '../../context/LocationContext';
 import api from '../../services/api';
 import './ProfilePage.css';
 
 const ProfilePage = () => {
     const navigate = useNavigate();
     const { user, isAuthenticated, updateUser, logout } = useAuth();
+    const { location, openMap } = useGlobalLocation();
     
     // Redirect if not authenticated
     useEffect(() => {
@@ -64,6 +66,13 @@ const ProfilePage = () => {
                 nomor_telepon: formData.nomor_telepon,
                 alamat_kost: formData.alamat_kost
             };
+
+            // Include coordinates if user just picked a new location from map
+            if (location && location.isConfirmed && !location.isFromProfile && location.lat && location.lng) {
+                payload.latitude = location.lat;
+                payload.longitude = location.lng;
+                payload.address_detail = location.address;
+            }
 
             // Only send password fields if user filled them out
             if (formData.old_password || formData.new_password) {
@@ -182,7 +191,24 @@ const ProfilePage = () => {
                     <section className="profile-section">
                         <h2 className="profile-section-title">Lokasi & Alamat Kos</h2>
                         
-                        {user.latitude && user.longitude ? (
+                        {location && location.isConfirmed && !location.isFromProfile ? (
+                            <div className="profile-location-card info">
+                                <div className="profile-location-icon">
+                                    <span className="material-symbols-outlined" style={{fontVariationSettings: "'FILL' 1"}}>pin_drop</span>
+                                </div>
+                                <div className="profile-location-details">
+                                    <h3 className="profile-location-title">Lokasi Baru Dipilih</h3>
+                                    <p className="profile-location-address">{location.address}</p>
+                                    <p className="profile-location-coords">{location.lat}, {location.lng}</p>
+                                    <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem' }}>
+                                        <span className="profile-help-text" style={{ margin: 0, fontWeight: 500, color: '#1e3a8a' }}>Klik "Simpan Perubahan" di bawah untuk menetapkan lokasi ini.</span>
+                                        <button type="button" className="profile-btn-outline-warning" onClick={openMap} style={{ padding: '0.25rem 0.75rem', alignSelf: 'flex-start', marginLeft: 'auto', borderColor: '#3b82f6', color: '#1d4ed8' }}>
+                                            Ubah
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : user.latitude && user.longitude ? (
                             <div className="profile-location-card success">
                                 <div className="profile-location-icon">
                                     <span className="material-symbols-outlined" style={{fontVariationSettings: "'FILL' 1"}}>check_circle</span>
@@ -191,6 +217,14 @@ const ProfilePage = () => {
                                     <h3 className="profile-location-title">Titik Lokasi Tersimpan</h3>
                                     <p className="profile-location-address">{user.address_detail || 'Koordinat telah diatur.'}</p>
                                     <p className="profile-location-coords">{user.latitude}, {user.longitude}</p>
+                                    <button 
+                                        type="button" 
+                                        className="profile-btn-outline-warning"
+                                        onClick={openMap}
+                                        style={{ marginTop: '0.5rem' }}
+                                    >
+                                        Ubah Lokasi
+                                    </button>
                                 </div>
                             </div>
                         ) : (
@@ -204,9 +238,9 @@ const ProfilePage = () => {
                                     <button 
                                         type="button" 
                                         className="profile-btn-outline-warning"
-                                        onClick={() => navigate('/')}
+                                        onClick={openMap}
                                     >
-                                        Atur Lokasi di Beranda
+                                        Pilih Lokasi di Peta
                                     </button>
                                 </div>
                             </div>
