@@ -31,6 +31,7 @@ import AdminSettings from './features/admin/AdminSettings/AdminSettings';
 import LocationModal from './features/location/LocationModal/LocationModal';
 
 import ProfilePage from './features/profile/ProfilePage';
+import OrderHistoryPage from './pages/OrderHistoryPage';
 const SettingsPage = () => <div style={{ padding: '20px' }}><h1>Pengaturan</h1></div>;
 
 const App = () => {
@@ -71,6 +72,7 @@ const App = () => {
 
                 {/* Profile routes */}
                 <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/pesanan-saya" element={<OrderHistoryPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
             </Routes>
             <LocationModal />
