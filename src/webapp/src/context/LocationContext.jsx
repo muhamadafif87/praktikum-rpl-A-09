@@ -8,15 +8,17 @@ import React, { createContext, useContext, useState, useCallback } from 'react';
  * - lat (number): Latitude koordinat final
  * - lng (number): Longitude koordinat final
  * - isConfirmed (boolean): True setelah user mengonfirmasi pin di peta
+ * - isFromProfile (boolean): True jika ditarik otomatis dari database profile
  * 
- * Default fallback: area UNS Surakarta (-7.5567, 110.8565)
+ * Default fallback: Kosong agar user harus set lokasi.
  */
 
 const DEFAULT_LOCATION = {
-    address: 'Jl. Ir. Sutami, Jebres, Surakarta',
-    lat: -7.5567,
-    lng: 110.8565,
+    address: '',
+    lat: null,
+    lng: null,
     isConfirmed: false,
+    isFromProfile: false,
 };
 
 const LocationContext = createContext(undefined);
@@ -24,12 +26,13 @@ const LocationContext = createContext(undefined);
 export const LocationProvider = ({ children }) => {
     const [location, setLocationState] = useState(DEFAULT_LOCATION);
 
-    const setLocation = useCallback((address, lat, lng) => {
+    const setLocation = useCallback((address, lat, lng, isFromProfile = false) => {
         setLocationState({
             address,
             lat,
             lng,
             isConfirmed: true,
+            isFromProfile,
         });
     }, []);
 
@@ -37,8 +40,20 @@ export const LocationProvider = ({ children }) => {
         setLocationState(DEFAULT_LOCATION);
     }, []);
 
+    const syncWithUser = useCallback((user) => {
+        if (user && user.latitude && user.longitude) {
+            setLocationState({
+                address: user.address_detail || 'Sesuai Profil',
+                lat: parseFloat(user.latitude),
+                lng: parseFloat(user.longitude),
+                isConfirmed: true,
+                isFromProfile: true,
+            });
+        }
+    }, []);
+
     return (
-        <LocationContext.Provider value={{ location, setLocation, clearLocation }}>
+        <LocationContext.Provider value={{ location, setLocation, clearLocation, syncWithUser }}>
             {children}
         </LocationContext.Provider>
     );

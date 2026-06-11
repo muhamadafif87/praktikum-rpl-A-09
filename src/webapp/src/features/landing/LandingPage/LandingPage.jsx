@@ -4,6 +4,7 @@ import TransitionLink from '../../../components/ViewTransition/TransitionLink';
 import LocationSearch from '../../location/LocationSearch/LocationSearch';
 import './LandingPage.css';
 import { useAuth } from '../../../context/AuthContext';
+import { useLocation } from '../../../context/LocationContext';
 import api from '../../../services/api';
 
 const LandingPage = () => {
@@ -11,6 +12,18 @@ const LandingPage = () => {
     const servicesRef = useRef(null);
     const navLinksRef = useRef(null);
     const [isAuthOpen, setIsAuthOpen] = useState(false);
+    const [isMapOpen, setIsMapOpen] = useState(false);
+    const [isSelectingNew, setIsSelectingNew] = useState(false);
+
+    const { user, isAuthenticated, logout } = useAuth();
+    const { location, syncWithUser } = useLocation();
+
+    // ── Auto-sync Location from Profile ──
+    useEffect(() => {
+        if (isAuthenticated && user && user.latitude && user.longitude && !location.isConfirmed) {
+            syncWithUser(user);
+        }
+    }, [isAuthenticated, user, location.isConfirmed, syncWithUser]);
 
     // ── Sliding Indicator Logic ──
     const updateIndicator = useCallback((targetEl) => {
@@ -73,7 +86,6 @@ const LandingPage = () => {
         }
     };
 
-    const { user, isAuthenticated, logout } = useAuth();
     const [showProfileMenu, setShowProfileMenu] = useState(false);
 
     const [stats, setStats] = useState({
@@ -192,66 +204,33 @@ const LandingPage = () => {
                     <div className="lp-nav-actions">
                         {isAuthenticated ? (
                             <div className="lp-profile-menu">
-                                <button
-                                    className="lp-profile-btn"
-                                    onClick={() => setShowProfileMenu(!showProfileMenu)}
-                                    title={user?.nama_lengkap || user?.nama_mitra || user?.nama || 'User'}
-                                >
+                                <button className="lp-profile-btn" onClick={() => setShowProfileMenu(!showProfileMenu)} title={user?.nama_lengkap || user?.nama_mitra || user?.nama || 'User'}>
                                     <div className="lp-profile-avatar">
-                                        <span className="material-symbols-outlined">account_circle</span>
-                                    </div>
+                                        {(() => {
+                                            const name = user?.nama_lengkap || user?.nama_mitra || user?.nama || 'User';
+                                            const names = name.trim().split(' ');
+                                            return names.length >= 2 ? (names[0][0] + names[1][0]).toUpperCase() : name.substring(0, 2).toUpperCase();
+                                        })()}
+                                   </div>
                                 </button>
-
                                 {showProfileMenu && (
                                     <div className="lp-profile-dropdown">
                                         <div className="lp-profile-info">
-                                            <p className="lp-profile-name">
-                                                {user?.nama_lengkap || user?.nama_mitra || user?.nama || 'User'}
-                                            </p>
+                                            <p className="lp-profile-name">{user?.nama_lengkap || user?.nama_mitra || user?.nama || 'User'}</p>
                                             <p className="lp-profile-email">{user?.email}</p>
                                         </div>
                                         <hr className="lp-profile-divider" />
-                                        <button
-                                            className="lp-profile-link"
-                                            onClick={() => {
-                                                navigate('/profile');
-                                                setShowProfileMenu(false);
-                                            }}
-                                        >
-                                            <span className="material-symbols-outlined">person</span>
-                                            Profil Saya
+                                        <button className="lp-profile-link" onClick={() => { navigate('/profile'); setShowProfileMenu(false); }}>
+                                            <span className="material-symbols-outlined">person</span> Profil Saya
                                         </button>
-                                        <button
-                                            className="lp-profile-link"
-                                            onClick={() => {
-                                                navigate('/settings');
-                                                setShowProfileMenu(false);
-                                            }}
-                                        >
-                                            <span className="material-symbols-outlined">settings</span>
-                                            Pengaturan
-                                        </button>
-                                        <button
-                                            className="lp-profile-link lp-profile-logout"
-                                            onClick={() => {
-                                                logout();
-                                                setShowProfileMenu(false);
-                                                navigate('/');
-                                            }}
-                                        >
-                                            <span className="material-symbols-outlined">logout</span>
-                                            Keluar
+                                        <button className="lp-profile-link lp-profile-logout" onClick={() => { logout(); setShowProfileMenu(false); window.location.href = '/'; }}>
+                                            <span className="material-symbols-outlined">logout</span> Keluar
                                         </button>
                                     </div>
                                 )}
                             </div>
                         ) : (
-                            <button
-                                onClick={() => navigate('/login')}
-                                className="lp-btn-primary"
-                            >
-                                Masuk / Daftar
-                            </button>
+                            <button onClick={() => navigate('/login')} className="lp-btn-primary">Masuk / Daftar</button>
                         )}
                     </div>
                 </div>
@@ -271,9 +250,107 @@ const LandingPage = () => {
                             Temukan layanan harian terbaik untuk kosmu di Solo dengan jaminan keamanan 100%.
                         </p>
 
-                        {/* LocationSearch — Autocomplete + Mini-Map */}
-                        <LocationSearch onSearchSubmit={handleSearchSubmit} />
+                        <button className="lp-hero-location-btn" onClick={() => setIsMapOpen(true)}>
+                            <div className="lp-hero-location-icon-wrapper">
+                                <span className="material-symbols-outlined lp-hero-location-icon" style={{fontVariationSettings: "'FILL' 1"}}>location_on</span>
+                            </div>
+                            <div className="lp-hero-location-text">
+                                <span className="lp-hero-location-label">
+                                    {location.isConfirmed 
+                                        ? (location.isFromProfile ? 'Kirim ke (Sesuai Profil):' : 'Kirim ke (Lokasi Sementara):') 
+                                        : 'Kirim ke:'}
+                                </span>
+                                <span className="lp-hero-location-value" title={location.isConfirmed ? location.address : 'Belum Diatur'}>
+                                    {location.isConfirmed ? location.address : 'Belum Diatur - Pilih Lokasi'}
+                                </span>
+                            </div>
+                            <span className="material-symbols-outlined lp-hero-location-chevron">expand_more</span>
+                        </button>
                     </div>
+
+                    {/* Location Modal */}
+                    {isMapOpen && (
+                        <div className="lp-modal-overlay" onClick={() => setIsMapOpen(false)}>
+                            <div className="lp-modal-content" onClick={(e) => e.stopPropagation()}>
+                                <div className="lp-modal-header">
+                                    <h3 className="lp-modal-title">Atur Lokasi Pengiriman</h3>
+                                    <button className="lp-modal-close" onClick={() => setIsMapOpen(false)}>
+                                        <span className="material-symbols-outlined">close</span>
+                                    </button>
+                                </div>
+                                <div className="lp-modal-body">
+                                    {isAuthenticated && user?.latitude && user?.longitude && !isSelectingNew ? (
+                                        <div className="lp-location-options">
+                                            <p className="lp-location-options-title">
+                                                Pilih alamat pengiriman untuk layanan KostHub:
+                                            </p>
+                                            
+                                            {/* Option 1: Profile Address */}
+                                            <div 
+                                                className={`lp-loc-option ${location.isFromProfile ? 'lp-loc-option--active' : ''}`}
+                                                onClick={() => {
+                                                    syncWithUser(user);
+                                                    setIsMapOpen(false);
+                                                }}
+                                            >
+                                                <div className="lp-loc-option-icon">
+                                                    <span className="material-symbols-outlined">home</span>
+                                                </div>
+                                                <div className="lp-loc-option-text">
+                                                    <h4>Gunakan Alamat Profil</h4>
+                                                    <p>{user.address_detail || 'Sesuai Profil'}</p>
+                                                </div>
+                                                {location.isFromProfile && <span className="material-symbols-outlined lp-loc-check">check_circle</span>}
+                                            </div>
+
+                                            {/* Option 2: Temporary Address */}
+                                            <div 
+                                                className={`lp-loc-option ${!location.isFromProfile && location.isConfirmed ? 'lp-loc-option--active' : ''}`}
+                                                onClick={() => setIsSelectingNew(true)}
+                                            >
+                                                <div className="lp-loc-option-icon">
+                                                    <span className="material-symbols-outlined">pin_drop</span>
+                                                </div>
+                                                <div className="lp-loc-option-text">
+                                                    <h4>Alamat Sementara</h4>
+                                                    <p>
+                                                        {!location.isFromProfile && location.isConfirmed 
+                                                            ? location.address 
+                                                            : 'Cari lokasi lain di peta...'}
+                                                    </p>
+                                                </div>
+                                                {!location.isFromProfile && location.isConfirmed && <span className="material-symbols-outlined lp-loc-check">check_circle</span>}
+                                                {location.isFromProfile && <span className="material-symbols-outlined lp-loc-arrow">chevron_right</span>}
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div>
+                                            {isAuthenticated && user?.latitude && user?.longitude && (
+                                                <button 
+                                                    onClick={() => setIsSelectingNew(false)}
+                                                    className="lp-loc-back-btn"
+                                                >
+                                                    <span className="material-symbols-outlined">arrow_back</span>
+                                                    Kembali ke Pilihan Alamat
+                                                </button>
+                                            )}
+                                            <LocationSearch 
+                                                onConfirm={() => {
+                                                    setIsMapOpen(false);
+                                                    setIsSelectingNew(false);
+                                                }}
+                                                onSearchSubmit={() => {
+                                                    setIsMapOpen(false);
+                                                    setIsSelectingNew(false);
+                                                    handleSearchSubmit();
+                                                }}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Abstract Background Element */}
                     <div className="lp-hero-bg">

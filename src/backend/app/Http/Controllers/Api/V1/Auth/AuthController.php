@@ -11,6 +11,8 @@ use Illuminate\Http\Request;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use App\Http\Requests\Auth\UpdateProfileRequest;
 
 class AuthController extends Controller
 {
@@ -91,6 +93,41 @@ class AuthController extends Controller
         return response()->json([
             'data'  => $request->user(),
             'guard' => $activeGuard,
+        ]);
+    }
+
+    /**
+     * PUT /api/v1/auth/me
+     */
+    public function updateProfile(UpdateProfileRequest $request): JsonResponse
+    {
+        $user = $request->user();
+        $validated = $request->validated();
+
+        // Update password if old_password and new_password are provided
+        if (!empty($validated['old_password']) && !empty($validated['new_password'])) {
+            if (!Hash::check($validated['old_password'], $user->password)) {
+                return response()->json([
+                    'message' => 'Kata sandi lama tidak sesuai.',
+                    'errors' => ['old_password' => ['Kata sandi lama salah.']]
+                ], 422);
+            }
+            $user->password = Hash::make($validated['new_password']);
+        }
+
+        // Update other fields dynamically
+        $fillable = $user->getFillable();
+        foreach ($validated as $key => $value) {
+            if (in_array($key, $fillable) && $key !== 'password') {
+                $user->{$key} = $value;
+            }
+        }
+
+        $user->save();
+
+        return response()->json([
+            'message' => 'Profil berhasil diperbarui.',
+            'data' => $user
         ]);
     }
 

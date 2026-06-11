@@ -2,7 +2,9 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { useLocation } from '../../../context/LocationContext';
+import { useAuth } from '../../../context/AuthContext';
 import { useDebounce } from '../../../hooks/useDebounce';
+import api from '../../../services/api';
 import './LocationSearch.css';
 
 // ══════════════════════════════════════════════════════════════
@@ -89,6 +91,7 @@ const DraggableMarker = ({ position, onDragEnd }) => {
  */
 const LocationSearch = ({ onConfirm, onSearchSubmit }) => {
     const { location, setLocation } = useLocation();
+    const { isAuthenticated, updateUser } = useAuth();
 
     // Input & autocomplete state
     const [query, setQuery] = useState('');
@@ -254,11 +257,11 @@ const LocationSearch = ({ onConfirm, onSearchSubmit }) => {
     };
 
     /**
-     * Tombol "Konfirmasi Lokasi" — simpan ke context.
+     * Tombol "Konfirmasi Lokasi" — simpan ke context dan database jika login.
      */
-    const handleConfirmLocation = () => {
+    const handleConfirmLocation = async () => {
         if (pinLat && pinLng && selectedAddress) {
-            setLocation(selectedAddress, pinLat, pinLng);
+            setLocation(selectedAddress, pinLat, pinLng, false); // isFromProfile = false
             setIsConfirmed(true);
             if (onConfirm) onConfirm();
         }

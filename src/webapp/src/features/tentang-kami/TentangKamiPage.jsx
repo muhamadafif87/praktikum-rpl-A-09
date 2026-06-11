@@ -1,5 +1,6 @@
 import React, { useRef, useLayoutEffect, useCallback, useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import TransitionLink from '../../components/ViewTransition/TransitionLink';
 import '../landing/LandingPage/LandingPage.css';
 import './TentangKamiPage.css';
@@ -47,6 +48,8 @@ const TentangKamiPage = () => {
     const navigate = useNavigate();
     const navLinksRef = useRef(null);
     const [activeTab, setActiveTab] = useState('misi');
+    const { user, isAuthenticated, logout } = useAuth();
+    const [showProfileMenu, setShowProfileMenu] = useState(false);
 
     const tabContent = {
         misi: "Layanan yang tepat waktu dan transparan adalah kunci dari ekosistem yang kami bangun. Kami bekerja keras untuk memverifikasi setiap mitra agar Anda bisa fokus sepenuhnya pada perkuliahan.",
@@ -144,12 +147,36 @@ const TentangKamiPage = () => {
                     </ul>
 
                     <div className="lp-nav-actions">
-                        <button
-                            onClick={() => navigate('/login')}
-                            className="lp-btn-primary"
-                        >
-                            Masuk / Daftar
-                        </button>
+                        {isAuthenticated ? (
+                            <div className="lp-profile-menu">
+                                <button className="lp-profile-btn" onClick={() => setShowProfileMenu(!showProfileMenu)} title={user?.nama_lengkap || user?.nama_mitra || user?.nama || 'User'}>
+                                    <div className="lp-profile-avatar">
+                                        {(() => {
+                                            const name = user?.nama_lengkap || user?.nama_mitra || user?.nama || 'User';
+                                            const names = name.trim().split(' ');
+                                            return names.length >= 2 ? (names[0][0] + names[1][0]).toUpperCase() : name.substring(0, 2).toUpperCase();
+                                        })()}
+                                   </div>
+                                </button>
+                                {showProfileMenu && (
+                                    <div className="lp-profile-dropdown">
+                                        <div className="lp-profile-info">
+                                            <p className="lp-profile-name">{user?.nama_lengkap || user?.nama_mitra || user?.nama || 'User'}</p>
+                                            <p className="lp-profile-email">{user?.email}</p>
+                                        </div>
+                                        <hr className="lp-profile-divider" />
+                                        <button className="lp-profile-link" onClick={() => { navigate('/profile'); setShowProfileMenu(false); }}>
+                                            <span className="material-symbols-outlined">person</span> Profil Saya
+                                        </button>
+                                        <button className="lp-profile-link lp-profile-logout" onClick={() => { logout(); setShowProfileMenu(false); navigate('/'); }}>
+                                            <span className="material-symbols-outlined">logout</span> Keluar
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <button onClick={() => navigate('/login')} className="lp-btn-primary">Masuk / Daftar</button>
+                        )}
                     </div>
                 </div>
             </nav>

@@ -26,8 +26,7 @@ import AdminSecurity from './features/admin/AdminSecurity/AdminSecurity';
 import AdminMaintenance from './features/admin/AdminMaintenance/AdminMaintenance';
 import AdminSettings from './features/admin/AdminSettings/AdminSettings';
 
-// Placeholder components for dashboard pages
-const ProfilePage = () => <div style={{ padding: '20px' }}><h1>Profil Saya</h1></div>;
+import ProfilePage from './features/profile/ProfilePage';
 const SettingsPage = () => <div style={{ padding: '20px' }}><h1>Pengaturan</h1></div>;
 
 const App = () => {
@@ -58,9 +57,9 @@ const App = () => {
                 <Route path="/dashboard/mitra/chat" element={<ChatMitra />} />
                 <Route path="/dashboard/mitra/reviews" element={<ReviewMitra />} />
                 <Route path="/dashboard/mitra/settings" element={<PengaturanMitra />} />
-                <Route path="/dashboard/mitra/finance" element={<MitraFinance />} />
-                <Route path="/dashboard/mitra/inventory" element={<MitraInventory />} />
-                <Route path="/dashboard/mitra/orders" element={<MitraOrders />} />
+                <Route path="/dashboard/mitra/finance" element={<MitraDashboardPage tab="finance" />} />
+                <Route path="/dashboard/mitra/inventory" element={<MitraDashboardPage tab="inventory" />} />
+                <Route path="/dashboard/mitra/orders" element={<MitraDashboardPage tab="orders" />} />
                 <Route path="/dashboard/mitra/support" element={<HelpSupportMitra />} />
 
                 {/* Profile routes */}

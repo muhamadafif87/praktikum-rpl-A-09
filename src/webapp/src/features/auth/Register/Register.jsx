@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
+import { useLocation } from '../../../context/LocationContext';
 import './Register.css';
 
 const Register = () => {
     const navigate = useNavigate();
     const { login: authLogin } = useAuth();
+    const { location, syncWithUser } = useLocation();
 
     // ── Form State ──
     const [formData, setFormData] = useState({
@@ -77,7 +79,30 @@ const Register = () => {
             // Update AuthContext and LocalStorage seamlessly
             if (data?.user && data?.token) {
                 const guard = data.guard || 'web';
-                authLogin(data.user, data.token, guard);
+                
+                // Inherit Guest Location to Profile
+                let finalUser = data.user;
+                if (location.isConfirmed && !location.isFromProfile && location.lat && location.lng) {
+                    try {
+                        const tokenStr = `Bearer ${data.token}`;
+                        const putResponse = await api.put('/v1/auth/me', {
+                            latitude: location.lat,
+                            longitude: location.lng,
+                            address_detail: location.address
+                        }, {
+                            headers: { Authorization: tokenStr }
+                        });
+                        
+                        if (putResponse.data?.data) {
+                            finalUser = putResponse.data.data;
+                            syncWithUser(finalUser);
+                        }
+                    } catch (e) {
+                        console.error('Failed to sync guest location to new profile:', e);
+                    }
+                }
+
+                authLogin(finalUser, data.token, guard);
             }
 
             // Redirect to home after successful registration for user
