@@ -110,10 +110,12 @@ const GasGalonDetail = () => {
                 const resData = response.data.data;
                 setData(resData);
                 if (resData?.layanan?.length > 0) {
-                    const first = resData.layanan[0];
-                    setSelectedProductIds(new Set([first.id_layanan]));
-                    setQtyProduct({ [first.id_layanan]: 1 });
-                    setKondisiPerProduk({ [first.id_layanan]: 'refill' });
+                    const firstAvailable = resData.layanan.find(l => l.stok_tersedia === null || l.stok_tersedia > 0);
+                    if (firstAvailable) {
+                        setSelectedProductIds(new Set([firstAvailable.id_layanan]));
+                        setQtyProduct({ [firstAvailable.id_layanan]: 1 });
+                        setKondisiPerProduk({ [firstAvailable.id_layanan]: 'refill' });
+                    }
                 }
             } catch (err) {
                 setError(err.response?.data?.message || 'Terjadi kesalahan saat memuat data');
@@ -226,6 +228,11 @@ const GasGalonDetail = () => {
             return;
         }
 
+        if (!useProfileData && (!namaLengkap.trim() || !noWa.trim())) {
+            setSubmitError('Nama Lengkap dan Nomor WhatsApp pengirim wajib diisi.');
+            return;
+        }
+
         const biayaTambahan = [...selectedProductIds].map(id => {
             const produk = data.layanan.find(l => l.id_layanan === id);
             const isNew = kondisiPerProduk[id] === 'new';
@@ -259,6 +266,8 @@ const GasGalonDetail = () => {
                 estimasi:          estimate,
                 biayaTambahan,
                 catatanPengiriman: catatan || null,
+                namaPengirim:      !useProfileData ? namaLengkap : null,
+                nomorWhatsAppPengirim: !useProfileData ? noWa : null,
             });
             sessionStorage.setItem('checkoutContact', JSON.stringify({ nama: namaLengkap, phone: noWa }));
             navigate(`/checkout/${res.data.data.id_unique_pesanan}`);
@@ -355,8 +364,9 @@ const GasGalonDetail = () => {
                                 const isSelected = selectedProductIds.has(product.id_layanan);
                                 const qty = qtyProduct[product.id_layanan] || 1;
                                 const kondisi = kondisiPerProduk[product.id_layanan] || 'refill';
+                                const outOfStock = product.stok_tersedia !== null && product.stok_tersedia <= 0;
                                 return (
-                                    <label key={product.id_layanan} className={`dp-product-card ${isSelected ? 'active' : ''}`}>
+                                    <label key={product.id_layanan} className={`dp-product-card ${isSelected ? 'active' : ''} ${outOfStock ? 'dp-product-card--disabled' : ''}`} style={outOfStock ? { opacity: 0.6, cursor: 'not-allowed', backgroundColor: '#f8fafc' } : {}}>
                                         <input
                                             className="dp-product-radio"
                                             type="checkbox"
@@ -575,7 +585,7 @@ const GasGalonDetail = () => {
                             </div>
                         )}
                         {submitError && (
-                            <div className="dp-summary-error" style={{marginTop: '10px'}}>
+                            <div className="dp-summary-error" >
                                 <span className="material-symbols-outlined">error</span>
                                 <span>{submitError}</span>
                             </div>

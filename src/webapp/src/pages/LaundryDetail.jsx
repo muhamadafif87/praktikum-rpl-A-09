@@ -241,6 +241,11 @@ const LaundryDetail = () => {
             return;
         }
 
+        if (!useProfileData && (!namaLengkap.trim() || !noWa.trim())) {
+            setSubmitError('Nama Lengkap dan Nomor WhatsApp pengirim wajib diisi.');
+            return;
+        }
+
         const items = [];
         if (selectedKiloanIds.size > 0 && kiloanQty > 0) {
             [...selectedKiloanIds].forEach(id => {
@@ -284,6 +289,8 @@ const LaundryDetail = () => {
                 biayaTambahan: { durasi_pengerjaan: { biaya: 0, type: 'reguler' } },
                 estimasi: estimasiPayload,
                 catatanPengiriman: finalCatatan || null,
+                namaPengirim:      !useProfileData ? namaLengkap : null,
+                nomorWhatsAppPengirim: !useProfileData ? noWa : null,
             });
             sessionStorage.setItem('checkoutContact', JSON.stringify({ nama: namaLengkap, phone: noWa }));
             navigate(`/checkout/${res.data.data.id_unique_pesanan}`);

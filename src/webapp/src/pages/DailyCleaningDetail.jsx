@@ -224,6 +224,11 @@ const DailyCleaningDetail = () => {
             return;
         }
 
+        if (!useProfileData && (!namaLengkap.trim() || !noWa.trim())) {
+            setSubmitError('Nama Lengkap dan Nomor WhatsApp pengirim wajib diisi.');
+            return;
+        }
+
         const biayaTambahanAlat = {};
         if (data.alat_pembersih_tambahan) {
             Object.entries(data.alat_pembersih_tambahan).forEach(([nama, detail]) => {
@@ -266,6 +271,8 @@ const DailyCleaningDetail = () => {
                 ...(Object.keys(biayaTambahanAlat).length > 0 && { biayaTambahan: biayaTambahanAlat }),
                 estimasi: estimasiPayload,
                 catatanPengiriman: catatan || null,
+                namaPengirim:      !useProfileData ? namaLengkap : null,
+                nomorWhatsAppPengirim: !useProfileData ? noWa : null,
             });
             sessionStorage.setItem('checkoutContact', JSON.stringify({ nama: namaLengkap, phone: noWa }));
             navigate(`/checkout/${res.data.data.id_unique_pesanan}`);
@@ -634,7 +641,7 @@ const DailyCleaningDetail = () => {
                             </div>
                         )}
                         {submitError && (
-                            <div className="dp-summary-error" style={{marginTop: '10px'}}>
+                            <div className="dp-summary-error" >
                                 <span className="material-symbols-outlined">error</span>
                                 <span>{submitError}</span>
                             </div>
