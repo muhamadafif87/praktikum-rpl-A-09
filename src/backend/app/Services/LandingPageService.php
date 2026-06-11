@@ -63,8 +63,13 @@ class LandingPageService {
         if (!empty($kategori) && !in_array('All', $kategori, true)) {
             if (!empty($kategori)) {
                 $names = array_values(array_unique($kategori));
-                $query->whereHas('Layanan', function ($q) use ($names) {
-                    $q->whereIn('nama_layanan', $names);
+                // $query->whereHas('Layanan', function ($q) use ($names) {
+                //     $q->whereIn('nama_layanan', $names);
+                // });
+                $query->where(function($q) use ($names) {
+                    foreach ($names as $name) {
+                        $q->orWhereJsonContains('catatan->jenis_kain', $name);
+                    }
                 });
             }
         }
@@ -189,7 +194,8 @@ class LandingPageService {
     {
         if ($lat !== null && $lng !== null) {
             $haversineSql = DistanceLocationService::haversineSqlExpression($lat, $lng);
-            $query->selectRaw("mitra.*, {$haversineSql} as jarak_km");
+            $query->selectRaw("mitra.*, {$haversineSql} as jarak_km")
+                  ->whereRaw("{$haversineSql} <= COALESCE(mitra.radius_layanan, 10)");
         }
 
         switch ($sortBy) {
@@ -256,7 +262,6 @@ class LandingPageService {
                     'satuan'       => $l->satuan,
                 ])->toArray(),
                 'jarak_km'       => isset($mitra->jarak_km) ? (float) $mitra->jarak_km : null,
-                'is_dalam_jangkauan' => isset($mitra->jarak_km) ? ((float) $mitra->jarak_km <= (float) ($mitra->radius_layanan ?? 10)) : true,
                 'sample_ulasan' => $reviews->map(function ($ulasan) {
                     $user = $ulasan->Pesanan?->User;
                     return [

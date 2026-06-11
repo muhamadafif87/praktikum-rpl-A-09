@@ -273,7 +273,6 @@ const LocationSearch = ({ onConfirm, onSearchSubmit }) => {
     const handleSearchSubmit = (e) => {
         if (e) e.preventDefault();
 
-        // Hanya lanjut jika lokasi sudah dikonfirmasi
         if (!isConfirmed) return;
 
         if (onSearchSubmit) onSearchSubmit();

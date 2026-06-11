@@ -11,10 +11,11 @@ const LandingPage = () => {
     const servicesRef = useRef(null);
     const navLinksRef = useRef(null);
     const [isAuthOpen, setIsAuthOpen] = useState(false);
+    const [isMapOpen, setIsMapOpen] = useState(false);
     const [isSelectingNew, setIsSelectingNew] = useState(false);
 
     const { user, isAuthenticated, logout } = useAuth();
-    const { location, syncWithUser, openMap } = useLocation();
+    const { location, syncWithUser } = useLocation();
 
     // ── Auto-sync Location from Profile ──
     useEffect(() => {
@@ -249,7 +250,7 @@ const LandingPage = () => {
                             Temukan layanan harian terbaik untuk kosmu di Solo dengan jaminan keamanan 100%.
                         </p>
 
-                        <button className="lp-hero-location-btn" onClick={openMap}>
+                        <button className="lp-hero-location-btn" onClick={() => setIsMapOpen(true)}>
                             <div className="lp-hero-location-icon-wrapper">
                                 <span className="material-symbols-outlined lp-hero-location-icon" style={{fontVariationSettings: "'FILL' 1"}}>location_on</span>
                             </div>
@@ -267,7 +268,89 @@ const LandingPage = () => {
                         </button>
                     </div>
 
-                    {/* Location Modal rendered globally in App.jsx */}
+                    {/* Location Modal */}
+                    {isMapOpen && (
+                        <div className="lp-modal-overlay" onClick={() => setIsMapOpen(false)}>
+                            <div className="lp-modal-content" onClick={(e) => e.stopPropagation()}>
+                                <div className="lp-modal-header">
+                                    <h3 className="lp-modal-title">Atur Lokasi Pengiriman</h3>
+                                    <button className="lp-modal-close" onClick={() => setIsMapOpen(false)}>
+                                        <span className="material-symbols-outlined">close</span>
+                                    </button>
+                                </div>
+                                <div className="lp-modal-body">
+                                    {isAuthenticated && user?.latitude && user?.longitude && !isSelectingNew ? (
+                                        <div className="lp-location-options">
+                                            <p className="lp-location-options-title">
+                                                Pilih alamat pengiriman untuk layanan KostHub:
+                                            </p>
+                                            
+                                            {/* Option 1: Profile Address */}
+                                            <div 
+                                                className={`lp-loc-option ${location.isFromProfile ? 'lp-loc-option--active' : ''}`}
+                                                onClick={() => {
+                                                    syncWithUser(user);
+                                                    setIsMapOpen(false);
+                                                }}
+                                            >
+                                                <div className="lp-loc-option-icon">
+                                                    <span className="material-symbols-outlined">home</span>
+                                                </div>
+                                                <div className="lp-loc-option-text">
+                                                    <h4>Gunakan Alamat Profil</h4>
+                                                    <p>{user.address_detail || 'Sesuai Profil'}</p>
+                                                </div>
+                                                {location.isFromProfile && <span className="material-symbols-outlined lp-loc-check">check_circle</span>}
+                                            </div>
+
+                                            {/* Option 2: Temporary Address */}
+                                            <div 
+                                                className={`lp-loc-option ${!location.isFromProfile && location.isConfirmed ? 'lp-loc-option--active' : ''}`}
+                                                onClick={() => setIsSelectingNew(true)}
+                                            >
+                                                <div className="lp-loc-option-icon">
+                                                    <span className="material-symbols-outlined">pin_drop</span>
+                                                </div>
+                                                <div className="lp-loc-option-text">
+                                                    <h4>Alamat Sementara</h4>
+                                                    <p>
+                                                        {!location.isFromProfile && location.isConfirmed 
+                                                            ? location.address 
+                                                            : 'Cari lokasi lain di peta...'}
+                                                    </p>
+                                                </div>
+                                                {!location.isFromProfile && location.isConfirmed && <span className="material-symbols-outlined lp-loc-check">check_circle</span>}
+                                                {location.isFromProfile && <span className="material-symbols-outlined lp-loc-arrow">chevron_right</span>}
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div>
+                                            {isAuthenticated && user?.latitude && user?.longitude && (
+                                                <button 
+                                                    onClick={() => setIsSelectingNew(false)}
+                                                    className="lp-loc-back-btn"
+                                                >
+                                                    <span className="material-symbols-outlined">arrow_back</span>
+                                                    Kembali ke Pilihan Alamat
+                                                </button>
+                                            )}
+                                            <LocationSearch 
+                                                onConfirm={() => {
+                                                    setIsMapOpen(false);
+                                                    setIsSelectingNew(false);
+                                                }}
+                                                onSearchSubmit={() => {
+                                                    setIsMapOpen(false);
+                                                    setIsSelectingNew(false);
+                                                    handleSearchSubmit();
+                                                }}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Abstract Background Element */}
                     <div className="lp-hero-bg">
