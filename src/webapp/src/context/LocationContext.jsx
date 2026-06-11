@@ -53,11 +53,8 @@ export const LocationProvider = ({ children }) => {
         }
     }, []);
 
-    const openMap = useCallback(() => setIsMapOpen(true), []);
-    const closeMap = useCallback(() => setIsMapOpen(false), []);
-
     return (
-        <LocationContext.Provider value={{ location, setLocation, clearLocation, syncWithUser, isMapOpen, openMap, closeMap }}>
+        <LocationContext.Provider value={{ location, setLocation, clearLocation, syncWithUser }}>
             {children}
         </LocationContext.Provider>
     );

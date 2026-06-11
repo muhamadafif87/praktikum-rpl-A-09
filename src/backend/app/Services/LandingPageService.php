@@ -63,8 +63,13 @@ class LandingPageService {
         if (!empty($kategori) && !in_array('All', $kategori, true)) {
             if (!empty($kategori)) {
                 $names = array_values(array_unique($kategori));
-                $query->whereHas('Layanan', function ($q) use ($names) {
-                    $q->whereIn('nama_layanan', $names);
+                // $query->whereHas('Layanan', function ($q) use ($names) {
+                //     $q->whereIn('nama_layanan', $names);
+                // });
+                $query->where(function($q) use ($names) {
+                    foreach ($names as $name) {
+                        $q->orWhereJsonContains('catatan->jenis_kain', $name);
+                    }
                 });
             }
         }

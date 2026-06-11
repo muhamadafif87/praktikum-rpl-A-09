@@ -2,7 +2,6 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './DetailMitraLaundry.css';
 import '../../landing/LandingPage/LandingPage.css';
-import '../skeleton.css';
 import TransitionLink from '../../../components/ViewTransition/TransitionLink';
 import { useAuth } from '../../../context/AuthContext';
 import { useLocation } from '../../../context/LocationContext';
