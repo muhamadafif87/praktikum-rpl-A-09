@@ -177,6 +177,31 @@
   }
 }
 
+.admin-logout-btn {
+  color: #ba1a1a;
+  background: none;
+  border: 1px solid var(--color-outline-variant, #c3c6d7);
+  padding: 0.4rem 0.75rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+}
+
+.admin-logout-btn:hover {
+  background: #ffdad6;
+  border-color: #ba1a1a;
+}
+
+.admin-logout-btn .material-symbols-outlined {
+  font-size: 1.15rem;
+}
+
 /* SideNavBar */
 .admin-side-nav {
   position: fixed;

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './AdminOverview.css';
 
 // --- Sub-components ---
 
-const TopNavBar = () => (
+const TopNavBar = ({ onLogout }) => (
   <nav className="admin-top-nav">
     <div className="flex items-center space-x-4">
       <a className="admin-top-nav-logo" href="#">
@@ -26,6 +26,9 @@ const TopNavBar = () => (
         />
         <span className="text-label-md admin-top-nav-profile-name">Admin Central</span>
       </div>
+      <button className="admin-logout-btn" onClick={onLogout} title="Logout">
+        <span className="material-symbols-outlined">logout</span>
+      </button>
     </div>
   </nav>
 );
@@ -272,8 +275,16 @@ const SystemStatus = ({ logs }) => {
 // --- Main Component ---
 
 const AdminOverview = () => {
+  const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const handleLogout = async () => {
+    try { await axios.post('/api/v1/auth/logout', {}, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }); } catch (err) { /* ignore */ }
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    navigate('/');
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -324,7 +335,7 @@ const AdminOverview = () => {
 
   return (
     <div className="admin-overview-page">
-      <TopNavBar />
+      <TopNavBar onLogout={handleLogout} />
       <SideNavBar />
       
       <main className="admin-main-content">
