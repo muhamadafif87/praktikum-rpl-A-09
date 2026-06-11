@@ -1,13 +1,18 @@
 import './DailyCleaningDetail.css';
 import '../features/landing/LandingPage/LandingPage.css';
 import React, { useState, useEffect, useRef, useLayoutEffect, useCallback } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useLocation as useGlobalLocation } from '../context/LocationContext';
+import { calculateDistance } from '../utils/distance';
+import FullScreenLoader from '../components/FullScreenLoader/FullScreenLoader';
 
 const DailyCleaningDetail = () => {
     const { id_mitra } = useParams();
     const navigate = useNavigate();
+    const { state } = useLocation();
+    const { location } = useGlobalLocation();
     const { user, isAuthenticated, logout } = useAuth();
 
     const [data, setData] = useState(null);
@@ -18,10 +23,26 @@ const DailyCleaningDetail = () => {
     const [selectedLayananIds, setSelectedLayananIds] = useState(new Set()); // multi-select
     const [qtyLayanan, setQtyLayanan] = useState({});         // { id_layanan: qty }
     const [selectedAlat, setSelectedAlat] = useState(new Set());
-    const [jarakOngkir, setJarakOngkir] = useState(1);
+    
+    const [jarakOngkir, setJarakOngkir] = useState(state?.jarak_km ? parseFloat(state.jarak_km) : 1);
     const [tanggal, setTanggal] = useState('');
     const [jam, setJam] = useState('');
     const [catatan, setCatatan] = useState('');
+    const [namaLengkap, setNamaLengkap] = useState('');
+    const [noWa, setNoWa] = useState('');
+    const [useProfileData, setUseProfileData] = useState(false);
+
+    useEffect(() => {
+        if (useProfileData && user) {
+            setNamaLengkap(user.nama_lengkap || user.nama || '');
+            setNoWa(user.nomor_telepon || user.no_telp || '');
+        } else if (useProfileData && !user) {
+            setUseProfileData(false);
+        } else {
+            setNamaLengkap('');
+            setNoWa('');
+        }
+    }, [useProfileData, user]);
 
     // Estimate fee state
     const [estimate, setEstimate] = useState(null);
@@ -106,6 +127,13 @@ const DailyCleaningDetail = () => {
     }, [id_mitra]);
 
     useEffect(() => {
+        if (data && location?.isConfirmed && data.latitude && data.longitude) {
+            const dist = calculateDistance(location.lat, location.lng, parseFloat(data.latitude), parseFloat(data.longitude));
+            if (!isNaN(dist)) setJarakOngkir(dist);
+        }
+    }, [data, location]);
+
+    useEffect(() => {
         if (!data) return;
 
         if (selectedLayananIds.size === 0) {
@@ -120,7 +148,8 @@ const DailyCleaningDetail = () => {
 
         const biayaTambahanAlat = {};
         if (data.alat_pembersih_tambahan) {
-            Object.entries(data.alat_pembersih_tambahan).forEach(([nama, harga]) => {
+            Object.entries(data.alat_pembersih_tambahan).forEach(([nama, detail]) => {
+                const harga = typeof detail === 'object' ? detail.harga : detail;
                 if (selectedAlat.has(nama)) biayaTambahanAlat[nama] = harga;
             });
         }
@@ -134,7 +163,7 @@ const DailyCleaningDetail = () => {
                     typeLayanan: 'daily_cleaning',
                     items: layananPayload,
                     jarakOngkir,
-                    ...(Object.keys(biayaTambahanAlat).length > 0 && { biayaTambahan: biayaTambahanAlat }),
+                    ...(Object.keys(biayaTambahanAlat).length > 0 && { biayaTambahanAlat }),
                 });
                 setEstimate(res.data.data);
             } catch (err) {
@@ -147,27 +176,34 @@ const DailyCleaningDetail = () => {
         return () => clearTimeout(timer);
     }, [data, selectedLayananIds, qtyLayanan, selectedAlat, jarakOngkir, id_mitra]);
 
-    if (loading || error || !data) {
+    if (loading) {
+        return (
+            <FullScreenLoader 
+                messages={[
+                    "Mempersiapkan halaman pemesanan...",
+                    "Menyiapkan preferensi...",
+                    "Menghitung ketersediaan jadwal..."
+                ]} 
+            />
+        );
+    }
+
+    if (error || !data) {
         return (
             <div className="dp-fallback">
                 <div className="dp-fallback-card">
                     <span className="material-symbols-outlined dp-fallback-icon" style={{fontVariationSettings: "'FILL' 1"}}>
-                        {loading ? 'hourglass_empty' : 'error'}
+                        error
                     </span>
                     <h2 className="dp-fallback-title">
-                        {loading ? 'Memuat Data...' : 'Terjadi Kesalahan'}
+                        Terjadi Kesalahan
                     </h2>
                     <p className="dp-fallback-text">
-                        {loading ? 'Mohon tunggu sebentar.' : error || 'Data pesanan tidak ditemukan.'}
+                        {error || 'Data pesanan tidak ditemukan.'}
                     </p>
-                    {!loading && (
-                        <button
-                            onClick={() => navigate(-1)}
-                            className="dp-fallback-btn"
-                        >
-                            Kembali ke Halaman Sebelumnya
-                        </button>
-                    )}
+                    <button onClick={() => window.location.reload()} className="dp-btn-primary">
+                        Coba Lagi
+                    </button>
                 </div>
             </div>
         );
@@ -178,7 +214,7 @@ const DailyCleaningDetail = () => {
     const biayaAlat = data?.alat_pembersih_tambahan
         ? Object.entries(data.alat_pembersih_tambahan)
             .filter(([nama]) => selectedAlat.has(nama))
-            .reduce((sum, [, harga]) => sum + harga, 0)
+            .reduce((sum, [, detail]) => sum + (typeof detail === 'object' ? detail.harga : detail), 0)
         : 0;
 
     const handleSubmit = async () => {
@@ -189,7 +225,8 @@ const DailyCleaningDetail = () => {
 
         const biayaTambahanAlat = {};
         if (data.alat_pembersih_tambahan) {
-            Object.entries(data.alat_pembersih_tambahan).forEach(([nama, harga]) => {
+            Object.entries(data.alat_pembersih_tambahan).forEach(([nama, detail]) => {
+                const harga = typeof detail === 'object' ? detail.harga : detail;
                 if (selectedAlat.has(nama)) biayaTambahanAlat[nama] = harga;
             });
         }
@@ -229,7 +266,8 @@ const DailyCleaningDetail = () => {
                 estimasi: estimasiPayload,
                 catatanPengiriman: catatan || null,
             });
-            navigate(`/pesanan/${res.data.data.id_unique_pesanan}/sukses`);
+            sessionStorage.setItem('checkoutContact', JSON.stringify({ nama: namaLengkap, phone: noWa }));
+            navigate(`/checkout/${res.data.data.id_unique_pesanan}`);
         } catch (err) {
             setSubmitError(err.response?.data?.message || 'Gagal membuat pesanan. Silakan coba lagi.');
         } finally {
@@ -352,7 +390,7 @@ const DailyCleaningDetail = () => {
                                         />
                                         <div className="dp-card-radio-content">
                                             <div className="dp-card-title">{layanan.nama_layanan}</div>
-                                            <div className="dp-card-price">Rp {parseInt(layanan.harga_layanan).toLocaleString('id-ID')} / jam</div>
+                                            <div className="dp-card-price">Rp {parseInt(layanan.harga_layanan).toLocaleString('id-ID')} / {layanan.satuan || 'jam'}</div>
                                             {isChecked && (
                                                 <>
                                                     <div className="dp-qty-row" onClick={e => e.preventDefault()}>
@@ -387,15 +425,21 @@ const DailyCleaningDetail = () => {
                             <h2 className="dp-section-title">Alat Pembersih Tambahan</h2>
                         </div>
                         <div className="dp-alat-grid">
-                            {data?.alat_pembersih_tambahan && Object.entries(data.alat_pembersih_tambahan).map(([nama, harga]) => {
+                            {data?.alat_pembersih_tambahan && Object.entries(data.alat_pembersih_tambahan).map(([nama, detail]) => {
                                 const isChecked = selectedAlat.has(nama);
+                                const harga = typeof detail === 'object' ? detail.harga : detail;
+                                const stok = typeof detail === 'object' ? detail.stok : null;
+                                const outOfStock = stok !== null && stok <= 0;
+
                                 return (
-                                    <label key={nama} className={`dp-alat-item ${isChecked ? 'dp-alat-item--selected' : ''}`}>
+                                    <label key={nama} className={`dp-alat-item ${isChecked ? 'dp-alat-item--selected' : ''} ${outOfStock ? 'dp-alat-item--disabled' : ''}`}>
                                         <input
                                             className="dp-alat-input"
                                             type="checkbox"
                                             checked={isChecked}
+                                            disabled={outOfStock}
                                             onChange={() => {
+                                                if (outOfStock) return;
                                                 setSelectedAlat(prev => {
                                                     const next = new Set(prev);
                                                     next.has(nama) ? next.delete(nama) : next.add(nama);
@@ -409,6 +453,11 @@ const DailyCleaningDetail = () => {
                                         <div className="dp-alat-info">
                                             <div className="dp-alat-name">{nama}</div>
                                             <div className="dp-alat-price">+ Rp {harga.toLocaleString('id-ID')}</div>
+                                            {stok !== null && (
+                                                <div className="dp-alat-stock" style={{fontSize: '0.75rem', color: outOfStock ? 'var(--dp-error)' : 'var(--dp-on-surface-variant)', marginTop: '2px'}}>
+                                                    {outOfStock ? 'Stok Habis' : `Sisa Stok: ${stok}`}
+                                                </div>
+                                            )}
                                         </div>
                                         {isChecked && (
                                             <span className="material-symbols-outlined dp-alat-check" style={{fontVariationSettings: "'FILL' 1"}}>
@@ -460,16 +509,57 @@ const DailyCleaningDetail = () => {
                                 </div>
                             </div>
                         </div>
-                        <div className="dp-form-group" style={{marginTop: '12px'}}>
-                            <label className="dp-form-label">Jarak ke Lokasi (km)</label>
-                            <input
-                                className="dp-input"
-                                type="number"
-                                min="1"
-                                value={jarakOngkir}
-                                onChange={(e) => setJarakOngkir(Math.max(1, parseInt(e.target.value) || 1))}
-                                style={{maxWidth: '160px'}}
-                            />
+                    </section>
+
+                    <section className="dp-section">
+                        <div className="dp-section-header">
+                            <span className="material-symbols-outlined dp-section-icon" style={{fontVariationSettings: "'FILL' 1"}}>person</span>
+                            <h2 className="dp-section-title">Detail Pengiriman</h2>
+                        </div>
+                        
+                        {user && (
+                            <div
+                                className={`dp-profile-toggle-card ${useProfileData ? 'active' : ''}`}
+                                onClick={() => setUseProfileData(!useProfileData)}
+                            >
+                                <div className="dp-profile-toggle-icon">
+                                    <span className="material-symbols-outlined" style={{fontVariationSettings: "'FILL' 1"}}>
+                                        {useProfileData ? 'check_circle' : 'person'}
+                                    </span>
+                                </div>
+                                <div className="dp-profile-toggle-content">
+                                    <span className="dp-profile-toggle-title">Gunakan Data Profil Saya</span>
+                                    <span className="dp-profile-toggle-desc">Isi otomatis nama dan nomor telepon Anda</span>
+                                </div>
+                                <div className="dp-profile-toggle-switch">
+                                    <div className="dp-switch-knob"></div>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="dp-form-group-flex">
+                            <div>
+                                <label className="dp-form-label">Nama Lengkap</label>
+                                <input
+                                    className="dp-input"
+                                    placeholder="Masukkan nama Anda"
+                                    type="text"
+                                    value={namaLengkap}
+                                    onChange={(e) => setNamaLengkap(e.target.value)}
+                                    disabled={useProfileData}
+                                />
+                            </div>
+                            <div>
+                                <label className="dp-form-label">Nomor WhatsApp</label>
+                                <input
+                                    className="dp-input"
+                                    placeholder="08xxxxxxxxxx"
+                                    type="tel"
+                                    value={noWa}
+                                    onChange={(e) => setNoWa(e.target.value)}
+                                    disabled={useProfileData}
+                                />
+                            </div>
                         </div>
                     </section>
 

@@ -77,7 +77,7 @@ const DetailMitraLaundry = ({ onOrderClick }) => {
                 onOrderClick(mitra);
             }
         } else {
-            navigate(`/laundry/${mitra.id}/pesan`);
+            navigate(`/laundry/${mitra.id}/pesan`, { state: { jarak_km: mitra.distance ? parseFloat(mitra.distance) : 1 } });
         }
     };
 
@@ -115,9 +115,11 @@ const DetailMitraLaundry = ({ onOrderClick }) => {
                     rating: mitra.rating,
                     reviewCount: mitra.jumlah_ulasan,
                     description: mitra.deskripsi || `${mitra.jenis_jasa} terpercaya. ${mitra.layanan?.length || 0} jenis layanan tersedia.`,
-                    price: mitra.layanan?.length > 0
-                        ? `Mulai dari Rp ${parseInt(mitra.layanan[0].harga_satuan).toLocaleString('id-ID')}`
-                        : 'Hubungi untuk info harga',
+                    price: (() => {
+                        if (!mitra.layanan || mitra.layanan.length === 0) return 'Hubungi untuk info harga';
+                        const prices = mitra.layanan.map(l => parseInt(l.harga_satuan)).filter(p => !isNaN(p) && p > 0);
+                        return prices.length > 0 ? `Mulai dari Rp ${Math.min(...prices).toLocaleString('id-ID')}` : 'Hubungi untuk info harga';
+                    })(),
                     layanan: mitra.layanan || [],
                     reviews: (mitra.sample_ulasan || [])
                         .map((ulasan) => ({
@@ -242,9 +244,9 @@ const DetailMitraLaundry = ({ onOrderClick }) => {
                                     <label className="dm-filter-label">Kategori</label>
                                     <div className="dm-filter-options">
                                         {[
-                                            { key: 'Pakaian', label: 'Pakaian' },
-                                            { key: 'Sprei', label: 'Sprei' },
-                                            { key: 'Bedcover', label: 'Bedcover' },
+                                            { key: 'Laundry Kiloan Reguler', label: 'Kiloan Reguler' },
+                                            { key: 'Laundry Kiloan Express', label: 'Kiloan Express' },
+                                            { key: 'Kemeja', label: 'Satuan' },
                                             { key: 'All', label: 'Semuanya' },
                                         ].map((cat) => (
                                             <label key={cat.key} className="dm-checkbox-label">
@@ -312,12 +314,24 @@ const DetailMitraLaundry = ({ onOrderClick }) => {
                                 </button>
                             </div>
                         ) : mitraList.length === 0 ? (
-                            <div className="dm-empty-container">
-                                <span className="material-symbols-outlined">inbox</span>
-                                <p>Tidak ada data mitra tersedia</p>
+                            <div className="dm-empty-container" style={{ gridColumn: '1 / -1', padding: '5rem 1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f8fafc', borderRadius: '1rem', border: '1px dashed #cbd5e1' }}>
+                                <div style={{ background: '#eff6ff', padding: '1.5rem', borderRadius: '50%', marginBottom: '1.5rem' }}>
+                                    <span className="material-symbols-outlined" style={{ fontSize: '48px', color: '#3b82f6' }}>search_off</span>
+                                </div>
+                                <h4 style={{ margin: '0 0 0.5rem', color: '#0f172a', fontSize: '1.5rem', fontWeight: '700', textAlign: 'center', letterSpacing: '-0.025em' }}>Mitra Tidak Ditemukan</h4>
+                                <p style={{ color: '#64748b', textAlign: 'center', maxWidth: '450px', margin: '0 auto 2rem', lineHeight: '1.6' }}>Maaf, kami tidak dapat menemukan mitra yang sesuai dengan filter pencarianmu. Coba sesuaikan filter untuk melihat hasil lainnya.</p>
+                                <button 
+                                    onClick={() => setSelectedCategories([])}
+                                    style={{ padding: '0.875rem 1.5rem', background: '#ffffff', color: '#0f172a', border: '1px solid #cbd5e1', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.5rem', transition: 'all 0.2s', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}
+                                    onMouseOver={(e) => { e.currentTarget.style.backgroundColor = '#f8fafc'; e.currentTarget.style.borderColor = '#94a3b8'; }}
+                                    onMouseOut={(e) => { e.currentTarget.style.backgroundColor = '#ffffff'; e.currentTarget.style.borderColor = '#cbd5e1'; }}
+                                >
+                                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>restart_alt</span>
+                                    Reset Filter
+                                </button>
                             </div>
                         ) : (
-                            <div className="dm-mitra-list">
+                            <>
                                 {!location.isConfirmed ? (
                                     <div className="dm-empty-container" style={{ gridColumn: '1 / -1', padding: '4rem 1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                                         <span className="material-symbols-outlined" style={{ fontSize: '64px', color: '#9ca3af' }}>location_off</span>
@@ -332,7 +346,12 @@ const DetailMitraLaundry = ({ onOrderClick }) => {
                                         </button>
                                     </div>
                                 ) : mitraList.map((mitra) => (
-                                    <article key={mitra.id} className="dm-card">
+                                    <article 
+                                        key={mitra.id} 
+                                        className={`dm-card ${(location.isConfirmed && mitra.isDalamJangkauan) ? 'dm-card-clickable' : ''}`}
+                                        onClick={() => location.isConfirmed && mitra.isDalamJangkauan && handleOrderClick(mitra)}
+                                        style={{ cursor: (location.isConfirmed && mitra.isDalamJangkauan) ? 'pointer' : 'default' }}
+                                    >
                                         <div className="dm-card-body">
                                             <div className="dm-card-img-wrapper">
                                                 <img className="dm-card-img" src={mitra.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(mitra.name)}&background=random&color=fff&size=300`} alt={mitra.name} />
@@ -359,7 +378,10 @@ const DetailMitraLaundry = ({ onOrderClick }) => {
                                                     <div className="dm-card-price">{mitra.price}</div>
                                                     <button
                                                         className={`dmc-card-order-btn ${(!location.isConfirmed || !mitra.isDalamJangkauan) ? 'dmc-card-order-btn-disabled' : ''}`}
-                                                        onClick={() => location.isConfirmed && mitra.isDalamJangkauan && handleOrderClick(mitra)}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            if (location.isConfirmed && mitra.isDalamJangkauan) handleOrderClick(mitra);
+                                                        }}
                                                         disabled={!location.isConfirmed || !mitra.isDalamJangkauan}
                                                         style={{ opacity: (!location.isConfirmed || !mitra.isDalamJangkauan) ? 0.5 : 1, cursor: (!location.isConfirmed || !mitra.isDalamJangkauan) ? 'not-allowed' : 'pointer' }}
                                                     >
@@ -387,7 +409,7 @@ const DetailMitraLaundry = ({ onOrderClick }) => {
                                         </div>
                                     </article>
                                 ))}
-                            </div>
+                            </>
                         )}
                     </section>
                 </div>

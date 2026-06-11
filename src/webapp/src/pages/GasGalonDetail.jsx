@@ -1,13 +1,18 @@
 import './GasGalonDetail.css';
 import '../features/landing/LandingPage/LandingPage.css';
 import React, { useState, useEffect, useRef, useLayoutEffect, useCallback } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useLocation as useGlobalLocation } from '../context/LocationContext';
+import { calculateDistance } from '../utils/distance';
+import FullScreenLoader from '../components/FullScreenLoader/FullScreenLoader';
 
 const GasGalonDetail = () => {
     const { id_mitra } = useParams();
     const navigate = useNavigate();
+    const { state } = useLocation();
+    const { location } = useGlobalLocation();
     const { user, isAuthenticated, logout } = useAuth();
 
     const [data, setData] = useState(null);
@@ -18,11 +23,24 @@ const GasGalonDetail = () => {
     const [selectedProductIds, setSelectedProductIds] = useState(new Set()); // multi-select
     const [qtyProduct, setQtyProduct] = useState({});           // { id_layanan: qty }
     const [kondisiPerProduk, setKondisiPerProduk] = useState({}); // { id_layanan: 'refill' | 'new' }
-    const [jarakOngkir, setJarakOngkir] = useState(1);
+    const [jarakOngkir, setJarakOngkir] = useState(state?.jarak_km ? parseFloat(state.jarak_km) : 1);
     const [jam, setJam] = useState('');
     const [namaLengkap, setNamaLengkap] = useState('');
     const [noWa, setNoWa] = useState('');
     const [catatan, setCatatan] = useState('');
+    const [useProfileData, setUseProfileData] = useState(false);
+
+    useEffect(() => {
+        if (useProfileData && user) {
+            setNamaLengkap(user.nama_lengkap || user.nama || '');
+            setNoWa(user.nomor_telepon || user.no_telp || '');
+        } else if (useProfileData && !user) {
+            setUseProfileData(false);
+        } else {
+            setNamaLengkap('');
+            setNoWa('');
+        }
+    }, [useProfileData, user]);
 
     // Estimate fee state
     const [estimate, setEstimate] = useState(null);
@@ -107,6 +125,13 @@ const GasGalonDetail = () => {
     }, [id_mitra]);
 
     useEffect(() => {
+        if (data && location?.isConfirmed && data.latitude && data.longitude) {
+            const dist = calculateDistance(location.lat, location.lng, parseFloat(data.latitude), parseFloat(data.longitude));
+            if (!isNaN(dist)) setJarakOngkir(dist);
+        }
+    }, [data, location]);
+
+    useEffect(() => {
         if (!data || selectedProductIds.size === 0) return;
 
         const layananPayload = [...selectedProductIds].map(id => ({
@@ -154,27 +179,34 @@ const GasGalonDetail = () => {
         return () => clearTimeout(timer);
     }, [data, selectedProductIds, qtyProduct, kondisiPerProduk, jarakOngkir, id_mitra]);
 
-    if (loading || error || !data) {
+    if (loading) {
+        return (
+            <FullScreenLoader 
+                messages={[
+                    "Mempersiapkan halaman pemesanan...",
+                    "Mengambil daftar produk...",
+                    "Menyiapkan data harga..."
+                ]} 
+            />
+        );
+    }
+
+    if (error || !data) {
         return (
             <div className="dp-fallback">
                 <div className="dp-fallback-card">
                     <span className="material-symbols-outlined dp-fallback-icon" style={{fontVariationSettings: "'FILL' 1"}}>
-                        {loading ? 'hourglass_empty' : 'error'}
+                        error
                     </span>
                     <h2 className="dp-fallback-title">
-                        {loading ? 'Memuat Data...' : 'Terjadi Kesalahan'}
+                        Terjadi Kesalahan
                     </h2>
                     <p className="dp-fallback-text">
-                        {loading ? 'Mohon tunggu sebentar.' : error || 'Data pesanan tidak ditemukan.'}
+                        {error || 'Data pesanan tidak ditemukan.'}
                     </p>
-                    {!loading && (
-                        <button
-                            onClick={() => navigate(-1)}
-                            className="dp-fallback-btn"
-                        >
-                            Kembali ke Halaman Sebelumnya
-                        </button>
-                    )}
+                    <button onClick={() => window.location.reload()} className="dp-btn-primary">
+                        Coba Lagi
+                    </button>
                 </div>
             </div>
         );
@@ -222,7 +254,8 @@ const GasGalonDetail = () => {
                 biayaTambahan,
                 catatanPengiriman: catatan || null,
             });
-            navigate(`/pesanan/${res.data.data.id_unique_pesanan}/sukses`);
+            sessionStorage.setItem('checkoutContact', JSON.stringify({ nama: namaLengkap, phone: noWa }));
+            navigate(`/checkout/${res.data.data.id_unique_pesanan}`);
         } catch (err) {
             setSubmitError(err.response?.data?.message || 'Gagal membuat pesanan. Silakan coba lagi.');
         } finally {
@@ -319,7 +352,9 @@ const GasGalonDetail = () => {
                                             className="dp-product-radio"
                                             type="checkbox"
                                             checked={isSelected}
+                                            disabled={product.stok_tersedia !== null && product.stok_tersedia <= 0}
                                             onChange={() => {
+                                                if (product.stok_tersedia !== null && product.stok_tersedia <= 0) return;
                                                 setSelectedProductIds(prev => {
                                                     const next = new Set(prev);
                                                     if (next.has(product.id_layanan)) {
@@ -333,16 +368,24 @@ const GasGalonDetail = () => {
                                                 });
                                             }}
                                         />
-                                        <div className="dp-product-icon-wrap">
-                                            {product.nama_layanan.toLowerCase().includes('gas') ?
-                                                <span className="material-symbols-outlined dp-product-icon" style={{fontVariationSettings: "'FILL' 1"}}>propane</span> :
-                                                <span className="material-symbols-outlined dp-product-icon-outline" style={{fontVariationSettings: "'FILL' 1"}}>water_drop</span>
-                                            }
-                                        </div>
-                                        <div className="dp-product-info">
-                                            <h3 className="dp-product-name">{product.nama_layanan}</h3>
-                                            <p className="dp-product-price">Mulai dari Rp {parseInt(product.harga_barang).toLocaleString('id-ID')}</p>
-                                            <span className="dp-product-badge">Tersedia</span>
+                                        <div className="dp-product-card-header" style={{ display: 'flex', alignItems: 'center', gap: '1rem', width: '100%' }}>
+                                            <div className="dp-product-icon-wrap">
+                                                {product.nama_layanan.toLowerCase().includes('gas') ?
+                                                    <span className="material-symbols-outlined dp-product-icon" style={{fontVariationSettings: "'FILL' 1"}}>propane</span> :
+                                                    <span className="material-symbols-outlined dp-product-icon-outline" style={{fontVariationSettings: "'FILL' 1"}}>water_drop</span>
+                                                }
+                                            </div>
+                                            <div className="dp-product-info">
+                                                <h3 className="dp-product-name">{product.nama_layanan}</h3>
+                                                <p className="dp-product-price">Mulai dari Rp {parseInt(product.harga_barang).toLocaleString('id-ID')}</p>
+                                                {product.stok_tersedia !== null ? (
+                                                    <span className={`dp-product-badge ${product.stok_tersedia <= 0 ? 'dp-badge-error' : ''}`} style={product.stok_tersedia <= 0 ? {backgroundColor: 'var(--dp-error-container)', color: 'var(--dp-on-error-container)'} : {}}>
+                                                        {product.stok_tersedia <= 0 ? 'Stok Habis' : `Sisa Stok: ${product.stok_tersedia}`}
+                                                    </span>
+                                                ) : (
+                                                    <span className="dp-product-badge">Tersedia</span>
+                                                )}
+                                            </div>
                                         </div>
                                         {isSelected && (
                                             <div className="dp-product-controls" onClick={e => e.preventDefault()}>
@@ -355,33 +398,44 @@ const GasGalonDetail = () => {
                                                         <span className="dp-qty-value">{qty}</span>
                                                         <button
                                                             className="dp-qty-btn"
-                                                            onClick={e => { e.preventDefault(); setQtyProduct(prev => ({ ...prev, [product.id_layanan]: (prev[product.id_layanan] || 1) + 1 })); }}
+                                                            disabled={product.stok_tersedia !== null && qty >= product.stok_tersedia}
+                                                            onClick={e => { 
+                                                                e.preventDefault(); 
+                                                                if (product.stok_tersedia !== null && qty >= product.stok_tersedia) return;
+                                                                setQtyProduct(prev => ({ ...prev, [product.id_layanan]: (prev[product.id_layanan] || 1) + 1 })); 
+                                                            }}
                                                         >+</button>
                                                     </div>
                                                 </div>
-                                                <div className="dp-kondisi-toggle">
-                                                    <button
-                                                        className={`dp-kondisi-btn ${kondisi === 'refill' ? 'active' : ''}`}
-                                                        onClick={e => { e.preventDefault(); setKondisiPerProduk(prev => ({ ...prev, [product.id_layanan]: 'refill' })); }}
-                                                    >
-                                                        <span className="material-symbols-outlined">autorenew</span>
-                                                        Isi Ulang
-                                                    </button>
-                                                    <button
-                                                        className={`dp-kondisi-btn ${kondisi === 'new' ? 'active' : ''}`}
-                                                        onClick={e => { e.preventDefault(); setKondisiPerProduk(prev => ({ ...prev, [product.id_layanan]: 'new' })); }}
-                                                    >
-                                                        <span className="material-symbols-outlined">add_shopping_cart</span>
-                                                        Beli Baru
-                                                        {product.beli_baru && (
-                                                            <span className="dp-kondisi-price">+Rp {parseInt(product.beli_baru).toLocaleString('id-ID')}</span>
-                                                        )}
-                                                    </button>
-                                                </div>
-                                                {kondisi === 'refill' && (
+                                                {!product.nama_layanan.toLowerCase().includes('gas') && (
+                                                    <div className="dp-kondisi-toggle">
+                                                        <button
+                                                            className={`dp-kondisi-btn ${kondisi === 'refill' ? 'active' : ''}`}
+                                                            onClick={e => { e.preventDefault(); setKondisiPerProduk(prev => ({ ...prev, [product.id_layanan]: 'refill' })); }}
+                                                        >
+                                                            <div className="dp-kondisi-content">
+                                                                <span className="material-symbols-outlined">autorenew</span>
+                                                                Isi Ulang
+                                                            </div>
+                                                        </button>
+                                                        <button
+                                                            className={`dp-kondisi-btn ${kondisi === 'new' ? 'active' : ''}`}
+                                                            onClick={e => { e.preventDefault(); setKondisiPerProduk(prev => ({ ...prev, [product.id_layanan]: 'new' })); }}
+                                                        >
+                                                            <div className="dp-kondisi-content">
+                                                                <span className="material-symbols-outlined">add_shopping_cart</span>
+                                                                Beli Baru
+                                                            </div>
+                                                            {product.beli_baru && (
+                                                                <span className="dp-kondisi-price">Rp {parseInt(product.beli_baru).toLocaleString('id-ID')}</span>
+                                                            )}
+                                                        </button>
+                                                    </div>
+                                                )}
+                                                {kondisi === 'refill' && !product.nama_layanan.toLowerCase().includes('gas') && (
                                                     <div className="dp-alert-warning-sm">
                                                         <span className="material-symbols-outlined" style={{fontVariationSettings: "'FILL' 1", fontSize: '14px'}}>warning</span>
-                                                        <span>Siapkan tabung/galon kosong saat kurir tiba</span>
+                                                        <span>Siapkan galon kosong saat kurir tiba</span>
                                                     </div>
                                                 )}
                                             </div>
@@ -405,6 +459,27 @@ const GasGalonDetail = () => {
                         </div>
 
                         <h2 className="dp-section-title-sm" style={{marginTop: '20px'}}>Detail Pengiriman</h2>
+                        
+                        {user && (
+                            <div
+                                className={`dp-profile-toggle-card ${useProfileData ? 'active' : ''}`}
+                                onClick={() => setUseProfileData(!useProfileData)}
+                            >
+                                <div className="dp-profile-toggle-icon">
+                                    <span className="material-symbols-outlined" style={{fontVariationSettings: "'FILL' 1"}}>
+                                        {useProfileData ? 'check_circle' : 'person'}
+                                    </span>
+                                </div>
+                                <div className="dp-profile-toggle-content">
+                                    <span className="dp-profile-toggle-title">Gunakan Data Profil Saya</span>
+                                    <span className="dp-profile-toggle-desc">Isi otomatis nama dan nomor telepon Anda</span>
+                                </div>
+                                <div className="dp-profile-toggle-switch">
+                                    <div className="dp-switch-knob"></div>
+                                </div>
+                            </div>
+                        )}
+
                         <div className="dp-form-group-flex">
                             <div>
                                 <label className="dp-form-label">Nama Lengkap</label>
@@ -414,6 +489,7 @@ const GasGalonDetail = () => {
                                     type="text"
                                     value={namaLengkap}
                                     onChange={(e) => setNamaLengkap(e.target.value)}
+                                    disabled={useProfileData}
                                 />
                             </div>
                             <div>
@@ -424,27 +500,16 @@ const GasGalonDetail = () => {
                                     type="tel"
                                     value={noWa}
                                     onChange={(e) => setNoWa(e.target.value)}
+                                    disabled={useProfileData}
                                 />
                             </div>
                             <div>
-                                <label className="dp-form-label">Jarak ke Lokasi (km)</label>
-                                <input
-                                    className="dp-input"
-                                    type="number"
-                                    min="1"
-                                    value={jarakOngkir}
-                                    onChange={(e) => setJarakOngkir(Math.max(1, parseInt(e.target.value) || 1))}
-                                    style={{maxWidth: '160px'}}
-                                />
-                            </div>
-                            <div>
-                                <label className="dp-form-label">Catatan Pengiriman</label>
+                                <label className="dp-form-label">Catatan (Opsional)</label>
                                 <textarea
                                     className="dp-textarea"
-                                    placeholder="Contoh: Titip di Bapak Kos"
+                                    placeholder="Tambahkan catatan untuk kurir atau mitra"
                                     value={catatan}
                                     onChange={(e) => setCatatan(e.target.value)}
-                                    style={{height: '6rem'}}
                                 ></textarea>
                             </div>
                         </div>
@@ -473,19 +538,13 @@ const GasGalonDetail = () => {
                                     <div key={item.id_layanan ?? i} className="dp-summary-item">
                                         <span className="dp-summary-item-label">
                                             {item.nama_layanan} x{item.qty}
-                                            {item.total_beli_baru > 0 && (
+                                            {item.is_beli_baru && (
                                                 <span className="dp-summary-badge-new">Beli Baru</span>
                                             )}
                                         </span>
                                         <span className="dp-summary-item-value">Rp {(item.subtotal ?? 0).toLocaleString('id-ID')}</span>
                                     </div>
                                 ))}
-                                {(ringkasan?.total_beli_baru ?? 0) > 0 && (
-                                    <div className="dp-summary-item">
-                                        <span className="dp-summary-item-label">Biaya Beli Baru (Tabung/Galon)</span>
-                                        <span className="dp-summary-item-value">Rp {ringkasan.total_beli_baru.toLocaleString('id-ID')}</span>
-                                    </div>
-                                )}
                                 <div className="dp-summary-item">
                                     <span className="dp-summary-item-label">Biaya Ongkir</span>
                                     <span className="dp-summary-item-value">

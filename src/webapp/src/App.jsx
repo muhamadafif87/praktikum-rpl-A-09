@@ -11,6 +11,9 @@ import DailyCleaningDetail from './pages/DailyCleaningDetail';
 import GasGalonDetail from './pages/GasGalonDetail';
 import LaundryDetail from './pages/LaundryDetail';
 import TentangKamiPage from './features/tentang-kami/TentangKamiPage';
+import CheckoutPage from './pages/CheckoutPage';
+import PesananSukses from './pages/PesananSukses';
+
 import MitraDashboardPage from './pages/MitraDashboardPage';
 import ChatMitra from './features/mitra/ChatMitra/ChatMitra';
 import ReviewMitra from './features/mitra/ReviewMitra/ReviewMitra';
@@ -44,6 +47,9 @@ const App = () => {
                 <Route path="/daily-cleaning" element={<DailyCleaningPage />} />
                 <Route path="/daily-cleaning/:id_mitra/pesan" element={<DailyCleaningDetail />} />
                 <Route path="/tentang-kami" element={<TentangKamiPage />} />
+                
+                <Route path="/checkout/:id_pesanan" element={<CheckoutPage />} />
+                <Route path="/pesanan/:id_pesanan/sukses" element={<PesananSukses />} />
 
                 {/* Admin Dashboard routes */}
                 <Route path="/dashboard/admin" element={<AdminOverview />} />

@@ -85,9 +85,11 @@ const DetailMitraGas = ({ onOrderClick }) => {
                 rating: mitra.rating,
                 reviewCount: mitra.jumlah_ulasan,
                 description: mitra.deskripsi || `${mitra.jenis_jasa === 'gas' ? 'Agen gas LPG' : mitra.jenis_jasa === 'galon' ? 'Agen air galon' : 'Agen Gas & Galon'} terpercaya. ${mitra.layanan?.length || 0} jenis layanan tersedia.`,
-                price: mitra.layanan?.length > 0
-                    ? `Mulai dari Rp ${parseInt(mitra.layanan[0].harga_satuan).toLocaleString('id-ID')}`
-                    : 'Hubungi untuk info harga',
+                price: (() => {
+                    if (!mitra.layanan || mitra.layanan.length === 0) return 'Hubungi untuk info harga';
+                    const prices = mitra.layanan.map(l => parseInt(l.harga_satuan)).filter(p => !isNaN(p) && p > 0);
+                    return prices.length > 0 ? `Mulai dari Rp ${Math.min(...prices).toLocaleString('id-ID')}` : 'Hubungi untuk info harga';
+                })(),
                 layanan: mitra.layanan || [],
                 reviews: (mitra.sample_ulasan || []).map((ulasan) => ({
                     name: ulasan.nama_user,
@@ -142,7 +144,7 @@ const DetailMitraGas = ({ onOrderClick }) => {
                 onOrderClick(mitra);
             }
         } else {
-            navigate(`/gas-galon/${mitra.id}/pesan`);
+            navigate(`/gas-galon/${mitra.id}/pesan`, { state: { jarak_km: mitra.distance ? parseFloat(mitra.distance) : 1 } });
         }
     };
 
@@ -249,10 +251,11 @@ const DetailMitraGas = ({ onOrderClick }) => {
                                     <div className="dmg-filter-options">
                                         {[
                                             { key: 'Gas 3kg', label: 'Gas 3kg' },
-                                            { key: 'Gas 5kg', label: 'Gas 5kg' },
-                                            { key: 'Gas 10kg', label: 'Gas 10kg' },
-                                            { key: 'Galon 5L', label: 'Galon 5L' },
+                                            { key: 'Gas 5.5kg', label: 'Gas 5.5kg' },
+                                            { key: 'Gas 12kg', label: 'Gas 12kg' },
+                                            { key: 'Galon 19L', label: 'Galon 19L' },
                                             { key: 'Galon 15L', label: 'Galon 15L' },
+                                            { key: 'Galon 5L', label: 'Galon 5L' },
                                             { key: 'All', label: 'Semua' },
                                         ].map((cat) => (
                                             <label key={cat.key} className="dmg-checkbox-label">
@@ -322,12 +325,24 @@ const DetailMitraGas = ({ onOrderClick }) => {
                                 </button>
                             </div>
                         ) : mitraList.length === 0 ? (
-                            <div className="dmg-empty-container">
-                                <span className="material-symbols-outlined">inbox</span>
-                                <p>Tidak ada data mitra tersedia</p>
+                            <div className="dmg-empty-container" style={{ gridColumn: '1 / -1', padding: '5rem 1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f8fafc', borderRadius: '1rem', border: '1px dashed #cbd5e1' }}>
+                                <div style={{ background: '#eff6ff', padding: '1.5rem', borderRadius: '50%', marginBottom: '1.5rem' }}>
+                                    <span className="material-symbols-outlined" style={{ fontSize: '48px', color: '#3b82f6' }}>search_off</span>
+                                </div>
+                                <h4 style={{ margin: '0 0 0.5rem', color: '#0f172a', fontSize: '1.5rem', fontWeight: '700', textAlign: 'center', letterSpacing: '-0.025em' }}>Mitra Tidak Ditemukan</h4>
+                                <p style={{ color: '#64748b', textAlign: 'center', maxWidth: '450px', margin: '0 auto 2rem', lineHeight: '1.6' }}>Maaf, kami tidak dapat menemukan mitra yang sesuai dengan filter pencarianmu. Coba sesuaikan filter untuk melihat hasil lainnya.</p>
+                                <button 
+                                    onClick={() => setSelectedCategories([])}
+                                    style={{ padding: '0.875rem 1.5rem', background: '#ffffff', color: '#0f172a', border: '1px solid #cbd5e1', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.5rem', transition: 'all 0.2s', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}
+                                    onMouseOver={(e) => { e.currentTarget.style.backgroundColor = '#f8fafc'; e.currentTarget.style.borderColor = '#94a3b8'; }}
+                                    onMouseOut={(e) => { e.currentTarget.style.backgroundColor = '#ffffff'; e.currentTarget.style.borderColor = '#cbd5e1'; }}
+                                >
+                                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>restart_alt</span>
+                                    Reset Filter
+                                </button>
                             </div>
                         ) : (
-                            <div className="dmg-mitra-list">
+                            <>
                                 {!location.isConfirmed ? (
                                     <div className="dmg-empty-container" style={{ gridColumn: '1 / -1', padding: '4rem 1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                                         <span className="material-symbols-outlined" style={{ fontSize: '64px', color: '#9ca3af' }}>location_off</span>
@@ -409,7 +424,7 @@ const DetailMitraGas = ({ onOrderClick }) => {
                                         </article>
                                     ))
                                 ) : null}
-                            </div>
+                            </>
                         )}
                     </section>
                 </div>

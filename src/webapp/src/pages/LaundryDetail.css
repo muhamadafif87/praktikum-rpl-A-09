@@ -178,3 +178,22 @@
 .dp-kain-checkbox { position: absolute; right: 0.5rem; top: 0.5rem; width: 1rem; height: 1rem; accent-color: var(--primary-container); }
 .dp-kain-icon { font-size: 2rem; color: var(--primary-container); }
 .dp-kain-name { font-size: 0.875rem; font-weight: 500; color: var(--on-surface); text-align: center; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+/* --- Profile Toggle Card --- */
+.dp-profile-toggle-card { display: flex; align-items: center; gap: 16px; padding: 16px; background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 12px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); margin-bottom: 24px; position: relative; overflow: hidden; }
+.dp-profile-toggle-card:hover { border-color: #cbd5e1; background: #f8fafc; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03); }
+.dp-profile-toggle-card.active { border-color: #3b82f6; background: #eff6ff; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.08); }
+.dp-profile-toggle-icon { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: #f1f5f9; color: #64748b; transition: all 0.3s ease; }
+.dp-profile-toggle-card.active .dp-profile-toggle-icon { background: #3b82f6; color: #ffffff; }
+.dp-profile-toggle-content { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.dp-profile-toggle-title { font-size: 0.95rem; font-weight: 600; color: #1e293b; }
+.dp-profile-toggle-desc { font-size: 0.8rem; color: #64748b; }
+.dp-profile-toggle-switch { width: 44px; height: 24px; background: #cbd5e1; border-radius: 999px; position: relative; transition: all 0.3s ease; }
+.dp-profile-toggle-card.active .dp-profile-toggle-switch { background: #3b82f6; }
+.dp-switch-knob { position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background: #ffffff; border-radius: 50%; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+.dp-profile-toggle-card.active .dp-switch-knob { left: 22px; }
+
+/* --- Loader Positioning --- */
+.dp-summary-loading { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 250px; gap: 0.75rem; padding: 1rem; color: var(--on-surface-variant); font-size: 0.875rem; }
+.dp-summary-loading-icon { font-size: 2rem; color: var(--primary-container); animation: spin 2s linear infinite; }
