@@ -158,7 +158,7 @@ const DailyCleaningDetail = () => {
             setEstimateLoading(true);
             setEstimateError(null);
             try {
-                const res = await api.post('/v1/order/generate-fee-pesanan', {
+                const res = await api.post('/v1/landing-page/generate-fee-pesanan', {
                     idMitra: String(id_mitra),
                     typeLayanan: 'daily_cleaning',
                     items: layananPayload,
@@ -256,7 +256,7 @@ const DailyCleaningDetail = () => {
         setSubmitLoading(true);
         setSubmitError(null);
         try {
-            const res = await api.post('/v1/order/pesanan/', {
+            const res = await api.post('/v1/landing-page/pesanan/', {
                 idMitra: String(data.id_mitra),
                 typeLayanan: 'daily_cleaning',
                 items,

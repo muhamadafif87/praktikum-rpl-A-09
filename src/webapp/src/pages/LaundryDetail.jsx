@@ -173,7 +173,7 @@ const LaundryDetail = () => {
                     biayaTambahan: { durasi_pengerjaan: { biaya: 0, type: 'reguler' } }
                 };
 
-                const response = await api.post('/v1/order/generate-fee-pesanan', requestBody);
+                const response = await api.post('/v1/landing-page/generate-fee-pesanan', requestBody);
 
                 if (response.data.success && response.data.data) {
                     setFeeEstimate({
@@ -274,7 +274,7 @@ const LaundryDetail = () => {
         setSubmitLoading(true);
         setSubmitError(null);
         try {
-            const res = await api.post('/v1/order/pesanan/', {
+            const res = await api.post('/v1/landing-page/pesanan/', {
                 idMitra: String(data.id_mitra),
                 typeLayanan: 'laundry',
                 items,
