@@ -89,7 +89,7 @@ const MitraDashboard = ({ initialTab = 'overview' }) => {
         }
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        navigate('/login');
+        navigate('/');
     };
 
     const formatCurrency = (amount) => {
@@ -118,6 +118,9 @@ const MitraDashboard = ({ initialTab = 'overview' }) => {
                         />
                         <span className="md-topbar-name">{mitraName}</span>
                     </div>
+                    <button className="md-topbar-logout-btn" onClick={handleLogout} title="Logout">
+                        <span className="material-symbols-outlined">logout</span>
+                    </button>
                 </div>
             </nav>
 
