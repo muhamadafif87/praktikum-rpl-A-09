@@ -25,6 +25,7 @@ const LocationContext = createContext(undefined);
 
 export const LocationProvider = ({ children }) => {
     const [location, setLocationState] = useState(DEFAULT_LOCATION);
+    const [isMapOpen, setIsMapOpen] = useState(false);
 
     const setLocation = useCallback((address, lat, lng, isFromProfile = false) => {
         setLocationState({

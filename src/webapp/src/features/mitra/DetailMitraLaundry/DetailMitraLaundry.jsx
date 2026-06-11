@@ -4,6 +4,7 @@ import './DetailMitraLaundry.css';
 import '../../landing/LandingPage/LandingPage.css';
 import TransitionLink from '../../../components/ViewTransition/TransitionLink';
 import { useAuth } from '../../../context/AuthContext';
+import { useLocation } from '../../../context/LocationContext';
 import api from '../../../services/api';
 
 const DetailMitraLaundry = ({ onOrderClick }) => {
@@ -14,6 +15,7 @@ const DetailMitraLaundry = ({ onOrderClick }) => {
     const navLinksRef = useRef(null);
 
     const { user, isAuthenticated, logout } = useAuth();
+    const { location, openMap } = useLocation();
     const [showProfileMenu, setShowProfileMenu] = useState(false);
 
     const updateIndicator = useCallback((targetEl) => {
@@ -64,7 +66,7 @@ const DetailMitraLaundry = ({ onOrderClick }) => {
     useEffect(() => {
         const kategoriParam = selectedCategories.length > 0 ? selectedCategories : ['All'];
         fetchMitraData(kategoriParam, sortBy);
-    }, [selectedCategories, sortBy]);
+    }, [selectedCategories, sortBy, location]);
 
     const handleOrderClick = (mitra) => {
         const token = localStorage.getItem('token');
@@ -87,25 +89,30 @@ const DetailMitraLaundry = ({ onOrderClick }) => {
         setMitraError('');
 
         try{
-            const response =  await api.get('/v1/landing-page/laundry-express', {
-                params: {
-                    kategori: kategori,
-                    sortBy: sortByValue,
-                }
-            });
+            const params = {
+                kategori: kategori,
+                sortBy: sortByValue,
+            };
+
+            if (location.isConfirmed && location.lat && location.lng) {
+                params.lat = location.lat;
+                params.lng = location.lng;
+            }
+
+            const response =  await api.get('/v1/landing-page/laundry-express', { params });
             const { data } = response.data;
 
             setMitraList(
                 data.map((mitra) => ({
                     id: mitra.id_mitra,
                     name: mitra.nama_mitra,
-                    image: mitra.profil_image,
+                    image: mitra.profil_image || `https://ui-avatars.com/api/?name=${encodeURIComponent(mitra.nama_mitra)}&background=random&color=fff&size=300`,
                     type: mitra.jenis_jasa,
                     location: mitra.lokasi_layanan,
-                    distance: '0.5 KM',
+                    distance: mitra.jarak_km ? `${mitra.jarak_km.toFixed(1)} KM` : 'Jarak Tidak Diketahui',
                     rating: mitra.rating,
                     reviewCount: mitra.jumlah_ulasan,
-                    description: `${mitra.jenis_jasa} terpercaya. ${mitra.layanan?.length || 0} jenis layanan tersedia.`,
+                    description: mitra.deskripsi || `${mitra.jenis_jasa} terpercaya. ${mitra.layanan?.length || 0} jenis layanan tersedia.`,
                     price: mitra.layanan?.length > 0
                         ? `Mulai dari Rp ${parseInt(mitra.layanan[0].harga_satuan).toLocaleString('id-ID')}`
                         : 'Hubungi untuk info harga',
@@ -135,36 +142,31 @@ const DetailMitraLaundry = ({ onOrderClick }) => {
         }
     }
 
-    useEffect(() => {
-        fetchMitraData(['All'], 'Terbaik');
-    }, []);
-
     return (
         <div className="detail-mitra-cleaning-page">
-            {/* TopNavBar */}
-            <nav className="dmc-navbar">
-                <div className="dmc-navbar-inner">
-                    <div className="dmc-brand">
-                        <Link to="/" className="dmc-brand-link">
-                            KostHub<span className="dmc-brand-dot">.</span>
+            <nav className="dm-navbar">
+                <div className="dm-navbar-inner">
+                    <div className="dm-brand">
+                        <Link to="/" className="dm-brand-link">
+                            KostHub<span className="dm-brand-dot">.</span>
                         </Link>
                     </div>
 
-                    <ul className="dmc-nav-links" ref={navLinksRef} onMouseLeave={handleNavLeave}>
-                        <li className="dmc-nav-item">
-                            <TransitionLink className="dmc-nav-link" to="/" onMouseEnter={handleNavHover} onClick={handleNavClick}>Home</TransitionLink>
+                    <ul className="dm-nav-links" ref={navLinksRef} onMouseLeave={handleNavLeave}>
+                        <li className="dm-nav-item">
+                            <TransitionLink className="dm-nav-link" to="/" onMouseEnter={handleNavHover} onClick={handleNavClick}>Home</TransitionLink>
+                        </li>
+                        <li className="dm-nav-item">
+                            <TransitionLink className="dm-nav-link" to="/gas-galon" onMouseEnter={handleNavHover} onClick={handleNavClick}>Gas &amp; Galon</TransitionLink>
+                        </li>
+                        <li className="dm-nav-item">
+                            <TransitionLink className="dm-nav-link dmc-nav-link--active" to="/laundry" onMouseEnter={handleNavHover} onClick={handleNavClick} aria-current="page">Laundry Express</TransitionLink>
                         </li>
                         <li className="dmc-nav-item">
-                            <TransitionLink className="dmc-nav-link" to="/gas-galon" onMouseEnter={handleNavHover} onClick={handleNavClick}>Gas &amp; Galon</TransitionLink>
+                            <TransitionLink className="dmc-nav-link" to="/daily-cleaning" onMouseEnter={handleNavHover} onClick={handleNavClick}>Daily Cleaning</TransitionLink>
                         </li>
-                        <li className="dmc-nav-item">
-                            <TransitionLink className="dmc-nav-link dmc-nav-link--active" to="/laundry" onMouseEnter={handleNavHover} onClick={handleNavClick} aria-current="page">Laundry Express</TransitionLink>
-                        </li>
-                        <li className="dmc-nav-item">
-                            <TransitionLink className="lp-nav-link" to="/daily-cleaning" onMouseEnter={handleNavHover} onClick={handleNavClick}>Daily Cleaning</TransitionLink>
-                        </li>
-                        <li className="dmc-nav-item">
-                            <TransitionLink className="dmc-nav-link" to="/tentang-kami" onMouseEnter={handleNavHover} onClick={handleNavClick}>Tentang Kami</TransitionLink>
+                        <li className="dm-nav-item">
+                            <TransitionLink className="dm-nav-link" to="/tentang-kami" onMouseEnter={handleNavHover} onClick={handleNavClick}>Tentang Kami</TransitionLink>
                         </li>
                     </ul>
 
@@ -204,59 +206,62 @@ const DetailMitraLaundry = ({ onOrderClick }) => {
             </nav>
 
             <main>
-                <section className="dmc-subheader">
-                    <div className="dmc-subheader-inner">
-                        <nav className="dmc-breadcrumb">
+                <section className="dm-subheader">
+                    <div className="dm-subheader-inner">
+                        <nav className="dm-breadcrumb">
                             <Link to="/">Layanan</Link>
                             <span className="material-symbols-outlined">chevron_right</span>
-                            <span className="dmc-breadcrumb-current">Laundry</span>
+                            <span className="dm-breadcrumb-current">Laundry</span>
                         </nav>
-                        <div className="dmc-location">
+                        <div className="dm-location">
                             <span className="material-symbols-outlined">location_on</span>
                             <h1 className="dmc-location-title">
-                                Menampilkan mitra di dekat: <span className="dmc-location-highlight">Jl. Ir. Sutami, Jebres, Surakarta</span>
+                                Menampilkan mitra di dekat:{' '}
+                                <span className="dmc-location-highlight">
+                                    {location.isConfirmed ? location.address : 'Lokasi Belum Diatur'}
+                                </span>
                             </h1>
                         </div>
                     </div>
                 </section>
 
-                <div className="dmc-main-layout">
-                    <aside className="dmc-sidebar">
-                        <div className="dmc-sidebar-inner">
-                            <div className="dmc-filter-header">
-                                <h2 className="dmc-filter-title">Filter</h2>
-                                <button className="dmc-filter-reset" onClick={() => setSelectedCategories(['sapu_pel'])}>
+                <div className="dm-main-layout">
+                    <aside className="dm-sidebar">
+                        <div className="dm-sidebar-inner">
+                            <div className="dm-filter-header">
+                                <h2 className="dm-filter-title">Filter</h2>
+                                <button className="dm-filter-reset" onClick={() => setSelectedCategories([])}>
                                     Reset
                                 </button>
                             </div>
 
                             <div>
-                                <div className="dmc-filter-group">
-                                    <label className="dmc-filter-label">Kategori</label>
-                                    <div className="dmc-filter-options">
+                                <div className="dm-filter-group">
+                                    <label className="dm-filter-label">Kategori</label>
+                                    <div className="dm-filter-options">
                                         {[
                                             { key: 'Pakaian', label: 'Pakaian' },
                                             { key: 'Sprei', label: 'Sprei' },
                                             { key: 'Bedcover', label: 'Bedcover' },
                                             { key: 'All', label: 'Semuanya' },
                                         ].map((cat) => (
-                                            <label key={cat.key} className="dmc-checkbox-label">
+                                            <label key={cat.key} className="dm-checkbox-label">
                                                 <input
                                                     type="checkbox"
-                                                    className="dmc-checkbox-input"
+                                                    className="dm-checkbox-input"
                                                     checked={selectedCategories.includes(cat.key)}
                                                     onChange={() => handleCategoryChange(cat.key)}
                                                 />
-                                                <span className="dmc-checkbox-text">{cat.label}</span>
+                                                <span className="dm-checkbox-text">{cat.label}</span>
                                             </label>
                                         ))}
                                     </div>
                                 </div>
 
-                                <div className="dmc-filter-group">
-                                    <label className="dmc-filter-label">Urutkan</label>
+                                <div className="dm-filter-group">
+                                    <label className="dm-filter-label">Urutkan</label>
                                     <select
-                                        className="dmc-filter-select"
+                                        className="dm-filter-select"
                                         value={sortBy}
                                         onChange={(e) => setSortBy(e.target.value)}
                                     >
@@ -270,95 +275,135 @@ const DetailMitraLaundry = ({ onOrderClick }) => {
                         </div>
                     </aside>
 
-                    <section className="dmc-card-list">
+                    <section className="dm-card-list">
                         {mitraLoading ? (
-                            <div className="dmg-loading-container">
-                                <div className="dmg-spinner"></div>
-                                <p>Memuat data mitra...</p>
-                            </div>
+                            <>
+                                {[1, 2, 3].map((n) => (
+                                    <div key={n} className="skeleton-card">
+                                        <div className="skeleton-img-wrapper skeleton"></div>
+                                        <div className="skeleton-content">
+                                            <div>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                    <div className="skeleton-title skeleton"></div>
+                                                    <div className="skeleton-badge skeleton"></div>
+                                                </div>
+                                                <div className="skeleton-rating skeleton"></div>
+                                                <div className="skeleton-desc skeleton"></div>
+                                            </div>
+                                            <div className="skeleton-footer">
+                                                <div className="skeleton-price skeleton"></div>
+                                                <div className="skeleton-btn skeleton"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </>
                         ) : mitraError ? (
-                            <div className="dmg-error-container">
+                            <div className="dm-error-container">
                                 <span className="material-symbols-outlined">error_outline</span>
                                 <p>{mitraError}</p>
                                 <button
                                     onClick={() => fetchMitraData()}
-                                    className="dmg-retry-btn"
+                                    className="dm-retry-btn"
                                 >
                                     Coba Lagi
                                 </button>
                             </div>
                         ) : mitraList.length === 0 ? (
-                            <div className="dmg-empty-container">
+                            <div className="dm-empty-container">
                                 <span className="material-symbols-outlined">inbox</span>
                                 <p>Tidak ada data mitra tersedia</p>
                             </div>
                         ) : (
-                            mitraList.map((mitra) => (
-                                <article key={mitra.id} className="dmc-card">
-                                    <div className="dmc-card-body">
-                                        <div className="dmc-card-img-wrapper">
-                                            <img className="dmc-card-img" src={mitra.image} alt={mitra.name} />
-                                        </div>
-                                        <div className="dmc-card-content">
-                                            <div>
-                                                <div className="dmc-card-header">
-                                                    <h3 className="dmc-card-title">{mitra.name}</h3>
-                                                    <span className="dmc-card-badge">Berada dalam jangkauan ({mitra.distance})</span>
-                                                </div>
-                                                <div className="dmc-card-rating">
-                                                    <span className="material-symbols-outlined">star</span>
-                                                    <span className="dmc-card-rating-value">{mitra.rating}</span>
-                                                    <span className="dmc-card-rating-count">({mitra.reviewCount} Ulasan)</span>
-                                                </div>
-                                                <p className="dmc-card-desc">{mitra.description}</p>
-                                            </div>
-                                            <div className="dmc-card-footer">
-                                                <div className="dmc-card-price">{mitra.price}</div>
-                                                <button className="dmc-card-order-btn" onClick={() => handleOrderClick(mitra)}>
-                                                    Pesan Sekarang
-                                                </button>
-                                            </div>
-                                        </div>
+                            <div className="dmc-mitra-list">
+                                {!location.isConfirmed ? (
+                                    <div className="dmg-empty-container" style={{ gridColumn: '1 / -1', padding: '4rem 1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                                        <span className="material-symbols-outlined" style={{ fontSize: '64px', color: '#9ca3af' }}>location_off</span>
+                                        <h4 style={{ margin: '1rem 0 0.5rem', color: '#1f2937', fontSize: '1.25rem', fontWeight: '600', textAlign: 'center' }}>Lokasi Pengiriman Belum Diatur</h4>
+                                        <p style={{ color: '#6b7280', textAlign: 'center', maxWidth: '400px', margin: '0 auto 1.5rem', lineHeight: '1.5' }}>Silakan atur lokasi pengiriman terlebih dahulu di Beranda untuk melihat daftar mitra yang menjangkau areamu.</p>
+                                        <button 
+                                            onClick={() => navigate('/')}
+                                            style={{ padding: '0.75rem 1.5rem', background: '#2563eb', color: 'white', border: 'none', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.5rem', transition: 'background-color 0.2s' }}
+                                            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#1d4ed8'}
+                                            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
+                                        >
+                                            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>home</span>
+                                            Kembali ke Beranda
+                                        </button>
                                     </div>
-
-                                    {mitra.reviews.length > 0 && (
-                                        <div className="dmg-mar                                                                                                                                                                                                                                                     uee-section">
-                                            <div className="dmg-marquee-container">
-                                                <div
-                                                    className="dmg-marquee-content"
-                                                    style={{ animationDuration: mitra.marqueeSpeed }}
-                                                >
-                                                    {[...mitra.reviews, ...mitra.reviews].map((review, idx) => (
-                                                        <div key={idx} className="dmg-review-chip">
-                                                            <span className="dmg-review-name">{review.name}</span>
-                                                            <span className="dmg-review-rating">{review.rating}★</span>
-                                                            <span className="dmg-review-text">"{review.text}"</span>
+                                ) : mitraList.length > 0 ? (
+                                    mitraList.map((mitra) => (
+                                        <article key={mitra.id} className="dmc-card">
+                                            <div className="dmc-card-body">
+                                                <div className="dmc-card-img-wrapper">
+                                                    <img className="dmc-card-img" src={mitra.image} alt={mitra.name} />
+                                                </div>
+                                                <div className="dmc-card-content">
+                                                    <div>
+                                                        <div className="dmc-card-header">
+                                                            <h3 className="dmc-card-title">{mitra.name}</h3>
+                                                            <span className="dmc-card-badge">Berada dalam jangkauan ({mitra.distance})</span>
                                                         </div>
-                                                    ))}
+                                                        <div className="dmc-card-rating">
+                                                            <span className="material-symbols-outlined">star</span>
+                                                            <span className="dmc-card-rating-value">{mitra.rating}</span>
+                                                            <span className="dmc-card-rating-count">({mitra.reviewCount} Ulasan)</span>
+                                                        </div>
+                                                        <p className="dmc-card-desc">{mitra.description}</p>
+                                                    </div>
+                                                    <div className="dmc-card-footer">
+                                                        <div className="dmc-card-price">{mitra.price}</div>
+                                                        <button
+                                                            className={`dmc-card-order-btn ${!location.isConfirmed ? 'dmc-card-order-btn-disabled' : ''}`}
+                                                            onClick={() => location.isConfirmed && handleOrderClick(mitra)}
+                                                            disabled={!location.isConfirmed}
+                                                        >
+                                                            {location.isConfirmed ? 'Pesan Sekarang' : 'Atur Lokasi'}
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    )}
-                                </article>
-                            ))
+
+                                            {mitra.reviews.length > 0 && (
+                                                <div className="dmg-marquee-section">
+                                                    <div className="dmg-marquee-container">
+                                                        <div
+                                                            className="dmg-marquee-content"
+                                                            style={{ animationDuration: mitra.marqueeSpeed }}
+                                                        >
+                                                            {[...mitra.reviews, ...mitra.reviews].map((review, idx) => (
+                                                                <div key={idx} className="dmg-review-chip">
+                                                                    <span className="dmg-review-name">{review.name}</span>
+                                                                    <span className="dmg-review-rating">{review.rating}★</span>
+                                                                    <span className="dmg-review-text">"{review.text}"</span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </article>
+                                    ))
+                                ) : null}
+                            </div>
                         )}
                     </section>
                 </div>
             </main>
 
-            <footer className="dmc-footer">
-                <div className="dmc-footer-inner">
-                    <div className="dmc-footer-brand">
-                        <Link to="/" className="dmc-brand-link">
-                            KostHub<span className="dmc-brand-dot">.</span>
+            <footer className="dm-footer">
+                <div className="dm-footer-inner">
+                    <div className="dm-footer-brand">
+                        <Link to="/" className="dm-brand-link">
+                            KostHub<span className="dm-brand-dot">.</span>
                         </Link>
                     </div>
-                    <div className="dmc-footer-links">
-                        <a className="dmc-footer-link" href="#">Syarat &amp; Ketentuan</a>
-                        <a className="dmc-footer-link" href="#">Kebijakan Privasi</a>
-                        <a className="dmc-footer-link" href="#">Hubungi Kami</a>
+                    <div className="dm-footer-links">
+                        <a className="dm-footer-link" href="#">Syarat &amp; Ketentuan</a>
+                        <a className="dm-footer-link" href="#">Kebijakan Privasi</a>
+                        <a className="dm-footer-link" href="#">Hubungi Kami</a>
                     </div>
-                    <p className="dmc-footer-copy">© 2024 KostHub. Seluruh hak cipta dilindungi.</p>
+                    <p className="dm-footer-copy">© 2024 KostHub. Seluruh hak cipta dilindungi.</p>
                 </div>
             </footer>
         </div>

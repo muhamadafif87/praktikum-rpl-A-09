@@ -6,6 +6,7 @@ use App\Models\Ulasan;
 use App\Models\Layanan;
 use App\Models\Mitra;
 use App\Models\User;
+use App\Services\DistanceLocationService;
 use Illuminate\Support\Collection as SupportCollection;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 
@@ -43,14 +44,16 @@ class LandingPageService {
      * Get data layanan laundry express dengan optional filter dan sorting
      * @param array $kategori Filter kategori: 'Pakaian', 'Sprei', 'BedCover', atau 'All'
      * @param string $sortBy Sort order: 'Terdekat', 'Terlaris', 'Terbaik', 'Harga Bersahabat'
+     * @param float|null $lat User latitude
+     * @param float|null $lng User longitude
      * @return SupportCollection
      */
-    public function laundryExpress(array $kategori = ['All'], string $sortBy = 'Terbaik'): SupportCollection {
+    public function laundryExpress(array $kategori = ['All'], string $sortBy = 'Terbaik', ?float $lat = null, ?float $lng = null): SupportCollection {
         $query = Mitra::where('jenis_jasa', 'laundry')
             ->with([
                 'Layanan' => fn($q) => $q->select('id_mitra', 'id_layanan', 'nama_layanan', 'harga', 'satuan'),
 
-                'Pesanan.Ulasan.Pesanan.User:id_user,nama_lengkap',
+                'Ulasan.Pesanan.User:id_user,nama_lengkap',
             ])
             ->withAvg('Ulasan as avg_rating', 'rating')
             ->withCount('Ulasan as jumlah_ulasan');
@@ -71,7 +74,7 @@ class LandingPageService {
             }
         }
 
-        $query = $this->applySorting($query, $sortBy);
+        $query = $this->applyLocationFilterAndSorting($query, $lat, $lng, $sortBy);
 
         $data = $query->get();
 
@@ -82,14 +85,16 @@ class LandingPageService {
      * Get data layanan galon/gas dengan optional filter dan sorting
      * @param array $kategori Filter kategori: 'Galon', 'Gas', atau 'All'
      * @param string $sortBy Sort order: 'Terdekat', 'Terlaris', 'Terbaik', 'Harga Bersahabat'
+     * @param float|null $lat User latitude
+     * @param float|null $lng User longitude
      * @return SupportCollection
      */
-    public function galonGas(array $kategori = ['All'], string $sortBy = 'Terbaik'): SupportCollection {
+    public function galonGas(array $kategori = ['All'], string $sortBy = 'Terbaik', ?float $lat = null, ?float $lng = null): SupportCollection {
         $query = Mitra::whereIn('jenis_jasa', ['galon','gas','galon_gas'])
             ->with([
                 'Layanan' => fn($q) => $q->select('id_mitra', 'id_layanan', 'nama_layanan', 'harga', 'satuan'),
 
-                'Pesanan.Ulasan.Pesanan.User:id_user,nama_lengkap',
+                'Ulasan.Pesanan.User:id_user,nama_lengkap',
             ])
             ->withAvg('Ulasan as avg_rating', 'rating')
             ->withCount('Ulasan as jumlah_ulasan');
@@ -107,7 +112,7 @@ class LandingPageService {
             }
         }
 
-        $query = $this->applySorting($query, $sortBy);
+        $query = $this->applyLocationFilterAndSorting($query, $lat, $lng, $sortBy);
 
         $data = $query->get();
 
@@ -118,9 +123,11 @@ class LandingPageService {
      * Get data layanan daily cleaning dengan optional filter dan sorting
      * @param array $kategori Filter kategori: 'KamarKost', 'Gudang', atau 'All'
      * @param string $sortBy Sort order: 'Terdekat', 'Terlaris', 'Terbaik', 'Harga Bersahabat'
+     * @param float|null $lat User latitude
+     * @param float|null $lng User longitude
      * @return SupportCollection
      */
-    public function dailyCleaning(array $kategori = ['All'], string $sortBy = 'Terbaik'): SupportCollection {
+    public function dailyCleaning(array $kategori = ['All'], string $sortBy = 'Terbaik', ?float $lat = null, ?float $lng = null): SupportCollection {
         $map = [
             'sapu_pel'      => 'Sapu & Pel',
             'cuci_piring'   => 'Cuci Piring',
@@ -132,7 +139,7 @@ class LandingPageService {
             ->with([
                 'Layanan' => fn($q) => $q->select('id_mitra', 'id_layanan', 'nama_layanan', 'harga', 'satuan'),
 
-                'Pesanan.Ulasan.Pesanan.User:id_user,nama_lengkap',
+                'Ulasan.Pesanan.User:id_user,nama_lengkap',
             ])
             ->withAvg('Ulasan as avg_rating', 'rating')
             ->withCount('Ulasan as jumlah_ulasan');
@@ -168,7 +175,7 @@ class LandingPageService {
             }
         }
 
-        $query = $this->applySorting($query, $sortBy);
+        $query = $this->applyLocationFilterAndSorting($query, $lat, $lng, $sortBy);
 
         $data = $query->get();
 
@@ -176,17 +183,28 @@ class LandingPageService {
     }
 
     /**
-     * Apply sorting berdasarkan kriteria
+     * Apply sorting berdasarkan kriteria dan filter lokasi jika lat/lng tersedia
      * @param mixed $query
+     * @param float|null $lat
+     * @param float|null $lng
      * @param string $sortBy
      * @return mixed
      */
-    private function applySorting($query, string $sortBy)
+    private function applyLocationFilterAndSorting($query, ?float $lat, ?float $lng, string $sortBy)
     {
+        if ($lat !== null && $lng !== null) {
+            $haversineSql = DistanceLocationService::haversineSqlExpression($lat, $lng);
+            $query->selectRaw("mitra.*, {$haversineSql} as jarak_km")
+                  ->whereRaw("{$haversineSql} <= COALESCE(mitra.radius_layanan, 10)");
+        }
+
         switch ($sortBy) {
             case 'Terdekat':
-                // Implementasi sesuai dengan lokasi user (memerlukan geolocation)
-                $query->orderBy('alamat_mitra');
+                if ($lat !== null && $lng !== null) {
+                    $query->orderBy('jarak_km');
+                } else {
+                    $query->orderBy('alamat_mitra');
+                }
                 break;
             case 'Terlaris':
                 // Order by order count (most frequently ordered)
@@ -208,6 +226,9 @@ class LandingPageService {
                 $query->orderByDesc('id_mitra');
         }
 
+        // Tambahkan fallback sorting stabil untuk mencegah perubahan urutan pada nilai yang sama (mencegah blink/jumping di UI)
+        $query->orderBy('mitra.id_mitra');
+
         return $query;
     }
 
@@ -221,14 +242,14 @@ class LandingPageService {
             $rating = $mitra->avg_rating ?? 0;
             $jumlahUlasan = $mitra->jumlah_ulasan ?? 0;
 
-            $reviews = $mitra->Pesanan
-                    ->flatMap(fn($p) => $p->Ulasan ?? collect())
+            $reviews = $mitra->Ulasan
                     ->sortByDesc('created_at')
                     ->take(5);
 
             return [
                 'id_mitra'       => $mitra->id_mitra,
                 'nama_mitra'     => $mitra->nama_mitra,
+                'deskripsi'      => $mitra->deskripsi,
                 'profil_image'   => $mitra->MitraImageAsset()->first()?->image_file,
                 'jenis_jasa'     => $mitra->jenis_jasa,
                 'lokasi_layanan' => $mitra->alamat_mitra,
@@ -240,6 +261,7 @@ class LandingPageService {
                     'harga_satuan' => $l->harga,
                     'satuan'       => $l->satuan,
                 ])->toArray(),
+                'jarak_km'       => isset($mitra->jarak_km) ? (float) $mitra->jarak_km : null,
                 'sample_ulasan' => $reviews->map(function ($ulasan) {
                     $user = $ulasan->Pesanan?->User;
                     return [

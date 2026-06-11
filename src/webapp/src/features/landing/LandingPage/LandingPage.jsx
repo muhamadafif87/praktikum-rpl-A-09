@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useLayoutEffect, useCallback, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import TransitionLink from '../../../components/ViewTransition/TransitionLink';
-import LocationSearch from '../../location/LocationSearch/LocationSearch';
 import './LandingPage.css';
 import { useAuth } from '../../../context/AuthContext';
 import { useLocation } from '../../../context/LocationContext';
@@ -161,7 +160,8 @@ const LandingPage = () => {
      * Smooth scroll ke section "Pilih Layanan KostHub"
      * Dipicu saat user klik "Cari Layanan" atau Enter setelah konfirmasi lokasi.
      */
-    const handleSearchSubmit = () => {
+    const handleSearchSubmit = (e) => {
+        if (e) e.preventDefault();
         if (servicesRef.current) {
             servicesRef.current.scrollIntoView({
                 behavior: 'smooth',
