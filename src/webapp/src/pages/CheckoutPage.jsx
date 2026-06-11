@@ -82,7 +82,7 @@ const CheckoutPage = () => {
         const fetchOrder = async () => {
             try {
                 // Adjust if backend endpoint is different
-                const res = await api.get(`/v1/landing-page/pesanan/${id_pesanan}`);
+                const res = await api.get(`/v1/order/pesanan/${id_pesanan}`);
                 setData(res.data.data);
             } catch (err) {
                 setError(err.response?.data?.message || 'Gagal memuat detail pesanan.');
