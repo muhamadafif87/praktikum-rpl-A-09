@@ -431,21 +431,19 @@ const DetailMitraGas = ({ onOrderClick }) => {
             </main>
 
             {/* Footer */}
-            <footer className="dmg-footer">
-                <div className="dmg-footer-inner">
-                    <div className="dmg-footer-brand">
-                        <Link to="/" className="dmg-brand-link">
-                            KostHub<span className="dmg-brand-dot">.</span>
+            <footer className="dm-footer">
+                <div className="dm-footer-inner">
+                    <div className="dm-footer-brand">
+                        <Link to="/" className="dm-brand-link">
+                            KostHub<span className="dm-brand-dot">.</span>
                         </Link>
                     </div>
-                    <div className="dmg-footer-links">
-                        <a className="dmg-footer-link" href="#">Syarat &amp; Ketentuan</a>
-                        <a className="dmg-footer-link" href="#">Kebijakan Privasi</a>
-                        <a className="dmg-footer-link" href="#">Hubungi Kami</a>
+                    <div className="dm-footer-links">
+                        <a className="dm-footer-link" href="#">Syarat &amp; Ketentuan</a>
+                        <a className="dm-footer-link" href="#">Kebijakan Privasi</a>
+                        <a className="dm-footer-link" href="#">Hubungi Kami</a>
                     </div>
-                    <p className="dmg-footer-copy">
-                        © 2024 KostHub. Seluruh hak cipta dilindungi.
-                    </p>
+                    <p className="dm-footer-copy">© 2024 KostHub. Seluruh hak cipta dilindungi.</p>
                 </div>
             </footer>
         </div>
