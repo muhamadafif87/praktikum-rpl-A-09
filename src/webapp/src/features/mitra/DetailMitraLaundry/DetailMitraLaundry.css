@@ -495,7 +495,8 @@
 @media (min-width: 768px) {
     .dm-card-img-wrapper {
         width: 16rem;
-        height: auto;
+        height: 16rem;
+        flex-shrink: 0;
     }
 }
 
