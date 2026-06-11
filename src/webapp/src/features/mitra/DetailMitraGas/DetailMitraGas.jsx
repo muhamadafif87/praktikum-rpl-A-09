@@ -2,7 +2,6 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { useLocation } from '../../../context/LocationContext';
-import '../skeleton.css';
 import api from '../../../services/api';
 import './DetailMitraGas.css';
 import '../../landing/LandingPage/LandingPage.css';
@@ -81,7 +80,6 @@ const DetailMitraGas = ({ onOrderClick }) => {
                 type: mitra.jenis_jasa,
                 location: mitra.lokasi_layanan,
                 distance: mitra.jarak_km ? `${mitra.jarak_km.toFixed(1)} KM` : 'Jarak Tidak Diketahui',
-                isDalamJangkauan: mitra.is_dalam_jangkauan !== false,
                 rating: mitra.rating,
                 reviewCount: mitra.jumlah_ulasan,
                 description: mitra.deskripsi || `${mitra.jenis_jasa === 'gas' ? 'Agen gas LPG' : mitra.jenis_jasa === 'galon' ? 'Agen air galon' : 'Agen Gas & Galon'} terpercaya. ${mitra.layanan?.length || 0} jenis layanan tersedia.`,
@@ -348,22 +346,13 @@ const DetailMitraGas = ({ onOrderClick }) => {
                                         <article key={mitra.id} className="dmg-card">
                                             <div className="dmg-card-body">
                                                 <div className="dmg-card-img-wrapper">
-                                                    <img 
-                                                        className="dmg-card-img" 
-                                                        src={mitra.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(mitra.name)}&background=random&color=fff&size=300`}
-                                                        alt={mitra.name} 
-                                                    />
+                                                    <img className="dmg-card-img" src={mitra.image} alt={mitra.name} />
                                                 </div>
                                                 <div className="dmg-card-content">
                                                     <div>
                                                         <div className="dmg-card-header">
                                                             <h3 className="dmg-card-title">{mitra.name}</h3>
-                                                            <span 
-                                                                className="dmg-card-badge"
-                                                                style={!mitra.isDalamJangkauan ? { backgroundColor: '#fee2e2', color: '#ef4444' } : {}}
-                                                            >
-                                                                {mitra.isDalamJangkauan ? `Berada dalam jangkauan (${mitra.distance})` : `Di luar jangkauan (${mitra.distance})`}
-                                                            </span>
+                                                            <span className="dmg-card-badge">Berada dalam jangkauan ({mitra.distance})</span>
                                                         </div>
                                                         <div className="dmg-card-rating">
                                                             <span className="material-symbols-outlined">star</span>
@@ -375,20 +364,18 @@ const DetailMitraGas = ({ onOrderClick }) => {
                                                     <div className="dmg-card-footer">
                                                         <div className="dmg-card-price">{mitra.price}</div>
                                                         <button
-                                                            className={`dmg-card-order-btn ${(!location.isConfirmed || !mitra.isDalamJangkauan) ? 'dmg-card-order-btn-disabled' : ''}`}
-                                                            onClick={() => location.isConfirmed && mitra.isDalamJangkauan && handleOrderClick(mitra)}
-                                                            disabled={!location.isConfirmed || !mitra.isDalamJangkauan}
-                                                            style={{ opacity: (!location.isConfirmed || !mitra.isDalamJangkauan) ? 0.5 : 1, cursor: (!location.isConfirmed || !mitra.isDalamJangkauan) ? 'not-allowed' : 'pointer' }}
+                                                            className={`dmg-card-order-btn ${!location.isConfirmed ? 'dmc-mitra-order-btn-disabled' : ''}`}
+                                                            onClick={() => location.isConfirmed && handleOrderClick(mitra)}
+                                                            disabled={!location.isConfirmed}
                                                         >
-                                                            {!location.isConfirmed ? 'Atur Lokasi' : (!mitra.isDalamJangkauan ? 'Di Luar Jangkauan' : 'Pesan Sekarang')}
+                                                            {location.isConfirmed ? 'Pesan Sekarang' : 'Atur Lokasi'}
                                                         </button>
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            <div className="dmg-card-marquee">
-                                                {mitra.reviews.length > 0 && (
-                                                    <div className="dmg-marquee-section">
+                                            {mitra.reviews.length > 0 && (
+                                                <div className="dmg-marquee-section">
                                                     <div className="dmg-marquee-container">
                                                         <div
                                                             className="dmg-marquee-content"
@@ -403,9 +390,8 @@ const DetailMitraGas = ({ onOrderClick }) => {
                                                             ))}
                                                         </div>
                                                     </div>
-                                                    </div>
-                                                )}
-                                            </div>
+                                                </div>
+                                            )}
                                         </article>
                                     ))
                                 ) : null}
