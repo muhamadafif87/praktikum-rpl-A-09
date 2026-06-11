@@ -194,8 +194,7 @@ class LandingPageService {
     {
         if ($lat !== null && $lng !== null) {
             $haversineSql = DistanceLocationService::haversineSqlExpression($lat, $lng);
-            $query->selectRaw("mitra.*, {$haversineSql} as jarak_km")
-                  ->whereRaw("{$haversineSql} <= COALESCE(mitra.radius_layanan, 10)");
+            $query->selectRaw("mitra.*, {$haversineSql} as jarak_km");
         }
 
         switch ($sortBy) {
@@ -262,6 +261,7 @@ class LandingPageService {
                     'satuan'       => $l->satuan,
                 ])->toArray(),
                 'jarak_km'       => isset($mitra->jarak_km) ? (float) $mitra->jarak_km : null,
+                'is_dalam_jangkauan' => isset($mitra->jarak_km) ? ((float) $mitra->jarak_km <= (float) ($mitra->radius_layanan ?? 10)) : true,
                 'sample_ulasan' => $reviews->map(function ($ulasan) {
                     $user = $ulasan->Pesanan?->User;
                     return [

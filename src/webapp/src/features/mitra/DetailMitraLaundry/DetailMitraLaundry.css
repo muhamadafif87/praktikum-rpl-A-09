@@ -265,51 +265,90 @@
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    background: var(--dm-surface-container-lowest);
+    padding: 1.5rem;
+    border-radius: 1rem;
+    border: 1px solid var(--dm-outline-variant);
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 0 3px rgba(0,0,0,0.02);
 }
 
 .dm-filter-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--dm-outline-variant);
 }
 
 .dm-filter-title {
-    font-size: 1.125rem;
-    font-weight: 600;
+    font-size: 1.15rem;
+    font-weight: 700;
     margin: 0;
+    color: var(--dm-on-surface);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.dm-filter-title::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 18px;
+    background-color: var(--dm-primary);
+    border-radius: 4px;
 }
 
 .dm-filter-reset {
     color: var(--dm-primary);
-    font-size: 0.875rem;
-    font-weight: 500;
-    background: none;
-    border: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    background: transparent;
+    border: 1px solid transparent;
     cursor: pointer;
     font-family: var(--dm-font);
+    padding: 0.4rem 0.6rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
 }
 
 .dm-filter-reset:hover {
-    text-decoration: underline;
+    background: var(--dm-primary-container);
+    color: var(--dm-on-primary-container);
+    border-color: rgba(37, 99, 235, 0.1);
 }
 
 .dm-filter-group {
-    padding-bottom: 0.75rem;
-    border-bottom: 1px solid #E2E8F0;
+    padding-bottom: 1.5rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--dm-outline-variant);
+}
+.dm-filter-group:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+    margin-bottom: 0;
 }
 
 .dm-filter-label {
     display: block;
-    font-size: 0.875rem;
+    font-size: 0.9rem;
     font-weight: 700;
-    color: var(--dm-on-surface);
-    margin-bottom: 0.75rem;
+    color: var(--dm-on-surface-variant);
+    margin-bottom: 0.35rem; /* Didekatkan ke kotak */
+    margin-top: 0.5rem; /* Dijauhkan dari garis atas */
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.dm-filter-group:first-child .dm-filter-label {
+    margin-top: 0;
 }
 
 .dm-filter-options {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.6rem;
+    margin-top: 0.75rem;
 }
 
 .dm-checkbox-label {
@@ -317,6 +356,16 @@
     align-items: center;
     gap: 0.75rem;
     cursor: pointer;
+    user-select: none;
+    padding: 0.4rem 0.5rem;
+    border-radius: 0.5rem;
+    transition: background-color 0.2s ease;
+    margin-left: -0.5rem; /* Align with text */
+    width: calc(100% + 1rem);
+}
+
+.dm-checkbox-label:hover {
+    background-color: var(--dm-surface-container);
 }
 
 .dm-checkbox-label:hover .dm-checkbox-text {
@@ -324,34 +373,82 @@
 }
 
 .dm-checkbox-input {
-    width: 1rem;
-    height: 1rem;
-    accent-color: var(--dm-primary);
-    border-radius: 0.25rem;
+    appearance: none;
+    width: 1.25rem;
+    height: 1.25rem;
+    border: 2px solid var(--dm-outline);
+    border-radius: 0.35rem;
     cursor: pointer;
+    position: relative;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    background: var(--dm-surface-container-lowest);
+    flex-shrink: 0;
+}
+
+.dm-checkbox-input:checked {
+    background: var(--dm-primary);
+    border-color: var(--dm-primary);
+    transform: scale(1.05);
+}
+
+.dm-checkbox-input:checked::after {
+    content: '';
+    position: absolute;
+    left: 32%;
+    top: 15%;
+    width: 0.25rem;
+    height: 0.5rem;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.dm-checkbox-input:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
 .dm-checkbox-text {
-    font-size: 0.875rem;
-    transition: color 0.2s ease;
+    font-size: 0.95rem;
+    color: var(--dm-on-surface-variant);
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.dm-checkbox-input:checked ~ .dm-checkbox-text {
+    color: var(--dm-on-surface);
+    font-weight: 600;
 }
 
 .dm-filter-select {
     width: 100%;
     background-color: var(--dm-surface-container-lowest);
-    border: 1px solid var(--dm-outline-variant);
+    border: 1px solid var(--dm-outline);
     border-radius: 0.5rem;
-    padding: 0.5rem;
-    font-size: 0.875rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
     font-family: var(--dm-font);
+    font-weight: 500;
     color: var(--dm-on-surface);
     cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23434655'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1.25rem;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+
+.dm-filter-select:hover {
+    border-color: var(--dm-primary);
 }
 
 .dm-filter-select:focus {
     outline: none;
     border-color: var(--dm-primary);
-    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    background-color: var(--dm-surface-container-lowest);
 }
 
 /* ── Card List ── */

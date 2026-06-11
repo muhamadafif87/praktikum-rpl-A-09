@@ -24,37 +24,53 @@ const DEFAULT_LOCATION = {
 const LocationContext = createContext(undefined);
 
 export const LocationProvider = ({ children }) => {
-    const [location, setLocationState] = useState(DEFAULT_LOCATION);
+    const [location, setLocationState] = useState(() => {
+        try {
+            const saved = sessionStorage.getItem('userLocation');
+            if (saved) return JSON.parse(saved);
+        } catch (e) {
+            console.error('Failed to parse userLocation from sessionStorage', e);
+        }
+        return DEFAULT_LOCATION;
+    });
     const [isMapOpen, setIsMapOpen] = useState(false);
 
     const setLocation = useCallback((address, lat, lng, isFromProfile = false) => {
-        setLocationState({
+        const newLocation = {
             address,
             lat,
             lng,
             isConfirmed: true,
             isFromProfile,
-        });
+        };
+        setLocationState(newLocation);
+        sessionStorage.setItem('userLocation', JSON.stringify(newLocation));
     }, []);
 
     const clearLocation = useCallback(() => {
         setLocationState(DEFAULT_LOCATION);
+        sessionStorage.removeItem('userLocation');
     }, []);
 
     const syncWithUser = useCallback((user) => {
         if (user && user.latitude && user.longitude) {
-            setLocationState({
+            const newLocation = {
                 address: user.address_detail || 'Sesuai Profil',
                 lat: parseFloat(user.latitude),
                 lng: parseFloat(user.longitude),
                 isConfirmed: true,
                 isFromProfile: true,
-            });
+            };
+            setLocationState(newLocation);
+            sessionStorage.setItem('userLocation', JSON.stringify(newLocation));
         }
     }, []);
 
+    const openMap = useCallback(() => setIsMapOpen(true), []);
+    const closeMap = useCallback(() => setIsMapOpen(false), []);
+
     return (
-        <LocationContext.Provider value={{ location, setLocation, clearLocation, syncWithUser }}>
+        <LocationContext.Provider value={{ location, setLocation, clearLocation, syncWithUser, isMapOpen, openMap, closeMap }}>
             {children}
         </LocationContext.Provider>
     );

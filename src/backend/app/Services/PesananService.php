@@ -54,6 +54,27 @@ class PesananService
                 throw new \Exception('Satu atau lebih layanan tidak ditemukan atau bukan milik mitra ini.');
             }
 
+            if ($typeLayanan === 'daily_cleaning') {
+                $catatanMitra = is_string($mitra->catatan) ? json_decode($mitra->catatan, true) : ($mitra->catatan ?? []);
+                $alatPembersihMitra = $catatanMitra['alat_pembersih_tambahan'] ?? [];
+                
+                foreach ($biayaTambahan as $alat => $hargaRequest) {
+                    if (isset($alatPembersihMitra[$alat])) {
+                        $stokAlat = is_array($alatPembersihMitra[$alat]) ? ($alatPembersihMitra[$alat]['stok'] ?? null) : null;
+                        if ($stokAlat !== null) {
+                            if ($stokAlat < 1) {
+                                throw new \Exception("Stok alat pembersih {$alat} habis.");
+                            }
+                            $alatPembersihMitra[$alat]['stok'] -= 1;
+                        }
+                    }
+                }
+                
+                $catatanMitra['alat_pembersih_tambahan'] = $alatPembersihMitra;
+                $mitra->catatan = $catatanMitra;
+                $mitra->save();
+            }
+
             $idUniquePesanan = $this->generateIdPesanan($typeLayanan);
 
             $catatanPesanan_s = [
@@ -76,9 +97,14 @@ class PesananService
             }
             if ($typeLayanan === 'galon_gas') {
                 $catatanPesanan_s['biaya_ongkir'] = $estimasi['biaya_ongkir'] ?? 0;
-                $catatanPesanan_s['jenis_layanan'] = isset($biayaTambahan['beli_baru']) && $biayaTambahan['beli_baru'] > 0
-                    ? 'beli_baru'
-                    : 'isi_ulang';
+                $isBeliBaru = false;
+                foreach ($biayaTambahan as $tambahan) {
+                    if (($tambahan['beli_baru'] ?? 0) > 0) {
+                        $isBeliBaru = true;
+                        break;
+                    }
+                }
+                $catatanPesanan_s['jenis_layanan'] = $isBeliBaru ? 'beli_baru' : 'isi_ulang';
             }
 
             $pesanan = Pesanan::create([
@@ -92,7 +118,26 @@ class PesananService
             $detailList = [];
             foreach ($items as $item) {
                 $layanan = $layanans->get($item['idLayanan']);
-                $harga    = $layanan->harga;
+                $qty      = $item['qty'];
+
+                if ($layanan->stok_tersedia !== null) {
+                    if ($qty > $layanan->stok_tersedia) {
+                        throw new \Exception("Stok {$layanan->nama_layanan} tidak mencukupi. Sisa: {$layanan->stok_tersedia}");
+                    }
+                    $layanan->decrement('stok_tersedia', $qty);
+                }
+
+                $harga    = (float)$layanan->harga;
+                if ($typeLayanan === 'galon_gas') {
+                    foreach ($biayaTambahan as $tambahan) {
+                        if (isset($tambahan['idLayanan']) && $tambahan['idLayanan'] == $item['idLayanan']) {
+                            if (($tambahan['beli_baru'] ?? 0) > 0) {
+                                $harga = (float)$tambahan['beli_baru'];
+                            }
+                            break;
+                        }
+                    }
+                }
                 $qty      = $item['qty'];
                 $subtotal = $harga * $qty;
 
@@ -436,19 +481,33 @@ class PesananService
                     }
                 }
 
-                $biayaTambahanKhusus = $beliBaru * $qty;
-                $totalBiayaTambahanKhusus += $biayaTambahanKhusus;
+                if ($beliBaru > 0) {
+                    $totalBiayaPokok -= $biayaPokok;
+                    $biayaPokok = $beliBaru * $qty;
+                    $totalBiayaPokok += $biayaPokok;
 
-                $detailLayanan[] = [
-                    'id_layanan' => $idLayanan,
-                    'nama_layanan' => $layanan->nama_layanan,
-                    'qty' => $qty,
-                    'satuan' => 'item',
-                    'harga_satuan' => (float)$layanan->harga,
-                    'subtotal' => $biayaPokok,
-                    'beli_baru_per_item' => $beliBaru,
-                    'total_beli_baru' => $biayaTambahanKhusus
-                ];
+                    $detailLayanan[] = [
+                        'id_layanan' => $idLayanan,
+                        'nama_layanan' => $layanan->nama_layanan,
+                        'qty' => $qty,
+                        'satuan' => 'item',
+                        'harga_satuan' => $beliBaru,
+                        'subtotal' => $biayaPokok,
+                        'beli_baru_per_item' => $beliBaru,
+                        'is_beli_baru' => true
+                    ];
+                } else {
+                    $detailLayanan[] = [
+                        'id_layanan' => $idLayanan,
+                        'nama_layanan' => $layanan->nama_layanan,
+                        'qty' => $qty,
+                        'satuan' => 'item',
+                        'harga_satuan' => (float)$layanan->harga,
+                        'subtotal' => $biayaPokok,
+                        'beli_baru_per_item' => 0,
+                        'is_beli_baru' => false
+                    ];
+                }
 
             } else {
                 $detailLayanan[] = [
@@ -471,14 +530,19 @@ class PesananService
         $firstLayanan = $mitra->Layanan()->where('id_layanan', $firstLayananId)->first();
 
         if ($typeLayanan === 'daily_cleaning') {
-            $biayaTransport = (float)($firstLayanan->catatan['biaya_transportasi'] ?? 0) * $jarakOngkir;
+            $biayaTransport = 0;
+            if ($jarakOngkir <= 3) $biayaTransport = 4000;
+            elseif ($jarakOngkir <= 7) $biayaTransport = 7000;
+            else $biayaTransport = 10000;
 
             if (!empty($biayaTambahanAlat)) {
                 $totalBiayaTambahanAlat = array_sum(array_map('floatval', $biayaTambahanAlat));
             }
 
         } elseif ($typeLayanan === 'laundry' || $typeLayanan === 'galon_gas') {
-            $biayaOngkir = (float)($firstLayanan->catatan['biaya_ongkir'] ?? 0) * $jarakOngkir;
+            if ($jarakOngkir <= 3) $biayaOngkir = 4000;
+            elseif ($jarakOngkir <= 7) $biayaOngkir = 7000;
+            else $biayaOngkir = 10000;
         }
 
         $totalPembayaran = $totalBiayaPokok
@@ -509,7 +573,6 @@ class PesananService
                     'subtotal' => $totalBiayaPokok,
                     'biaya_ongkir' => $biayaOngkir,
                     'biaya_layanan_aplikasi' => $biayaAplikasi,
-                    'total_beli_baru' => $totalBiayaTambahanKhusus,
                     'total_pembayaran' => $totalPembayaran
                 ]
             ];
@@ -552,7 +615,9 @@ class PesananService
                 'layanan' => $layanan->map(fn($l) => [
                     'id_layanan' => $l->id_layanan,
                     'nama_layanan' => $l->nama_layanan,
-                    'harga_layanan' => $l->harga
+                    'harga_layanan' => $l->harga,
+                    'satuan' => $l->satuan,
+                    'stok_tersedia' => $l->stok_tersedia
                 ])->toArray(),
                 'jenis_kain' => $catatan['jenis_kain'] ?? null,
                 'durasi_pengerjaan' => $catatan['durasi_pengerjaan'] ?? null,
@@ -566,7 +631,9 @@ class PesananService
                 'layanan' => $layanan->map(fn($l) => [
                     'id_layanan' => $l->id_layanan,
                     'nama_layanan' => $l->nama_layanan,
-                    'harga_layanan' => $l->harga
+                    'harga_layanan' => $l->harga,
+                    'satuan' => $l->satuan,
+                    'stok_tersedia' => $l->stok_tersedia
                 ])->toArray(),
                 'alat_pembersih_tambahan' => $catatan['alat_pembersih_tambahan'] ?? null,
                 'jadwal_pembersihan' => $catatan['jadwal_pembersihan'] ?? null
@@ -580,7 +647,9 @@ class PesananService
                     'id_layanan' => $l->id_layanan,
                     'nama_layanan' => $l->nama_layanan,
                     'harga_barang' => $l->harga,
-                    'beli_baru' => $l->catatan['beli_baru'] ?? null
+                    'satuan' => $l->satuan,
+                    'stok_tersedia' => $l->stok_tersedia,
+                    'beli_baru' => is_string($l->catatan) ? (json_decode($l->catatan, true)['beli_baru'] ?? null) : ($l->catatan['beli_baru'] ?? null)
                 ])->toArray(),
                 'jadwal_pengiriman' => $catatan['jadwal_pengiriman'] ?? null
             ];

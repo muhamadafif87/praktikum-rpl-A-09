@@ -45,7 +45,7 @@ class CreatePesananRequest extends FormRequest
             'items.*.idLayanan' => ['required', 'string', 'exists:layanan,id_layanan'],
             'items.*.qty'       => ['required', 'integer', 'min:1'],
 
-            'jarakOngkir' => ['required', 'integer', 'min:0'],
+            'jarakOngkir' => ['required', 'numeric', 'min:0'],
 
             'jadwal_layanan'            => ['required', 'array', 'min:1'],
             'jadwal_layanan.*.jam'      => ['required', 'date_format:H:i'],

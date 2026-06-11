@@ -1,0 +1,130 @@
+/* PesananSukses.css */
+.ps-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: var(--dp-surface);
+}
+
+.ps-card {
+    background-color: var(--dp-surface-container-lowest);
+    border: 1px solid var(--dp-outline-variant);
+    border-radius: 16px;
+    padding: 40px;
+    max-width: 500px;
+    width: 90%;
+    margin: 64px auto;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.ps-icon-wrapper {
+    margin-bottom: 24px;
+}
+
+.ps-icon {
+    font-size: 80px;
+    color: var(--dp-primary);
+}
+
+.ps-title {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--dp-on-surface);
+    margin: 0 0 12px 0;
+}
+
+.ps-subtitle {
+    font-size: 16px;
+    color: var(--dp-on-surface-variant);
+    line-height: 1.5;
+    margin: 0 0 24px 0;
+}
+
+.ps-order-id {
+    background-color: var(--dp-surface-container-high);
+    padding: 12px 24px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 32px;
+}
+
+.ps-order-id span {
+    font-size: 14px;
+    color: var(--dp-on-surface-variant);
+}
+
+.ps-order-id strong {
+    font-size: 16px;
+    color: var(--dp-on-surface);
+    font-family: monospace;
+    letter-spacing: 1px;
+}
+
+.ps-info-box {
+    background-color: var(--dp-surface-container-low);
+    border: 1px solid var(--dp-outline-variant);
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 32px;
+    text-align: left;
+}
+
+.ps-info-box .material-symbols-outlined {
+    color: var(--dp-primary);
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.ps-info-box p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--dp-on-surface-variant);
+}
+
+.ps-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.ps-btn-primary {
+    background-color: var(--dp-primary);
+    color: var(--dp-on-primary);
+    border: none;
+    padding: 14px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    width: 100%;
+}
+
+.ps-btn-primary:hover {
+    background-color: var(--dp-primary-container);
+}
+
+.ps-btn-secondary {
+    background-color: transparent;
+    color: var(--dp-primary);
+    border: 1px solid var(--dp-primary);
+    padding: 14px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 100%;
+}
+
+.ps-btn-secondary:hover {
+    background-color: var(--dp-surface-container-low);
+}

@@ -1,13 +1,18 @@
-import './LaundryDetail.css';
-import '../features/landing/LandingPage/LandingPage.css';
 import React, { useState, useEffect, useRef, useLayoutEffect, useCallback } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useLocation as useGlobalLocation } from '../context/LocationContext';
+import { calculateDistance } from '../utils/distance';
+import FullScreenLoader from '../components/FullScreenLoader/FullScreenLoader';
+import './LaundryDetail.css';
+import '../features/landing/LandingPage/LandingPage.css';
 
 const LaundryDetail = () => {
     const { id_mitra } = useParams();
     const navigate = useNavigate();
+    const { state } = useLocation();
+    const { location } = useGlobalLocation();
     const { user, isAuthenticated, logout } = useAuth();
 
     const [data, setData] = useState(null);
@@ -15,12 +20,31 @@ const LaundryDetail = () => {
     const [error, setError] = useState(null);
 
     // Form state
-    const [selectedLayanan, setSelectedLayanan] = useState(null);
-    const [selectedDurasi, setSelectedDurasi] = useState(null);
+    const [selectedKiloanIds, setSelectedKiloanIds] = useState(new Set());
+    const [kiloanQty, setKiloanQty] = useState(1);
+    
+    const [satuanQtyMap, setSatuanQtyMap] = useState({});
+    
+    const [selectedJenisKain, setSelectedJenisKain] = useState([]);
+
     const [selectedJadwal, setSelectedJadwal] = useState(null);
     const [catatan, setCatatan] = useState('');
-    const [qty, setQty] = useState(1);
-    const [jarakOngkir, setJarakOngkir] = useState(0);
+    const [jarakOngkir, setJarakOngkir] = useState(state?.jarak_km ? parseFloat(state.jarak_km) : 1);
+    const [namaLengkap, setNamaLengkap] = useState('');
+    const [noWa, setNoWa] = useState('');
+    const [useProfileData, setUseProfileData] = useState(false);
+
+    useEffect(() => {
+        if (useProfileData && user) {
+            setNamaLengkap(user.nama_lengkap || user.nama || '');
+            setNoWa(user.nomor_telepon || user.no_telp || '');
+        } else if (useProfileData && !user) {
+            setUseProfileData(false);
+        } else {
+            setNamaLengkap('');
+            setNoWa('');
+        }
+    }, [useProfileData, user]);
 
     // Fee estimate state
     const [feeEstimate, setFeeEstimate] = useState(null);
@@ -91,19 +115,9 @@ const LaundryDetail = () => {
                 const resData = response.data.data;
                 setData(resData);
 
-                if (resData?.layanan?.length > 0) {
-                    setSelectedLayanan(resData.layanan[0]);
-                }
-
-                if (resData?.durasi_pengerjaan) {
-                    const dur = resData.durasi_pengerjaan;
-                    setSelectedDurasi({
-                        id: 'reguler',
-                        name: 'Reguler (2-3 Hari)',
-                        price: dur.reguler ?? 0,
-                        isExpress: false,
-                        additionalFee: 0
-                    });
+                if (resData?.layanan && resData.layanan.length > 0) {
+                    const kiloan = resData.layanan.find(l => l.satuan === 'kg');
+                    if (kiloan) setSelectedKiloanIds(new Set([kiloan.id_layanan]));
                 }
 
                 if (resData?.jadwal_penjemputan?.length > 0) {
@@ -119,7 +133,31 @@ const LaundryDetail = () => {
     }, [id_mitra]);
 
     useEffect(() => {
-        if (!data || !selectedLayanan || !selectedDurasi || qty < 1) return;
+        if (data && location?.isConfirmed && data.latitude && data.longitude) {
+            const dist = calculateDistance(location.lat, location.lng, parseFloat(data.latitude), parseFloat(data.longitude));
+            if (!isNaN(dist)) setJarakOngkir(dist);
+        }
+    }, [data, location]);
+
+    useEffect(() => {
+        if (!data) return;
+
+        const items = [];
+        if (selectedKiloanIds.size > 0 && kiloanQty > 0) {
+            [...selectedKiloanIds].forEach(id => {
+                items.push({ idLayanan: String(id), qty: Number(kiloanQty) });
+            });
+        }
+        Object.entries(satuanQtyMap).forEach(([id, qty]) => {
+            if (qty > 0) {
+                items.push({ idLayanan: String(id), qty: Number(qty) });
+            }
+        });
+
+        if (items.length === 0) {
+            setFeeEstimate(null);
+            return;
+        }
 
         if (debounceRef.current) clearTimeout(debounceRef.current);
 
@@ -130,19 +168,9 @@ const LaundryDetail = () => {
                 const requestBody = {
                     idMitra: String(data.id_mitra),
                     typeLayanan: 'laundry',
-                    items: [
-                        {
-                            idLayanan: String(selectedLayanan.id_layanan),
-                            qty: Number(qty)
-                        }
-                    ],
+                    items,
                     jarakOngkir: Number(jarakOngkir),
-                    biayaTambahan: {
-                        durasi_pengerjaan: {
-                            biaya: selectedDurasi.price, // Kirim harga per kg, bukan total
-                            type: selectedDurasi.id
-                        }
-                    }
+                    biayaTambahan: { durasi_pengerjaan: { biaya: 0, type: 'reguler' } }
                 };
 
                 const response = await api.post('/v1/landing-page/generate-fee-pesanan', requestBody);
@@ -169,38 +197,42 @@ const LaundryDetail = () => {
             }
         }, 500);
 
-        return () => clearTimeout(debounceRef.current);
-    }, [data, selectedLayanan, selectedDurasi, qty, jarakOngkir]);
+    }, [data, selectedKiloanIds, kiloanQty, satuanQtyMap, jarakOngkir]);
 
     const fmt = (val) => (parseInt(val) || 0).toLocaleString('id-ID');
 
-    if (loading || error || !data) {
+    if (loading) {
+        return (
+            <FullScreenLoader 
+                messages={[
+                    "Mempersiapkan halaman pemesanan...",
+                    "Mengambil layanan mitra...",
+                    "Menyiapkan preferensi..."
+                ]} 
+            />
+        );
+    }
+
+    if (error || !data) {
         return (
             <div className="dp-fallback">
                 <div className="dp-fallback-card">
                     <span className="material-symbols-outlined dp-fallback-icon" style={{fontVariationSettings: "'FILL' 1"}}>
-                        {loading ? 'hourglass_empty' : 'error'}
+                        error
                     </span>
                     <h2 className="dp-fallback-title">
-                        {loading ? 'Memuat Data...' : 'Terjadi Kesalahan'}
+                        Terjadi Kesalahan
                     </h2>
                     <p className="dp-fallback-text">
-                        {loading ? 'Mohon tunggu sebentar.' : error || 'Data pesanan tidak ditemukan.'}
+                        {error || 'Data pesanan tidak ditemukan.'}
                     </p>
-                    {!loading && (
-                        <button
-                            onClick={() => navigate(-1)}
-                            className="dp-fallback-btn"
-                        >
-                            Kembali ke Halaman Sebelumnya
-                        </button>
-                    )}
+                    <button onClick={() => window.location.reload()} className="dp-btn-primary">
+                        Coba Lagi
+                    </button>
                 </div>
             </div>
         );
     }
-
-    const ringkasan = feeEstimate?.ringkasan ?? null;
 
     const handleSubmit = async () => {
         if (!feeEstimate || !isAuthenticated) {
@@ -208,24 +240,22 @@ const LaundryDetail = () => {
             return;
         }
 
-        if (!selectedLayanan) {
-            setSubmitError('Pilih layanan terlebih dahulu');
+        const items = [];
+        if (selectedKiloanIds.size > 0 && kiloanQty > 0) {
+            [...selectedKiloanIds].forEach(id => {
+                items.push({ idLayanan: String(id), qty: Number(kiloanQty) });
+            });
+        }
+        Object.entries(satuanQtyMap).forEach(([id, qty]) => {
+            if (qty > 0) items.push({ idLayanan: String(id), qty: Number(qty) });
+        });
+
+        if (items.length === 0) {
+            setSubmitError('Pilih setidaknya satu layanan');
             return;
         }
 
-        const items = [
-            {
-                idLayanan: String(selectedLayanan.id_layanan),
-                qty: Number(qty)
-            }
-        ];
-
-        const jadwal_layanan = [
-            {
-                jam: selectedJadwal || null,
-                tanggal: null
-            }
-        ];
+        const jadwal_layanan = [{ jam: selectedJadwal || null, tanggal: null }];
 
         const subtotal = feeEstimate?.ringkasan?.subtotal ?? 0;
 
@@ -237,12 +267,9 @@ const LaundryDetail = () => {
             beli_baru:              0,
         };
 
-        const biayaTambahanPayload = {
-            durasi_pengerjaan: {
-                biaya: selectedDurasi?.price || 0,
-                type:  selectedDurasi?.id || 'reguler'
-            }
-        };
+        const finalCatatan = selectedJenisKain.length > 0 
+            ? `[Jenis Kain: ${selectedJenisKain.join(', ')}] ${catatan}` 
+            : catatan;
 
         setSubmitLoading(true);
         setSubmitError(null);
@@ -253,11 +280,12 @@ const LaundryDetail = () => {
                 items,
                 jarakOngkir,
                 jadwal_layanan,
-                biayaTambahan: biayaTambahanPayload,
+                biayaTambahan: { durasi_pengerjaan: { biaya: 0, type: 'reguler' } },
                 estimasi: estimasiPayload,
-                catatanPengiriman: catatan || null,
+                catatanPengiriman: finalCatatan || null,
             });
-            navigate(`/pesanan/${res.data.data.id_unique_pesanan}/sukses`);
+            sessionStorage.setItem('checkoutContact', JSON.stringify({ nama: namaLengkap, phone: noWa }));
+            navigate(`/checkout/${res.data.data.id_unique_pesanan}`);
         } catch (err) {
             setSubmitError(err.response?.data?.message || 'Gagal membuat pesanan. Silakan coba lagi.');
         } finally {
@@ -265,9 +293,26 @@ const LaundryDetail = () => {
         }
     };
 
+    const layananKiloan = data.layanan.filter(l => l.satuan === 'kg');
+    const layananSatuan = data.layanan.filter(l => l.satuan === 'pcs');
+
+    const toggleJenisKain = (kain) => {
+        setSelectedJenisKain(prev => 
+            prev.includes(kain) ? prev.filter(k => k !== kain) : [...prev, kain]
+        );
+    };
+
+    const updateSatuanQty = (id, delta) => {
+        setSatuanQtyMap(prev => {
+            const current = prev[id] || 0;
+            const next = Math.max(0, current + delta);
+            return { ...prev, [id]: next };
+        });
+    };
+
     return (
         <div className="dp-page">
-                        <nav className="lp-navbar">
+            <nav className="lp-navbar">
                 <div className="lp-container lp-navbar-inner">
                     <div className="lp-brand">
                         <Link to="/" className="lp-brand-link">KostHub<span className="lp-brand-dot">.</span></Link>
@@ -282,7 +327,7 @@ const LaundryDetail = () => {
                     <div className="lp-nav-actions">
                         {isAuthenticated ? (
                             <div className="lp-profile-menu">
-                                <button className="lp-profile-btn" onClick={() => setShowProfileMenu(!showProfileMenu)} title={user?.nama_lengkap || user?.nama_mitra || user?.nama || 'User'}>
+                                <button className="lp-profile-btn" onClick={() => setShowProfileMenu(!showProfileMenu)}>
                                     <div className="lp-profile-avatar">
                                         {(() => {
                                             const name = user?.nama_lengkap || user?.nama_mitra || user?.nama || 'User';
@@ -340,86 +385,120 @@ const LaundryDetail = () => {
                 </div>
 
                 <div className="dp-content-left">
-                    <section className="dp-section">
-                        <div className="dp-section-header">
-                            <span className="material-symbols-outlined dp-section-icon" style={{fontVariationSettings: "'FILL' 1"}}>local_laundry_service</span>
-                            <h2 className="dp-section-title">Jenis Layanan</h2>
-                        </div>
-                        <div className="dp-grid-2">
-                            {data.layanan.map((layanan) => {
-                                const isChecked = selectedLayanan?.id_layanan === layanan.id_layanan;
-                                return (
-                                    <label key={layanan.id_layanan} className="dp-card-radio">
-                                        <input
-                                            className="dp-card-radio-input"
-                                            name="layanan"
-                                            type="radio"
-                                            value={layanan.id_layanan}
-                                            checked={isChecked}
-                                            onChange={() => setSelectedLayanan(layanan)}
-                                        />
-                                        <div className="dp-card-radio-content">
-                                            <div className="dp-card-title">{layanan.nama_layanan}</div>
-                                            <div className="dp-card-price">Mulai dari Rp {parseInt(layanan.harga_layanan).toLocaleString('id-ID')} / kg</div>
-                                            {isChecked && (
-                                                <div className="dp-card-check">
-                                                    <span className="material-symbols-outlined" style={{fontVariationSettings: "'FILL' 1"}}>check_circle</span>
-                                                </div>
-                                            )}
+                    
+                    {layananKiloan.length > 0 && (
+                        <section className="dp-section">
+                            <div className="dp-section-header">
+                                <span className="material-symbols-outlined dp-section-icon" style={{fontVariationSettings: "'FILL' 1"}}>local_laundry_service</span>
+                                <h2 className="dp-section-title">Layanan Kiloan</h2>
+                            </div>
+                            <div className="dp-grid-2 mb-2">
+                                {layananKiloan.map((layanan) => {
+                                    const isChecked = selectedKiloanIds.has(layanan.id_layanan);
+                                    return (
+                                        <label key={layanan.id_layanan} className={`dp-card-radio ${isChecked ? 'active' : ''}`}>
+                                            <input
+                                                className="dp-card-radio-input"
+                                                name="layanan-kiloan"
+                                                type="checkbox"
+                                                value={layanan.id_layanan}
+                                                checked={isChecked}
+                                                onChange={() => {
+                                                    setSelectedKiloanIds(prev => {
+                                                        const next = new Set(prev);
+                                                        if (next.has(layanan.id_layanan)) next.delete(layanan.id_layanan);
+                                                        else next.add(layanan.id_layanan);
+                                                        return next;
+                                                    });
+                                                }}
+                                            />
+                                            <div className="dp-card-radio-content">
+                                                <div className="dp-card-title">{layanan.nama_layanan}</div>
+                                                <div className="dp-card-price">Rp {parseInt(layanan.harga_layanan).toLocaleString('id-ID')} / {layanan.satuan || 'kg'}</div>
+                                                {isChecked && (
+                                                    <div className="dp-card-check">
+                                                        <span className="material-symbols-outlined" style={{fontVariationSettings: "'FILL' 1"}}>check_circle</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </label>
+                                    );
+                                })}
+                            </div>
+                            
+                            {selectedKiloanIds.size > 0 && (
+                                <div className="dp-form-group" style={{marginTop: '1rem'}}>
+                                    <label className="dp-form-label">Estimasi Berat (kg)</label>
+                                    <input
+                                        className="dp-input"
+                                        type="number"
+                                        min="0"
+                                        value={kiloanQty}
+                                        onChange={(e) => setKiloanQty(Math.max(0, parseInt(e.target.value) || 0))}
+                                        placeholder="Contoh: 3"
+                                        style={{maxWidth: '200px'}}
+                                    />
+                                </div>
+                            )}
+                        </section>
+                    )}
+
+                    {layananSatuan.length > 0 && (
+                        <section className="dp-section">
+                            <div className="dp-section-header">
+                                <span className="material-symbols-outlined dp-section-icon" style={{fontVariationSettings: "'FILL' 1"}}>checkroom</span>
+                                <h2 className="dp-section-title">Layanan Satuan</h2>
+                            </div>
+                            <div className="dp-list">
+                                {layananSatuan.map((layanan) => {
+                                    const qty = satuanQtyMap[layanan.id_layanan] || 0;
+                                    return (
+                                        <div key={layanan.id_layanan} className="dp-list-item" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '0.5rem', marginBottom: '0.5rem'}}>
+                                            <div>
+                                                <div className="dp-card-title">{layanan.nama_layanan}</div>
+                                                <div className="dp-card-price">Rp {parseInt(layanan.harga_layanan).toLocaleString('id-ID')} / {layanan.satuan || 'pcs'}</div>
+                                            </div>
+                                            <div style={{display: 'flex', alignItems: 'center', gap: '1rem'}}>
+                                                <button onClick={() => updateSatuanQty(layanan.id_layanan, -1)} style={{width: '2rem', height: '2rem', borderRadius: '50%', border: '1px solid #cbd5e1', background: '#f8fafc', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>-</button>
+                                                <span style={{fontWeight: '600', minWidth: '1.5rem', textAlign: 'center'}}>{qty}</span>
+                                                <button onClick={() => updateSatuanQty(layanan.id_layanan, 1)} style={{width: '2rem', height: '2rem', borderRadius: '50%', border: '1px solid #2563eb', background: '#eff6ff', color: '#2563eb', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>+</button>
+                                            </div>
                                         </div>
-                                    </label>
-                                );
-                            })}
-                        </div>
-                    </section>
+                                    );
+                                })}
+                            </div>
+                        </section>
+                    )}
 
                     <section className="dp-section">
                         <div className="dp-section-header">
-                            <span className="material-symbols-outlined dp-section-icon" style={{fontVariationSettings: "'FILL' 1"}}>schedule</span>
-                            <h2 className="dp-section-title">Durasi Pengerjaan</h2>
+                            <h2 className="dp-section-title">Informasi Pakaian (Opsional)</h2>
                         </div>
-                        <div className="dp-grid-3">
-                            {[
-                                { id: 'reguler', name: 'Reguler (2-3 Hari)', price: data.durasi_pengerjaan?.reguler ?? 0 },
-                                { id: 'express', name: 'Express (24 Jam)', price: data.durasi_pengerjaan?.express ?? 0 },
-                                { id: 'kilat', name: 'Kilat (12 Jam)', price: data.durasi_pengerjaan?.kilat ?? 0 }
-                            ].map((dur) => {
-                                const isChecked = selectedDurasi.id === dur.id;
-                                return (
-                                    <label key={dur.id} className="dp-card-radio">
-                                        <input
-                                            className="dp-card-radio-input"
-                                            name="durasi"
-                                            type="radio"
-                                            value={dur.id}
-                                            checked={isChecked}
-                                            onChange={() => setSelectedDurasi(dur)}
-                                        />
-                                        <div className="dp-card-radio-content">
-                                            <div className="dp-card-title">{dur.name}</div>
-                                            <div className="dp-card-price">{dur.price === 0 ? 'Harga Standar' : `+ Rp ${dur.price.toLocaleString('id-ID')}`}</div>
-                                            {isChecked && (
-                                                <div className="dp-card-check">
-                                                    <span className="material-symbols-outlined" style={{fontVariationSettings: "'FILL' 1"}}>check_circle</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </label>
-                                );
-                            })}
-                        </div>
-                    </section>
-
-                    <section className="dp-section">
-                        <div className="dp-section-header">
-                            <h2 className="dp-section-title">Layanan Laundry</h2>
-                        </div>
-                        <div className="dp-kain-grid">
+                        <p className="dp-section-desc">Pilih kategori pakaian yang ada di dalam cucianmu</p>
+                        <div className="dp-kain-grid" style={{display: 'flex', flexWrap: 'wrap', gap: '0.5rem'}}>
                             {data.jenis_kain.map((kain) => {
+                                const isSelected = selectedJenisKain.includes(kain);
                                 return (
-                                    <label key={kain} className={`dp-kain-card`}>
-                                        <span className="dp-kain-name">{kain}</span>
-                                    </label>
+                                    <button 
+                                        key={kain} 
+                                        onClick={() => toggleJenisKain(kain)}
+                                        style={{
+                                            padding: '0.5rem 1rem', 
+                                            borderRadius: '9999px', 
+                                            border: `1px solid ${isSelected ? '#2563eb' : '#cbd5e1'}`,
+                                            backgroundColor: isSelected ? '#eff6ff' : '#ffffff',
+                                            color: isSelected ? '#1e40af' : '#475569',
+                                            cursor: 'pointer',
+                                            fontWeight: '500',
+                                            transition: 'all 0.2s',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.25rem'
+                                        }}
+                                    >
+                                        {isSelected && <span className="material-symbols-outlined" style={{fontSize: '16px'}}>check</span>}
+                                        {kain}
+                                    </button>
                                 );
                             })}
                         </div>
@@ -430,7 +509,7 @@ const LaundryDetail = () => {
                             <span className="material-symbols-outlined dp-section-icon" style={{fontVariationSettings: "'FILL' 1"}}>calendar_clock</span>
                             <h2 className="dp-section-title">Jadwal Penjemputan</h2>
                         </div>
-                        <p className="dp-section-desc" style={{marginBottom: 0}}>Pilih jam penjemputan yang tersedia</p>
+                        <p className="dp-section-desc" style={{marginBottom: '1rem'}}>Pilih jam penjemputan yang tersedia</p>
                         <div className="dp-grid-3">
                             {data.jadwal_penjemputan.map((jam) => {
                                 const isChecked = selectedJadwal === jam;
@@ -460,30 +539,51 @@ const LaundryDetail = () => {
 
                     <section className="dp-section">
                         <div className="dp-section-header">
-                            <span className="material-symbols-outlined dp-section-icon" style={{fontVariationSettings: "'FILL' 1"}}>scale</span>
-                            <h2 className="dp-section-title">Estimasi Berat & Jarak</h2>
+                            <span className="material-symbols-outlined dp-section-icon" style={{fontVariationSettings: "'FILL' 1"}}>person</span>
+                            <h2 className="dp-section-title">Detail Pengiriman</h2>
                         </div>
-                        <div className="dp-grid-2">
-                            <div className="dp-form-group">
-                                <label className="dp-form-label">Estimasi Berat (kg)</label>
+                        
+                        {user && (
+                            <div
+                                className={`dp-profile-toggle-card ${useProfileData ? 'active' : ''}`}
+                                onClick={() => setUseProfileData(!useProfileData)}
+                            >
+                                <div className="dp-profile-toggle-icon">
+                                    <span className="material-symbols-outlined" style={{fontVariationSettings: "'FILL' 1"}}>
+                                        {useProfileData ? 'check_circle' : 'person'}
+                                    </span>
+                                </div>
+                                <div className="dp-profile-toggle-content">
+                                    <span className="dp-profile-toggle-title">Gunakan Data Profil Saya</span>
+                                    <span className="dp-profile-toggle-desc">Isi otomatis nama dan nomor telepon Anda</span>
+                                </div>
+                                <div className="dp-profile-toggle-switch">
+                                    <div className="dp-switch-knob"></div>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="dp-form-group-flex">
+                            <div>
+                                <label className="dp-form-label">Nama Lengkap</label>
                                 <input
                                     className="dp-input"
-                                    type="number"
-                                    min="1"
-                                    value={qty}
-                                    onChange={(e) => setQty(Math.max(1, parseInt(e.target.value) || 1))}
-                                    placeholder="Contoh: 3"
+                                    placeholder="Masukkan nama Anda"
+                                    type="text"
+                                    value={namaLengkap}
+                                    onChange={(e) => setNamaLengkap(e.target.value)}
+                                    disabled={useProfileData}
                                 />
                             </div>
-                            <div className="dp-form-group">
-                                <label className="dp-form-label">Jarak Penjemputan (km)</label>
+                            <div>
+                                <label className="dp-form-label">Nomor WhatsApp</label>
                                 <input
                                     className="dp-input"
-                                    type="number"
-                                    min="0"
-                                    value={jarakOngkir}
-                                    onChange={(e) => setJarakOngkir(Math.max(0, parseInt(e.target.value) || 0))}
-                                    placeholder="Contoh: 2"
+                                    placeholder="08xxxxxxxxxx"
+                                    type="tel"
+                                    value={noWa}
+                                    onChange={(e) => setNoWa(e.target.value)}
+                                    disabled={useProfileData}
                                 />
                             </div>
                         </div>
@@ -513,8 +613,8 @@ const LaundryDetail = () => {
                         </div>
 
                         {feeLoading && (
-                            <div className="dp-fee-loading">
-                                <span className="material-symbols-outlined dp-fee-loading-icon">sync</span>
+                            <div className="dp-summary-loading" style={{display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', padding: '1rem', color: '#475569', fontSize: '0.875rem'}}>
+                                <span className="material-symbols-outlined dp-summary-loading-icon" style={{fontSize: '1.5rem', color: '#2563eb', animation: 'spin 2s linear infinite'}}>hourglass_empty</span>
                                 <span>Menghitung estimasi...</span>
                             </div>
                         )}
@@ -528,40 +628,34 @@ const LaundryDetail = () => {
 
                         {feeEstimate && !feeLoading && (
                             <div className="dp-summary-list mb-1">
-                                {/* Using ringkasan structure from new API */}
-                                <div className="dp-summary-item">
-                                    <span className="dp-summary-item-label">
-                                        Subtotal ({qty} kg × {selectedLayanan?.nama_layanan})
-                                    </span>
-                                    <span className="dp-summary-item-value">
-                                        Rp {fmt(feeEstimate.ringkasan?.subtotal || feeEstimate.subtotal)}
-                                    </span>
-                                </div>
-                                <div className="dp-summary-item">
-                                    <span className="dp-summary-item-label">Biaya Ongkir</span>
-                                    <span className="dp-summary-item-value">
+                                {/* Ringkasan Items */}
+                                {feeEstimate.detail_layanan?.map((item, idx) => (
+                                    <div key={idx} className="dp-summary-item" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem', marginBottom: '0.5rem'}}>
+                                        <span className="dp-summary-item-label" style={{fontSize: '1rem', color: '#475569'}}>
+                                            {item.nama_layanan} ({item.qty} {item.satuan})
+                                        </span>
+                                        <span className="dp-summary-item-value" style={{fontSize: '1rem', color: '#0f172a', fontWeight: '600'}}>
+                                            Rp {fmt(item.subtotal)}
+                                        </span>
+                                    </div>
+                                ))}
+
+                                <div className="dp-summary-item" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem', marginBottom: '0.5rem'}}>
+                                    <span className="dp-summary-item-label" style={{fontSize: '1rem', color: '#475569'}}>Biaya Ongkir</span>
+                                    <span className="dp-summary-item-value" style={{fontSize: '1rem', color: '#0f172a', fontWeight: '600'}}>
                                         Rp {fmt(feeEstimate.ringkasan?.biaya_ongkir || feeEstimate.biaya_ongkir)}
                                     </span>
                                 </div>
-                                {((feeEstimate.ringkasan?.biaya_tambahan_durasi || feeEstimate.biaya_tambahan) > 0) && (
-                                    <div className="dp-summary-item">
-                                        <span className="dp-summary-item-label">
-                                            Biaya Durasi ({selectedDurasi?.name})
-                                        </span>
-                                        <span className="dp-summary-item-value">
-                                            + Rp {fmt(feeEstimate.ringkasan?.biaya_tambahan_durasi || feeEstimate.biaya_tambahan)}
-                                        </span>
-                                    </div>
-                                )}
-                                <div className="dp-summary-item">
-                                    <span className="dp-summary-item-label">Biaya Layanan Aplikasi</span>
-                                    <span className="dp-summary-item-value">
+
+                                <div className="dp-summary-item" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem', marginBottom: '0.5rem'}}>
+                                    <span className="dp-summary-item-label" style={{fontSize: '1rem', color: '#475569'}}>Biaya Layanan Aplikasi</span>
+                                    <span className="dp-summary-item-value" style={{fontSize: '1rem', color: '#0f172a', fontWeight: '600'}}>
                                         Rp {fmt(feeEstimate.ringkasan?.biaya_layanan_aplikasi || feeEstimate.biaya_layanan)}
                                     </span>
                                 </div>
-                                <div className="dp-summary-total">
-                                    <span className="dp-summary-total-label">Total Pembayaran</span>
-                                    <span className="dp-summary-total-value">
+                                <div className="dp-summary-total" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.5rem'}}>
+                                    <span className="dp-summary-total-label" style={{fontSize: '1.125rem', color: '#0f172a', fontWeight: '700'}}>Total Pembayaran</span>
+                                    <span className="dp-summary-total-value" style={{fontSize: '1.125rem', color: '#2563eb', fontWeight: '700'}}>
                                         Rp {fmt(feeEstimate.ringkasan?.total_pembayaran || feeEstimate.total_pembayaran)}
                                     </span>
                                 </div>
@@ -571,7 +665,7 @@ const LaundryDetail = () => {
                         {!feeEstimate && !feeLoading && !feeError && (
                             <div className="dp-fee-placeholder">
                                 <span className="material-symbols-outlined">calculate</span>
-                                <p>Lengkapi form untuk melihat estimasi biaya</p>
+                                <p>Pilih layanan untuk melihat estimasi biaya</p>
                             </div>
                         )}
 
@@ -583,7 +677,7 @@ const LaundryDetail = () => {
                         </div>
                         <button
                             className="dp-btn-primary"
-                            disabled={!feeEstimate || submitLoading || !selectedLayanan}
+                            disabled={!feeEstimate || submitLoading}
                             onClick={handleSubmit}
                         >
                             {submitLoading ? 'Memproses...' : 'Lanjutkan ke Pembayaran'}
@@ -593,7 +687,7 @@ const LaundryDetail = () => {
                 </div>
             </main>
 
-                        <footer className="lp-footer">
+            <footer className="lp-footer">
                 <div className="lp-container lp-footer-inner">
                     <div className="lp-footer-brand">
                         <Link to="/" className="lp-footer-logo">KostHub<span className="lp-footer-dot">.</span></Link>
