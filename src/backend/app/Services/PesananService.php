@@ -253,7 +253,7 @@ class PesananService
     // -------------------------------------------------------------------------
     // SHOW DETAIL PESANAN
     // -------------------------------------------------------------------------
-    public function showDetailPesanan(string $idUniquePesanan): array
+    public function showDetailPesanan(string $idUniquePesanan, int $idUser): array
     {
         $pesanan = Pesanan::with([
                 'DetailPesanan.Layanan',
@@ -263,6 +263,7 @@ class PesananService
                 'Ulasan',
             ])
             ->where('id_unique_pesanan', $idUniquePesanan)
+            ->where('id_user', $idUser)
             ->first();
 
         if (!$pesanan) {
