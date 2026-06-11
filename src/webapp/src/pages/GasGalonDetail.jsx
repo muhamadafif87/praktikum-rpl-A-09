@@ -132,7 +132,13 @@ const GasGalonDetail = () => {
     }, [data, location]);
 
     useEffect(() => {
-        if (!data || selectedProductIds.size === 0) return;
+        if (!data) return;
+
+        if (selectedProductIds.size === 0) {
+            setEstimate(null);
+            setEstimateLoading(false);
+            return;
+        }
 
         const layananPayload = [...selectedProductIds].map(id => ({
             idLayanan: String(id),
@@ -148,8 +154,8 @@ const GasGalonDetail = () => {
             };
         });
 
+        setEstimateLoading(true);
         const timer = setTimeout(async () => {
-            setEstimateLoading(true);
             setEstimateError(null);
             try {
                 const res = await api.post('/v1/landing-page/generate-fee-pesanan', {
