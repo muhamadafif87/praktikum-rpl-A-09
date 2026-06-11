@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './AdminSettings.css';
 
-const TopNavBar = () => (
+const TopNavBar = ({ onLogout }) => (
   <nav className="admin-top-nav">
     <div className="flex items-center space-x-4">
       <Link className="admin-top-nav-logo" to="/dashboard/admin">KostHub<span>.</span></Link>
@@ -15,6 +15,9 @@ const TopNavBar = () => (
         <img alt="Partner Profile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDT0AdV5Z5MUcPbHK72cL-plOTymvr7uuBk_yFfOKmFw6N8eFX5bLkJvVmL36BnchaNyQQvKniLE6v3dRpZ9fGAII4TxeHz_SQr9qp5-Ozy-EvMWWxwAVJlQJjVI8PgAwxi4iKwYgjuIwrgOIF89jQag9GTQwZNhx50L8lKH2qCyr_AKiZ9sxJ3Mw2dzts4Glv4-kKTMPrDGQJMBGYptN6XAlTDbWX7y2MPHrMDHiI4Vq573jjkeF_4shWpCCn2_9J1WE7UPgVAHOw" />
         <span className="text-label-md admin-top-nav-profile-name">Admin Central</span>
       </div>
+      <button className="admin-logout-btn" onClick={onLogout} title="Logout">
+        <span className="material-symbols-outlined">logout</span>
+      </button>
     </div>
   </nav>
 );
@@ -46,15 +49,23 @@ const Footer = () => (
 );
 
 const AdminSettings = () => {
+  const navigate = useNavigate();
   const [platformFee, setPlatformFee] = useState(10);
   const [minWithdraw, setMinWithdraw] = useState(50000);
   const [logRetention, setLogRetention] = useState('90');
   const [twoFA, setTwoFA] = useState(true);
   const [helpUrl, setHelpUrl] = useState('https://help.kosthub.com');
 
+  const handleLogout = async () => {
+    try { await axios.post('/api/v1/auth/logout', {}, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }); } catch (err) { /* ignore */ }
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    navigate('/');
+  };
+
   return (
     <div className="admin-settings-page">
-      <TopNavBar />
+      <TopNavBar onLogout={handleLogout} />
       <SideNavBar />
       <main className="admin-main-content">
         <div className="admin-container">

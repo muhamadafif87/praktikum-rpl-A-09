@@ -114,6 +114,31 @@
     .md-topbar-name { display: block; }
 }
 
+.md-topbar-logout-btn {
+    color: var(--md-error, #ba1a1a);
+    background: none;
+    border: 1px solid var(--md-outline-variant);
+    padding: 0.4rem 0.75rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    font-family: var(--md-font);
+}
+
+.md-topbar-logout-btn:hover {
+    background: var(--md-error-container, #ffdad6);
+    border-color: var(--md-error, #ba1a1a);
+}
+
+.md-topbar-logout-btn .material-symbols-outlined {
+    font-size: 1.15rem;
+}
+
 /* ── Sidebar ── */
 .md-sidebar {
     position: fixed;

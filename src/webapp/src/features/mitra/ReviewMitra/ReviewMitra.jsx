@@ -1,12 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import api from '../../../services/api';
 import './ReviewMitra.css';
 
 const ReviewMitra = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const mitraName = user.name || user.nama_usaha || 'Mitra';
+
+  const handleLogout = async () => {
+    try { await api.post('/v1/auth/logout'); } catch (err) { /* ignore */ }
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    navigate('/');
+  };
 
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -115,6 +123,9 @@ const ReviewMitra = () => {
             />
             <span className="review-mitra-user-name">{mitraName}</span>
           </div>
+          <button className="md-topbar-logout-btn" onClick={handleLogout} title="Logout">
+            <span className="material-symbols-outlined">logout</span>
+          </button>
         </div>
       </nav>
 
