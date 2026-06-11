@@ -528,8 +528,12 @@ const GasGalonDetail = () => {
                                     className="dp-textarea"
                                     placeholder="Tambahkan catatan untuk kurir atau mitra"
                                     value={catatan}
+                                    maxLength={200}
                                     onChange={(e) => setCatatan(e.target.value)}
                                 ></textarea>
+                                <div style={{fontSize: '12px', textAlign: 'right', color: 'var(--dp-on-surface-variant)', marginTop: '4px'}}>
+                                    {catatan.length}/200
+                                </div>
                             </div>
                         </div>
                     </section>

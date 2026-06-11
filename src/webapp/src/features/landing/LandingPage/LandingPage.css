@@ -1026,6 +1026,7 @@
     border-radius: 50%;
     outline: none;
     transition: transform 0.2s ease;
+    font-family: 'Inter', sans-serif;
 }
 
 .lp-profile-btn:hover {
@@ -1060,6 +1061,7 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    font-family: 'Inter', sans-serif;
 }
 
 .lp-profile-info {
@@ -1104,6 +1106,7 @@
     color: var(--lp-on-surface);
     cursor: pointer;
     transition: background-color 0.2s ease, color 0.2s ease;
+    font-family: 'Inter', sans-serif;
 }
 
 .lp-profile-link:hover {

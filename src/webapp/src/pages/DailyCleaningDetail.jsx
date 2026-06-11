@@ -584,8 +584,12 @@ const DailyCleaningDetail = () => {
                                 className="dp-textarea"
                                 placeholder="Contoh: Tolong fokus bersihkan area kamar mandi..."
                                 value={catatan}
+                                maxLength={200}
                                 onChange={(e) => setCatatan(e.target.value)}
                             ></textarea>
+                            <div style={{fontSize: '12px', textAlign: 'right', color: 'var(--dp-on-surface-variant)', marginTop: '4px'}}>
+                                {catatan.length}/200
+                            </div>
                         </div>
                     </section>
                 </div>

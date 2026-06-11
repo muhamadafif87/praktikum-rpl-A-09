@@ -261,6 +261,11 @@ const LaundryDetail = () => {
             return;
         }
 
+        if (!selectedJadwal) {
+            setSubmitError('Pilih jam pengambilan terlebih dahulu.');
+            return;
+        }
+
         const jadwal_layanan = [{ jam: selectedJadwal || null, tanggal: null }];
 
         const subtotal = feeEstimate?.ringkasan?.subtotal ?? 0;
@@ -610,8 +615,12 @@ const LaundryDetail = () => {
                                 className="dp-textarea"
                                 placeholder="Contoh: Pisahkan baju putih dan luntur, pewangi aroma lavender..."
                                 value={catatan}
+                                maxLength={200}
                                 onChange={(e) => setCatatan(e.target.value)}
                             ></textarea>
+                            <div style={{fontSize: '12px', textAlign: 'right', color: 'var(--dp-on-surface-variant)', marginTop: '4px'}}>
+                                {catatan.length}/200
+                            </div>
                         </div>
                     </section>
                 </div>
@@ -686,6 +695,11 @@ const LaundryDetail = () => {
                                 *Ini adalah estimasi biaya. Harga final akan ditentukan setelah mitra menimbang dan memeriksa pesanan Anda.
                             </p>
                         </div>
+                        {submitError && (
+                            <div className="dp-error-message mb-1" style={{color: 'var(--dp-error)', fontSize: '14px', marginBottom: '16px'}}>
+                                {submitError}
+                            </div>
+                        )}
                         <button
                             className="dp-btn-primary"
                             disabled={!feeEstimate || submitLoading}

@@ -166,6 +166,9 @@ class PesananService
                     'id_pesanan'        => $pesanan->id_pesanan,
                     'id_unique_pesanan' => $pesanan->id_unique_pesanan,
                     'status_pesanan'    => $pesanan->status_pesanan,
+                    'tgl_pesanan'       => $pesanan->tgl_pesanan,
+                    'mitra'             => $pesanan->Mitra,
+                    'user'              => $pesanan->User,
                     'detail_layanan'    => $detailList,
                     'detail_alat_tambahan' => array_keys($biayaTambahan),
                     'ringkasan_biaya'   => [
@@ -183,6 +186,8 @@ class PesananService
                     'id_pesanan'         => $pesanan->id_pesanan,
                     'id_unique_pesanan'  => $pesanan->id_unique_pesanan,
                     'status_pesanan'     => $pesanan->status_pesanan,
+                    'mitra'              => $pesanan->Mitra,
+                    'user'               => $pesanan->User,
                     'detail_layanan'     => $detailList,
                     'ringkasan_biaya' => [
                         'subtotal'              => $estimasi['subtotal'],
@@ -200,6 +205,8 @@ class PesananService
                     'id_pesanan'         => $pesanan->id_pesanan,
                     'id_unique_pesanan'  => $pesanan->id_unique_pesanan,
                     'status_pesanan'     => $pesanan->status_pesanan,
+                    'mitra'              => $pesanan->Mitra,
+                    'user'               => $pesanan->User,
                     'detail_layanan'     => $detailList,
                     'ringkasan_biaya'    => [
                         'subtotal'          => $estimasi['subtotal'],
@@ -348,6 +355,7 @@ class PesananService
                 'biaya_tambahan_alat'   => $catatan['biaya_tambahan_alat'] ?? null,
                 'total_pembayaran'      => $catatan['total_pembayaran'] ?? null,
             ],
+            'jadwal_layanan'     => $catatan['jadwal_layanan'] ?? null,
             'catatan_pengiriman' => $catatan['catatan_pengiriman'] ?? null,
             'pembayaran'         => $pesanan->Pembayaran,
             'ulasan'             => $pesanan->Ulasan,
