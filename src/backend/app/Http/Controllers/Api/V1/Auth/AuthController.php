@@ -77,7 +77,7 @@ class AuthController extends Controller
      */
     public function logout(Request $request): JsonResponse
     {
-        $activeGuard = $this->resolveActiveGuard();
+        $activeGuard = $this->resolveActiveGuard() ?? 'sanctum';
         $this->authService->logout($activeGuard, $request->user());
 
         return response()->json(['message' => 'Logout berhasil.']);

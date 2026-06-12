@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './AdminOverview.css';
+import { useAuth } from '../../../context/AuthContext';
 
 // --- Sub-components ---
 
@@ -30,7 +31,7 @@ const TopNavBar = () => (
   </nav>
 );
 
-const SideNavBar = () => (
+const SideNavBar = ({ onLogout, isLoggingOut }) => (
   <aside className="admin-side-nav">
     <div className="admin-side-nav-header">
       <img
@@ -68,9 +69,62 @@ const SideNavBar = () => (
       </Link>
     </nav>
     <div className="admin-side-nav-footer">
-      <button className="admin-support-btn text-label-md">Quick Support</button>
+      <button
+        className="admin-support-btn text-label-md"
+        onClick={onLogout}
+        disabled={isLoggingOut}
+      >
+        {isLoggingOut ? (
+          <>
+            <span className="material-symbols-outlined admin-logout-spinner">progress_activity</span>
+            Logging out...
+          </>
+        ) : (
+          <>
+            <span className="material-symbols-outlined admin-side-nav-icon">logout</span>
+            Logout
+          </>
+        )}
+      </button>
     </div>
   </aside>
+);
+
+const LogoutConfirmModal = ({ onConfirm, onCancel, isLoggingOut }) => (
+  <div className="admin-modal-overlay" onClick={onCancel}>
+    <div className="admin-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="admin-modal-icon">
+        <span className="material-symbols-outlined">logout</span>
+      </div>
+      <h2 className="text-headline-sm admin-modal-title">Konfirmasi Logout</h2>
+      <p className="text-body-sm admin-modal-desc">
+        Apakah Anda yakin ingin keluar dari sesi admin ini?
+      </p>
+      <div className="admin-modal-actions">
+        <button
+          className="admin-modal-btn-cancel text-label-md"
+          onClick={onCancel}
+          disabled={isLoggingOut}
+        >
+          Batal
+        </button>
+        <button
+          className="admin-modal-btn-confirm text-label-md"
+          onClick={onConfirm}
+          disabled={isLoggingOut}
+        >
+          {isLoggingOut ? (
+            <>
+              <span className="material-symbols-outlined admin-logout-spinner">progress_activity</span>
+              Keluar...
+            </>
+          ) : (
+            'Ya, Logout'
+          )}
+        </button>
+      </div>
+    </div>
+  </div>
 );
 
 const Footer = () => (
@@ -104,16 +158,16 @@ const StatsCards = ({ stats }) => {
           <span className="text-label-md admin-stat-title">Total Transaksi</span>
           <div className="text-headline-lg admin-stat-value">{stats.totalTransactions.value}</div>
           <div className="text-label-sm admin-stat-desc success">
-            <span className="material-symbols-outlined admin-stat-icon-small">trending_up</span> 
+            <span className="material-symbols-outlined admin-stat-icon-small">trending_up</span>
             {stats.totalTransactions.trend}
           </div>
         </div>
-        
+
         <div className="admin-stat-card">
           <span className="text-label-md admin-stat-title">Total Mitra Aktif</span>
           <div className="text-headline-lg admin-stat-value">{stats.totalMitra.value}</div>
           <div className="text-label-sm admin-stat-desc success">
-            <span className="material-symbols-outlined admin-stat-icon-small">trending_up</span> 
+            <span className="material-symbols-outlined admin-stat-icon-small">trending_up</span>
             {stats.totalMitra.trend}
           </div>
         </div>
@@ -229,14 +283,14 @@ const SystemStatus = ({ logs }) => {
       <div className="admin-system-controls">
         <h2 className="text-headline-sm mb-2" style={{ color: 'var(--color-on-surface)' }}>System Status</h2>
         <p className="text-body-sm admin-system-desc">Control platform accessibility and view critical system events.</p>
-        
+
         <div className="admin-maintenance-box">
           <div className="admin-maintenance-header">
             <span className="text-label-md admin-maintenance-title">Maintenance Mode</span>
             <label className="admin-toggle-switch">
-              <input 
-                type="checkbox" 
-                className="admin-toggle-input" 
+              <input
+                type="checkbox"
+                className="admin-toggle-input"
                 checked={maintenanceMode}
                 onChange={() => setMaintenanceMode(!maintenanceMode)}
               />
@@ -250,7 +304,7 @@ const SystemStatus = ({ logs }) => {
           </p>
         </div>
       </div>
-      
+
       <div className="admin-system-logs">
         <div className="admin-logs-header">
           <h3 className="text-label-md admin-logs-title">Recent System Logs</h3>
@@ -272,8 +326,13 @@ const SystemStatus = ({ logs }) => {
 // --- Main Component ---
 
 const AdminOverview = () => {
+  const navigate = useNavigate();
+  const { logout } = useAuth(); // Using useAuth context like LandingPage
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [logoutError, setLogoutError] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -286,8 +345,7 @@ const AdminOverview = () => {
         setData(response.data);
       } catch (error) {
         console.warn('Failed to fetch from backend, using dummy data', error);
-        
-        // Dummy data fallback matching the HTML
+
         setData({
           stats: {
             totalTransactions: { value: "14,205", trend: "+12% this month" },
@@ -322,11 +380,53 @@ const AdminOverview = () => {
     fetchData();
   }, []);
 
+  const handleLogoutClick = () => {
+    setLogoutError(null);
+    setShowLogoutModal(true);
+  };
+
+  const handleLogoutCancel = () => {
+    if (!isLoggingOut) {
+      setShowLogoutModal(false);
+    }
+  };
+
+  const handleLogoutConfirm = async () => {
+    setIsLoggingOut(true);
+    setLogoutError(null);
+    try {
+      await logout(); // Using the logout function from AuthContext like LandingPage
+      navigate('/login'); // Navigate to login page after logout
+    } catch (err) {
+      setIsLoggingOut(false);
+      setLogoutError('Logout gagal. Silakan coba lagi.');
+      console.error('Logout error:', err);
+    }
+  };
+
   return (
     <div className="admin-overview-page">
       <TopNavBar />
-      <SideNavBar />
-      
+      <SideNavBar onLogout={handleLogoutClick} isLoggingOut={isLoggingOut} />
+
+      {showLogoutModal && (
+        <LogoutConfirmModal
+          onConfirm={handleLogoutConfirm}
+          onCancel={handleLogoutCancel}
+          isLoggingOut={isLoggingOut}
+        />
+      )}
+
+      {logoutError && (
+        <div className="admin-toast admin-toast-error text-label-sm">
+          <span className="material-symbols-outlined">error</span>
+          {logoutError}
+          <button onClick={() => setLogoutError(null)} className="admin-toast-close">
+            <span className="material-symbols-outlined">close</span>
+          </button>
+        </div>
+      )}
+
       <main className="admin-main-content">
         <div className="admin-container">
           {loading ? (
@@ -336,12 +436,12 @@ const AdminOverview = () => {
           ) : data ? (
             <>
               <StatsCards stats={data.stats} />
-              
+
               <div className="admin-layout-split">
                 <FinanceEscrowTable transactions={data.escrowTransactions} />
                 <ActivePartnersList partners={data.activePartners} />
               </div>
-              
+
               <SystemStatus logs={data.systemLogs} />
             </>
           ) : null}

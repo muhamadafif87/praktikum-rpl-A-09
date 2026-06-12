@@ -37,6 +37,10 @@ const MitraDashboard = ({ initialTab = 'overview' }) => {
     const [loading, setLoading] = useState(true);
     const [activeSidebar, setActiveSidebar] = useState(initialTab);
 
+    // ── State Baru untuk Dropdown Profil & Detail Foto ──
+    const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+    const [photoModalOpen, setPhotoModalOpen] = useState(false);
+
     useEffect(() => {
         setActiveSidebar(initialTab);
     }, [initialTab]);
@@ -47,7 +51,8 @@ const MitraDashboard = ({ initialTab = 'overview' }) => {
 
     // ── User data from localStorage ──
     const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const mitraName = user.name || user.nama_usaha || 'Mitra';
+    const mitraName = user.nama_mitra || user.nama_usaha || 'Mitra';
+    const profilePictureUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuBXDSLI8t_TddSXUzc0JpwmwLVgSFHMX7eykXqusfKy0xpTgzVWHyZW1sxVKCbB5ENVzD_r9CpRbEpQ9AVVnSKRu29mGBft182WoOAL9lcpDHutvijdU1kgKE-QppY99g72pWEm8auOcm3QNn4edGo_TbWxIWeA7uyk4rkk_JGL26XOZTcCUFLdl2N8fvNRrE5Lmt34Lo6brIfQOIug_NHBPg2AfBYBir8K8jG4d_yG8sZL7DTh-_RBnzNqASvypzzj-los_r-yEXA";
 
     // ── Fetch dashboard data ──
     useEffect(() => {
@@ -84,7 +89,6 @@ const MitraDashboard = ({ initialTab = 'overview' }) => {
 
                 // Finance / Chart Pendapatan
                 if (financeRes.status === 'fulfilled') {
-                    // Cek juga fallback jika API finance mereturn saldo sebagai properti tambahan
                     const fetchedFinanceData = financeRes.value.data?.data || {};
                     setChartData(fetchedFinanceData);
 
@@ -103,6 +107,15 @@ const MitraDashboard = ({ initialTab = 'overview' }) => {
         fetchDashboardData();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // Menutup dropdown otomatis jika user mengklik bagian luar layar
+    useEffect(() => {
+        const handleOutsideClick = () => setProfileMenuOpen(false);
+        if (profileMenuOpen) {
+            window.addEventListener('click', handleOutsideClick);
+        }
+        return () => window.removeEventListener('click', handleOutsideClick);
+    }, [profileMenuOpen]);
 
     const handleLogout = async () => {
         try {
@@ -144,13 +157,48 @@ const MitraDashboard = ({ initialTab = 'overview' }) => {
                     <button className="md-topbar-icon-btn" title="Bantuan">
                         <span className="material-symbols-outlined">help</span>
                     </button>
-                    <div className="md-topbar-profile">
-                        <img
-                            className="md-topbar-avatar"
-                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBXDSLI8t_TddSXUzc0JpwmwLVgSFHMX7eykXqusfKy0xpTgzVWHyZW1sxVKCbB5ENVzD_r9CpRbEpQ9AVVnSKRu29mGBft182WoOAL9lcpDHutvijdU1kgKE-QppY99g72pWEm8auOcm3QNn4edGo_TbWxIWeA7uyk4rkk_JGL26XOZTcCUFLdl2N8fvNRrE5Lmt34Lo6brIfQOIug_NHBPg2AfBYBir8K8jG4d_yG8sZL7DTh-_RBnzNqASvypzzj-los_r-yEXA"
-                            alt="Partner Profile"
-                        />
-                        <span className="md-topbar-name">{mitraName}</span>
+
+                    {/* Wadah interaktif untuk avatar profil */}
+                    <div className="md-topbar-profile-container" onClick={(e) => e.stopPropagation()}>
+                        <div className="md-topbar-profile" onClick={() => setProfileMenuOpen(!profileMenuOpen)}>
+                            <img
+                                className="md-topbar-avatar"
+                                src={profilePictureUrl}
+                                alt="Partner Profile"
+                            />
+                            <span className="md-topbar-name">{mitraName}</span>
+                            <span className="material-symbols-outlined md-profile-arrow">
+                                {profileMenuOpen ? 'expand_less' : 'expand_more'}
+                            </span>
+                        </div>
+
+                        {/* Dropdown Menu Popup */}
+                        {profileMenuOpen && (
+                            <div className="md-profile-dropdown">
+                                <div className="md-dropdown-info">
+                                    <img
+                                        className="md-dropdown-avatar"
+                                        src={profilePictureUrl}
+                                        alt="Partner Profile"
+                                    />
+                                    <div className="md-dropdown-meta">
+                                        <h4 className="md-dropdown-name">{mitraName}</h4>
+                                        <p className="md-dropdown-sub">{user.nomor_telepon || 'mitra@kosthub.com'}</p>
+                                        <span className="md-dropdown-badge">Mitra Aktif</span>
+                                    </div>
+                                </div>
+                                <div className="md-dropdown-actions">
+                                    <button className="md-dropdown-btn" onClick={() => { setPhotoModalOpen(true); setProfileMenuOpen(false); }}>
+                                        <span className="material-symbols-outlined">visibility</span>
+                                        Lihat Foto Profil
+                                    </button>
+                                    <button className="md-dropdown-btn md-btn-logout" onClick={handleLogout}>
+                                        <span className="material-symbols-outlined">logout</span>
+                                        Keluar / Logout
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </nav>
@@ -341,7 +389,6 @@ const MitraDashboard = ({ initialTab = 'overview' }) => {
                                         </div>
                                     </div>
                                     <div className="md-chart-area" style={{ height: '18rem', paddingRight: '1rem', paddingTop: '1rem' }}>
-                                        {/* Implementasi Recharts */}
                                         <ResponsiveContainer width="100%" height="100%">
                                             <AreaChart
                                                 data={formattedRechartsData}
@@ -479,6 +526,26 @@ const MitraDashboard = ({ initialTab = 'overview' }) => {
                     </>
                 )}
             </main>
+
+            {/* ═══ Detail Photo Modal ═══ */}
+            {photoModalOpen && (
+                <div className="md-photo-modal-overlay" onClick={() => setPhotoModalOpen(false)}>
+                    <div className="md-photo-modal-content" onClick={(e) => e.stopPropagation()}>
+                        <button className="md-photo-modal-close" onClick={() => setPhotoModalOpen(false)}>
+                            <span className="material-symbols-outlined">close</span>
+                        </button>
+                        <img
+                            className="md-photo-modal-img"
+                            src={profilePictureUrl}
+                            alt="Partner Profile Detail"
+                        />
+                        <div className="md-photo-modal-footer">
+                            <h3>{mitraName}</h3>
+                            <p>{user.nomor_telepon || 'mitra@kosthub.com'}</p>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* ═══ Footer ═══ */}
             <footer className="md-footer">
