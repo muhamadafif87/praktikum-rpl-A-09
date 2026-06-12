@@ -138,6 +138,7 @@ const DailyCleaningDetail = () => {
 
         if (selectedLayananIds.size === 0) {
             setEstimate(null);
+            setEstimateLoading(false);
             return;
         }
 
@@ -154,8 +155,8 @@ const DailyCleaningDetail = () => {
             });
         }
 
+        setEstimateLoading(true);
         const timer = setTimeout(async () => {
-            setEstimateLoading(true);
             setEstimateError(null);
             try {
                 const res = await api.post('/v1/landing-page/generate-fee-pesanan', {

@@ -156,13 +156,14 @@ const LaundryDetail = () => {
 
         if (items.length === 0) {
             setFeeEstimate(null);
+            setFeeLoading(false);
             return;
         }
 
         if (debounceRef.current) clearTimeout(debounceRef.current);
 
+        setFeeLoading(true);
         debounceRef.current = setTimeout(async () => {
-            setFeeLoading(true);
             setFeeError(null);
             try {
                 const requestBody = {
