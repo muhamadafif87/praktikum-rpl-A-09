@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\DetailPesanan;
 use App\Models\Mitra;
 use App\Models\Pesanan;
+use App\Models\Ulasan;
 use Illuminate\Support\Facades\DB;
 
 class PesananService
@@ -448,6 +449,33 @@ class PesananService
         return [
             'id_unique_pesanan' => $pesanan->id_unique_pesanan,
             'status_pesanan'    => 'dibatalkan',
+        ];
+    }
+
+    // -------------------------------------------------------------------------
+    // SELESAIKAN PESANAN — USER (hanya saat status diproses)
+    // -------------------------------------------------------------------------
+    public function selesaikanPesananUser(string $idUniquePesanan, string $idUser): array
+    {
+        $pesanan = Pesanan::where('id_unique_pesanan', $idUniquePesanan)
+            ->where('id_user', $idUser)
+            ->first();
+
+        if (!$pesanan) {
+            throw new \Exception('Pesanan tidak ditemukan.');
+        }
+
+        if ($pesanan->status_pesanan !== 'diproses') {
+            throw new \Exception(
+                'Pesanan tidak dapat diselesaikan karena status saat ini bukan diproses.'
+            );
+        }
+
+        $pesanan->update(['status_pesanan' => 'selesai']);
+
+        return [
+            'id_unique_pesanan' => $pesanan->id_unique_pesanan,
+            'status_pesanan'    => 'selesai',
         ];
     }
 

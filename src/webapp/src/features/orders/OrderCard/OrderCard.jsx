@@ -8,6 +8,7 @@ const OrderCard = ({ order, onRefresh }) => {
     const { addToast } = useToast();
     const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
     const [cancelLoading, setCancelLoading] = useState(false);
+    const [completeLoading, setCompleteLoading] = useState(false);
     const [ulasan, setUlasan] = useState(order.ulasan);
 
     const formatCurrency = (amount) => {
@@ -43,6 +44,21 @@ const OrderCard = ({ order, onRefresh }) => {
             addToast(err.response?.data?.message || 'Gagal membatalkan pesanan.', 'error');
         } finally {
             setCancelLoading(false);
+        }
+    };
+
+    const handleCompleteOrder = async () => {
+        if (!window.confirm('Apakah Anda yakin ingin mengonfirmasi bahwa layanan telah selesai?')) return;
+        
+        setCompleteLoading(true);
+        try {
+            await api.patch(`/v1/landing-page/pesanan/${order.id_unique_pesanan}/selesai`);
+            addToast('Pesanan berhasil diselesaikan! Silakan berikan ulasan Anda.', 'success');
+            if (onRefresh) onRefresh();
+        } catch (err) {
+            addToast(err.response?.data?.message || 'Gagal menyelesaikan pesanan.', 'error');
+        } finally {
+            setCompleteLoading(false);
         }
     };
 
@@ -94,6 +110,16 @@ const OrderCard = ({ order, onRefresh }) => {
                             disabled={cancelLoading}
                         >
                             {cancelLoading ? 'Membatalkan...' : 'Batalkan Pesanan'}
+                        </button>
+                    )}
+
+                    {order.status_pesanan === 'diproses' && (
+                        <button 
+                            className="oc-complete-btn"
+                            onClick={handleCompleteOrder}
+                            disabled={completeLoading}
+                        >
+                            {completeLoading ? 'Memproses...' : 'Pesanan Selesai'}
                         </button>
                     )}
 
