@@ -6,13 +6,10 @@ import './MitraInventory.css';
  * MitraInventory — Halaman Manajemen Inventaris Mitra
  *
  * Menampilkan daftar inventaris/produk mitra dengan fitur:
- * - Stats overview (Total Produk, Stok Rendah, Stok Habis, Kategori Layanan)
+ * - Stats overview
  * - Search & filter
  * - Tabel inventaris dengan pagination
- * - Empty state jika belum ada data
- *
- * API Endpoint:
- * - GET /v1/dashboard/mitra/inventory
+ * - Fitur Update Stok (Popup Modal)
  */
 
 const ITEMS_PER_PAGE = 10;
@@ -24,9 +21,6 @@ const STATUS_OPTIONS = [
     { value: 'habis', label: 'HABIS' },
 ];
 
-/**
- * Maps a raw category string to a display label and CSS modifier.
- */
 const getCategoryBadge = (category) => {
     const c = (category || '').toLowerCase();
     if (c.includes('gas') || c.includes('galon')) return { label: 'GAS & GALON', modifier: 'gas' };
@@ -35,33 +29,17 @@ const getCategoryBadge = (category) => {
     return { label: category?.toUpperCase() || '-', modifier: 'laundry' };
 };
 
-/**
- * Determines stock status based on stock quantity.
- * Returns display label and CSS modifier.
- */
 const getStockStatus = (stock, status) => {
-    // If the API provides a status string, use it
     if (status) {
         const s = status.toLowerCase().replace(/\s+/g, '_');
         if (s === 'habis' || s === 'stok_habis') return { label: 'HABIS', modifier: 'habis' };
         if (s === 'stok_rendah' || s === 'rendah') return { label: 'STOK RENDAH', modifier: 'rendah' };
         if (s === 'tersedia') return { label: 'TERSEDIA', modifier: 'tersedia' };
     }
-    // Fallback: derive from stock quantity
     const qty = parseInt(stock) || 0;
     if (qty <= 0) return { label: 'HABIS', modifier: 'habis' };
     if (qty <= 5) return { label: 'STOK RENDAH', modifier: 'rendah' };
     return { label: 'TERSEDIA', modifier: 'tersedia' };
-};
-
-/**
- * Returns the appropriate action button for a given stock status.
- */
-const getActionButton = (statusModifier) => {
-    if (statusModifier === 'habis' || statusModifier === 'rendah') {
-        return <button className="mi-action-btn mi-action-btn--primary">Restock</button>;
-    }
-    return <button className="mi-action-btn mi-action-btn--outline">Update Stok</button>;
 };
 
 const MitraInventory = () => {
@@ -74,21 +52,22 @@ const MitraInventory = () => {
     const [statusFilter, setStatusFilter] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
 
+    // ── Modal State (Update Stok) ──
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedItem, setSelectedItem] = useState(null);
+    const [newStock, setNewStock] = useState('');
+    const [isUpdating, setIsUpdating] = useState(false);
+
     // ── Fetch inventory from API ──
     useEffect(() => {
         const fetchInventory = async () => {
             setLoading(true);
             try {
-                const response = await api.get('/v1/mitra/inventory');
-                const data = response.data?.data?.items
-                    || response.data?.data?.inventory
-                    || response.data?.data
-                    || response.data?.items
-                    || response.data?.inventory
-                    || [];
+                // Sesuaikan endpoint get kamu
+                const response = await api.get('/v1/mitra/layanan/inventory');
+                const data = response.data?.data?.items || response.data?.data || [];
                 setInventory(Array.isArray(data) ? data : []);
             } catch (err) {
-                // Graceful: API belum tersedia → tetap empty state
                 console.log('Inventory API not yet available:', err.message);
                 setInventory([]);
             } finally {
@@ -99,18 +78,58 @@ const MitraInventory = () => {
         fetchInventory();
     }, []);
 
+    // ── Handlers for Modal Update Stok ──
+    const openUpdateModal = (item) => {
+        setSelectedItem(item);
+        const currentStock = item.stock !== undefined ? item.stock : item.stok;
+        setNewStock(currentStock || 0);
+        setIsModalOpen(true);
+    };
+
+    const closeUpdateModal = () => {
+        setIsModalOpen(false);
+        setSelectedItem(null);
+        setNewStock('');
+    };
+
+    const handleUpdateStock = async (e) => {
+        e.preventDefault();
+        if (!selectedItem) return;
+
+        setIsUpdating(true);
+        try {
+            const productId = selectedItem.id || selectedItem.product_id;
+
+            await api.put(`/v1/mitra/layanan/update-stok/${productId}`, {
+                stok: parseInt(newStock)
+            });
+
+            setInventory((prev) =>
+                prev.map((item) => {
+                    const id = item.id || item.product_id;
+                    if (id === productId) {
+                        return { ...item, stok: parseInt(newStock), stock: parseInt(newStock) };
+                    }
+                    return item;
+                })
+            );
+
+            closeUpdateModal();
+        } catch (err) {
+            alert('Gagal memperbarui stok: ' + (err.response?.data?.message || err.message));
+        } finally {
+            setIsUpdating(false);
+        }
+    };
+
     // ── Computed: filtered & paginated inventory ──
     const filteredInventory = useMemo(() => {
         return inventory.filter((item) => {
-            // Search filter
             const query = searchQuery.toLowerCase();
             const matchesSearch = !query
                 || (item.id && String(item.id).toLowerCase().includes(query))
-                || (item.product_id && String(item.product_id).toLowerCase().includes(query))
-                || (item.name && item.name.toLowerCase().includes(query))
                 || (item.nama_produk && item.nama_produk.toLowerCase().includes(query));
 
-            // Status filter
             const stockStatus = getStockStatus(item.stock || item.stok, item.status);
             const statusKey = stockStatus.modifier === 'rendah' ? 'stok_rendah' : stockStatus.modifier;
             const matchesStatus = !statusFilter || statusKey === statusFilter;
@@ -125,7 +144,6 @@ const MitraInventory = () => {
         currentPage * ITEMS_PER_PAGE
     );
 
-    // Reset to page 1 when filters change
     useEffect(() => {
         setCurrentPage(1);
     }, [searchQuery, statusFilter]);
@@ -197,7 +215,7 @@ const MitraInventory = () => {
                         <input
                             className="mi-search-input"
                             type="text"
-                            placeholder="Cari Nama Produk atau ID Inventaris"
+                            placeholder="Cari Nama Produk atau ID"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -215,10 +233,6 @@ const MitraInventory = () => {
                         <span className="material-symbols-outlined mi-filter-icon">expand_more</span>
                     </div>
                 </div>
-                <button className="mi-export-btn">
-                    <span className="material-symbols-outlined">download</span>
-                    Export
-                </button>
             </div>
 
             {/* ── Inventory Table ── */}
@@ -244,34 +258,28 @@ const MitraInventory = () => {
                                     <td colSpan="6">
                                         <div className="mi-table-empty">
                                             <span className="material-symbols-outlined mi-table-empty-icon">inventory_2</span>
-                                            <p className="mi-table-empty-title">Belum ada produk inventaris</p>
-                                            <p className="mi-table-empty-text">
-                                                Data inventaris produk layanan Anda akan muncul di sini.
-                                            </p>
+                                            <p className="mi-table-empty-title">Belum ada produk</p>
+                                            <p className="mi-table-empty-text">Data inventaris produk akan muncul di sini.</p>
                                         </div>
                                     </td>
                                 </tr>
                             ) : (
                                 paginatedInventory.map((item) => {
-                                    const productId = item.product_id || item.id || '-';
-                                    const productName = item.name || item.nama_produk || '-';
-                                    const productNote = item.note || item.catatan || '';
-                                    const category = item.category || item.kategori || '';
-                                    const stock = item.stock || item.stok || 0;
-                                    const unit = item.unit || item.satuan || 'Units';
+                                    const productId = item.id || item.product_id || '-';
+                                    const productName = item.nama_produk || item.name || '-';
+                                    const category = item.kategori || item.category || '';
+                                    const stock = item.stok !== undefined ? item.stok : item.stock;
+                                    const unit = item.satuan || item.unit || '';
+
                                     const categoryBadge = getCategoryBadge(category);
                                     const stockStatus = getStockStatus(stock, item.status);
 
                                     return (
                                         <tr key={productId}>
-                                            <td>
-                                                <span className="mi-product-id">#{productId}</span>
-                                            </td>
+                                            <td><span className="mi-product-id">#{productId}</span></td>
                                             <td>
                                                 <div className="mi-product-name">{productName}</div>
-                                                {productNote && (
-                                                    <div className="mi-product-note">{productNote}</div>
-                                                )}
+                                                {item.catatan && <div className="mi-product-note">{item.catatan}</div>}
                                             </td>
                                             <td>
                                                 <span className={`mi-category-badge mi-category-badge--${categoryBadge.modifier}`}>
@@ -285,7 +293,12 @@ const MitraInventory = () => {
                                                 </span>
                                             </td>
                                             <td style={{ textAlign: 'center' }}>
-                                                {getActionButton(stockStatus.modifier)}
+                                                <button
+                                                    className={`mi-action-btn ${stockStatus.modifier === 'habis' || stockStatus.modifier === 'rendah' ? 'mi-action-btn--primary' : 'mi-action-btn--outline'}`}
+                                                    onClick={() => openUpdateModal(item)}
+                                                >
+                                                    {(stockStatus.modifier === 'habis' || stockStatus.modifier === 'rendah') ? 'Restock' : 'Update Stok'}
+                                                </button>
                                             </td>
                                         </tr>
                                     );
@@ -299,7 +312,7 @@ const MitraInventory = () => {
                 <div className="mi-pagination">
                     <span className="mi-pagination-info">
                         {filteredInventory.length === 0
-                            ? 'Showing 0 of 0 products'
+                            ? 'Showing 0 products'
                             : `Showing ${(currentPage - 1) * ITEMS_PER_PAGE + 1}-${Math.min(currentPage * ITEMS_PER_PAGE, filteredInventory.length)} of ${filteredInventory.length} products`
                         }
                     </span>
@@ -321,8 +334,85 @@ const MitraInventory = () => {
                     </div>
                 </div>
             </div>
+
+            {/* ── Modal Popup Update Stok ── */}
+            {isModalOpen && (
+                <div style={modalStyles.overlay}>
+                    <div style={modalStyles.container}>
+                        <h3 style={modalStyles.title}>Update Stok Produk</h3>
+                        <p style={modalStyles.subtitle}>
+                            {selectedItem?.nama_produk || selectedItem?.name}
+                            <strong style={{marginLeft: '4px', color: 'var(--md-primary)'}}>
+                                (#{selectedItem?.id || selectedItem?.product_id})
+                            </strong>
+                        </p>
+
+                        <form onSubmit={handleUpdateStock}>
+                            <div style={modalStyles.inputGroup}>
+                                <label style={modalStyles.label}>Jumlah Stok Tersedia</label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    value={newStock}
+                                    onChange={(e) => setNewStock(e.target.value)}
+                                    style={modalStyles.input}
+                                    required
+                                />
+                            </div>
+                            <div style={modalStyles.actions}>
+                                <button type="button" onClick={closeUpdateModal} style={modalStyles.btnCancel} disabled={isUpdating}>
+                                    Batal
+                                </button>
+                                <button type="submit" style={modalStyles.btnSave} disabled={isUpdating}>
+                                    {isUpdating ? 'Menyimpan...' : 'Simpan Stok'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </>
     );
+};
+
+// Inline styles untuk Modal agar tidak perlu merombak CSS luar
+const modalStyles = {
+    overlay: {
+        position: 'fixed',
+        top: 0, left: 0, right: 0, bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.4)',
+        zIndex: 9999,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backdropFilter: 'blur(2px)'
+    },
+    container: {
+        background: 'var(--md-surface-container-lowest, #fff)',
+        padding: '1.5rem',
+        borderRadius: '0.75rem',
+        width: '100%',
+        maxWidth: '400px',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
+    },
+    title: { margin: '0 0 0.25rem 0', fontSize: '1.25rem', color: 'var(--md-on-surface, #1f2937)' },
+    subtitle: { margin: '0 0 1.25rem 0', fontSize: '0.875rem', color: 'var(--md-on-surface-variant, #4b5563)' },
+    inputGroup: { marginBottom: '1.5rem' },
+    label: { display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 },
+    input: {
+        width: '100%', padding: '0.5rem 1rem', borderRadius: '0.5rem',
+        border: '1px solid var(--md-outline-variant, #d1d5db)',
+        fontSize: '1rem', boxSizing: 'border-box', outline: 'none'
+    },
+    actions: { display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' },
+    btnCancel: {
+        padding: '0.5rem 1rem', borderRadius: '0.5rem', background: 'transparent',
+        border: '1px solid var(--md-outline-variant, #d1d5db)', cursor: 'pointer', fontWeight: 600
+    },
+    btnSave: {
+        padding: '0.5rem 1rem', borderRadius: '0.5rem', background: 'var(--md-primary, #0d6efd)',
+        color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 600
+    }
 };
 
 export default MitraInventory;

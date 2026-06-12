@@ -1,7 +1,11 @@
 <?php
 
 use App\Http\Controllers\Api\V1\Auth\AuthController;
+use App\Http\Controllers\Api\V1\Dashboard\Mitra\LayananController;
 use App\Http\Controllers\Api\V1\Dashboard\Mitra\MitraAssetImageController;
+use App\Http\Controllers\Api\V1\Dashboard\Mitra\PesananController as MitraPesananController;
+use App\Http\Controllers\Api\V1\Dashboard\Mitra\TransaksiKeuanganController;
+use App\Http\Controllers\Api\V1\Dashboard\Mitra\UlasanController;
 use App\Http\Controllers\Api\V1\Location\NearbyMitraController;
 use App\Http\Controllers\Api\V1\Location\UserAddressController;
 use App\Http\Controllers\Api\V1\Order\PesananController;
@@ -95,17 +99,42 @@ Route::prefix('v1')->group(function () {
     // -------------------------------------------------------------------------
     // Protected — auth:sanctum,guard:mitra (Mitra)
     // -------------------------------------------------------------------------
-    Route::prefix('mitra')->middleware('auth:sanctum,guard:mitra')->name('mitra.')->group(function () {
+    Route::prefix('mitra')->middleware('auth:mitra-api')->name('mitra.')->group(function () {
         Route::prefix('pesanan')->name('pesanan.')->group(function () {
+            // // GET /mitra/pesanan/riwayat?status=diproses&per_page=10
+            // Route::get('/riwayat', [PesananController::class, 'riwayatPesananMitra'])->name('riwayat');
+            // // Detail pesanan (mitra bisa lihat info user)
+            // Route::get('/{idUniquePesanan}', [PesananController::class, 'showDetailPesanan'])->name('detail');
+            // // Cancel pesanan — mitra bisa cancel kecuali status selesai/dibatalkan
+            // Route::patch('/{idUniquePesanan}/cancel', [PesananController::class, 'cancelPesananMitra'])->name('cancel');
 
-            // GET /mitra/pesanan/riwayat?status=diproses&per_page=10
-            Route::get('/riwayat', [PesananController::class, 'riwayatPesananMitra'])->name('riwayat');
+            Route::get('/',                   [MitraPesananController::class, 'index']);
+            Route::get('/stats',             [MitraPesananController::class, 'stats']);
+            Route::get('/{id}',              [MitraPesananController::class, 'show']);
+            Route::patch('/{id}/status',     [MitraPesananController::class, 'updateStatus']);
+        });
 
-            // Detail pesanan (mitra bisa lihat info user)
-            Route::get('/{idUniquePesanan}', [PesananController::class, 'showDetailPesanan'])->name('detail');
+        Route::prefix('layanan')->name('layanan.')->group(function(){
+            Route::get('/',                   [LayananController::class, 'index']);
+            Route::get('/informasi-stok', [LayananController::class, 'stok']);
+            Route::get('/inventory', [LayananController::class, 'stokManagement']);
+            Route::put('/update-stok/{id}', [LayananController::class, 'updateStok']);
+            Route::post('/',                  [LayananController::class, 'store']);
+            Route::get('layanan/{id}',              [LayananController::class, 'show']);
+            Route::put('layanan/{id}',              [LayananController::class, 'update']);
+            Route::delete('layanan/{id}',           [LayananController::class, 'destroy']);
+            Route::patch('layanan/{id}/toggle',     [LayananController::class, 'toggle']);
+        });
 
-            // Cancel pesanan — mitra bisa cancel kecuali status selesai/dibatalkan
-            Route::patch('/{idUniquePesanan}/cancel', [PesananController::class, 'cancelPesananMitra'])->name('cancel');
+        Route::prefix('keuangan')->group(function () {
+            Route::get('transaksi',             [TransaksiKeuanganController::class, 'index']);
+            Route::get('ringkasan',             [TransaksiKeuanganController::class, 'ringkasan']);
+            Route::get('pendapatan', [TransaksiKeuanganController::class, 'pendapatan']);
+        });
+
+        Route::prefix('ulasan')->group(function () {
+            Route::get('/',                     [UlasanController::class, 'index']);
+            Route::get('statistik',             [UlasanController::class, 'statistik']);
         });
 
         Route::get('{idMitra}/images', [MitraAssetImageController::class, 'index']);
@@ -117,16 +146,4 @@ Route::prefix('v1')->group(function () {
             Route::delete('{id}', [MitraAssetImageController::class, 'destroy']);
         });
     });
-
-    //------
-    // Routes get list layanan
-    //--------
-    //semua layanan
-    //layanan tertentu
-    //layanan tertentu dengan filter kategori
-
-    //------
-    // Routes get ulasan
-    //--------
-
 });

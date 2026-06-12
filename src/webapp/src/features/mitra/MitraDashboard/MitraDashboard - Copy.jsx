@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import api from '../../../services/api';
 import MitraOrders from '../MitraOrders/MitraOrders';
 import MitraInventory from '../MitraInventory/MitraInventory';
@@ -9,6 +8,9 @@ import './MitraDashboard.css';
 
 /**
  * MitraDashboard — Komponen utama dashboard mitra
+ *
+ * Data di-fetch dari backend API. Jika endpoint belum tersedia,
+ * komponen menampilkan empty/zero state secara graceful.
  */
 
 const SIDEBAR_ITEMS = [
@@ -22,6 +24,7 @@ const SIDEBAR_ITEMS = [
     { icon: 'settings', label: 'Settings', key: 'settings' },
 ];
 
+const CHART_Y_LABELS = ['1M', '800k', '600k', '400k', '200k', '0'];
 const FALLBACK_CHART_X_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 const MitraDashboard = ({ initialTab = 'overview' }) => {
@@ -41,10 +44,6 @@ const MitraDashboard = ({ initialTab = 'overview' }) => {
         setActiveSidebar(initialTab);
     }, [initialTab]);
 
-    const handleTakeOrder = () => {
-        setActiveSidebar('orders');
-    };
-
     // ── User data from localStorage ──
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const mitraName = user.name || user.nama_usaha || 'Mitra';
@@ -54,6 +53,7 @@ const MitraDashboard = ({ initialTab = 'overview' }) => {
         const fetchDashboardData = async () => {
             setLoading(true);
             try {
+                // Menangkap 5 panggilan API sesuai daftar endpoint
                 const [statsRes, ordersRes, inventoryRes, perfRes, financeRes] = await Promise.allSettled([
                     api.get('/v1/mitra/pesanan/stats'),
                     api.get('/v1/mitra/pesanan/', { params: { status: 'pending' } }),
@@ -67,7 +67,7 @@ const MitraDashboard = ({ initialTab = 'overview' }) => {
                     setStats(statsRes.value.data?.data || statsRes.value.data || stats);
                 }
 
-                // Orders
+                // Orders (Mapping disesuaikan dengan struktur JSON pesanan)
                 if (ordersRes.status === 'fulfilled') {
                     setOrders(ordersRes.value.data?.data || []);
                 }
@@ -84,13 +84,7 @@ const MitraDashboard = ({ initialTab = 'overview' }) => {
 
                 // Finance / Chart Pendapatan
                 if (financeRes.status === 'fulfilled') {
-                    // Cek juga fallback jika API finance mereturn saldo sebagai properti tambahan
-                    const fetchedFinanceData = financeRes.value.data?.data || {};
-                    setChartData(fetchedFinanceData);
-
-                    if (fetchedFinanceData.saldo !== undefined && !stats.saldo) {
-                        setStats(prev => ({ ...prev, saldo: fetchedFinanceData.saldo }));
-                    }
+                    setChartData(financeRes.value.data?.data || { x_labels: [], series: [] });
                 }
 
             } catch (err) {
@@ -107,7 +101,9 @@ const MitraDashboard = ({ initialTab = 'overview' }) => {
     const handleLogout = async () => {
         try {
             await api.post('/v1/auth/logout');
-        } catch (err) {}
+        } catch (err) {
+            // Abaikan error saat logout API
+        }
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         navigate('/login');
@@ -123,12 +119,6 @@ const MitraDashboard = ({ initialTab = 'overview' }) => {
         return date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ', ' +
                date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
     };
-
-    // Format data khusus untuk Recharts
-    const formattedRechartsData = (chartData.x_labels?.length > 0 ? chartData.x_labels : FALLBACK_CHART_X_LABELS).map((label, index) => ({
-        name: label,
-        pendapatan: chartData.series?.[index] || 0
-    }));
 
     return (
         <div className="mitra-dashboard-page">
@@ -312,11 +302,7 @@ const MitraDashboard = ({ initialTab = 'overview' }) => {
                                                                 <td className="md-table-price">{formatCurrency(totalPrice)}</td>
                                                                 <td className="md-table-time">{formatDate(order.tgl_pesanan)}</td>
                                                                 <td style={{ textAlign: 'right' }}>
-                                                                    <button
-                                                                        className="md-table-action-btn"
-                                                                        onClick={() => {setActiveSidebar('orders');}}
-                                                                    >Ambil Pesanan
-                                                                    </button>
+                                                                    <button className="md-table-action-btn">Ambil Pesanan</button>
                                                                 </td>
                                                             </tr>
                                                         );
@@ -340,48 +326,20 @@ const MitraDashboard = ({ initialTab = 'overview' }) => {
                                             </button>
                                         </div>
                                     </div>
-                                    <div className="md-chart-area" style={{ height: '18rem', paddingRight: '1rem', paddingTop: '1rem' }}>
-                                        {/* Implementasi Recharts */}
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <AreaChart
-                                                data={formattedRechartsData}
-                                                margin={{ top: 10, right: 0, left: -20, bottom: 0 }}
-                                            >
-                                                <defs>
-                                                    <linearGradient id="colorPendapatan" x1="0" y1="0" x2="0" y2="1">
-                                                        <stop offset="5%" stopColor="var(--md-primary)" stopOpacity={0.3} />
-                                                        <stop offset="95%" stopColor="var(--md-primary)" stopOpacity={0} />
-                                                    </linearGradient>
-                                                </defs>
-                                                <XAxis
-                                                    dataKey="name"
-                                                    axisLine={false}
-                                                    tickLine={false}
-                                                    tick={{ fontSize: 12, fill: 'var(--md-on-surface-variant)' }}
-                                                    dy={10}
-                                                />
-                                                <YAxis
-                                                    axisLine={false}
-                                                    tickLine={false}
-                                                    tick={{ fontSize: 10, fill: 'var(--md-on-surface-variant)' }}
-                                                    tickFormatter={(value) => `Rp ${value / 1000}k`}
-                                                />
-                                                <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--md-outline-variant)" />
-                                                <Tooltip
-                                                    formatter={(value) => [formatCurrency(value), "Pendapatan"]}
-                                                    contentStyle={{ borderRadius: '0.5rem', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                                                />
-                                                <Area
-                                                    type="monotone"
-                                                    dataKey="pendapatan"
-                                                    stroke="var(--md-primary)"
-                                                    strokeWidth={3}
-                                                    fillOpacity={1}
-                                                    fill="url(#colorPendapatan)"
-                                                    activeDot={{ r: 6 }}
-                                                />
-                                            </AreaChart>
-                                        </ResponsiveContainer>
+                                    <div className="md-chart-area">
+                                        <div className="md-chart-y-axis">
+                                            {CHART_Y_LABELS.map((label) => (<span key={label}>{label}</span>))}
+                                        </div>
+                                        <div className="md-chart-canvas">
+                                            <span className="material-symbols-outlined">show_chart</span>
+                                            <p>Performance Chart</p>
+                                            {/* (Area implementasi library Chart.js/Recharts diletakkan di sini, menggunakan data chartData.series) */}
+                                        </div>
+                                    </div>
+                                    <div className="md-chart-x-axis">
+                                        {(chartData.x_labels?.length > 0 ? chartData.x_labels : FALLBACK_CHART_X_LABELS).map((label, i) => (
+                                            <span key={i}>{label}</span>
+                                        ))}
                                     </div>
                                 </div>
                             </div>
@@ -402,6 +360,7 @@ const MitraDashboard = ({ initialTab = 'overview' }) => {
                                             </div>
                                         ) : (
                                             inventory.map((item, index) => {
+                                                // Jika tidak ada key nama_layanan, kita buat fallback Produk 1, Produk 2
                                                 const itemName = item.nama_layanan || `Produk ${index + 1}`;
                                                 const stock = item.stok_tersedia ?? 0;
                                                 const isLow = stock < 10;
