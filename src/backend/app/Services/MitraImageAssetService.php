@@ -24,7 +24,7 @@ class MitraImageAssetService
      */
     public function findOrFail(int $id): MitraImageAsset
     {
-        return MitraImageAsset::findOrFail($id);
+        return MitraImageAsset::findOrFail($id)->image_file;
     }
 
     /**

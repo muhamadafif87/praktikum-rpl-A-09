@@ -28,6 +28,241 @@
     --md-font: 'Inter', -apple-system, sans-serif;
 }
 
+/* =============================================
+   Profile Dropdown & Modal Styles (Tambahan)
+   ============================================= */
+
+.md-topbar-profile-container {
+    position: relative;
+}
+
+.md-topbar-profile {
+    cursor: pointer;
+    user-select: none;
+    padding: 0.35rem 0.75rem;
+    border-radius: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: background 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.md-topbar-profile:hover {
+    background: var(--md-surface-container-low);
+    border-color: var(--md-outline-variant);
+}
+
+.md-profile-arrow {
+    font-size: 1.25rem;
+    color: var(--md-on-surface-variant);
+    transition: transform 0.2s;
+}
+
+/* Dropdown Menu Box */
+.md-profile-dropdown {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    width: 280px;
+    background: var(--md-surface-container-lowest);
+    border: 1px solid var(--md-outline-variant);
+    border-radius: 1rem;
+    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.08), 0 8px 10px -6px rgba(0,0,0,0.05);
+    z-index: 100;
+    overflow: hidden;
+    animation: mdFadeInUp 0.2s ease-out;
+}
+
+@keyframes mdFadeInUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.md-dropdown-info {
+    display: flex;
+    gap: 0.85rem;
+    padding: 1.25rem;
+    background: var(--md-surface-container-low);
+    border-bottom: 1px solid var(--md-outline-variant);
+    align-items: center;
+}
+
+.md-dropdown-avatar {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--md-primary-fixed);
+}
+
+.md-dropdown-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    overflow: hidden;
+    text-align: left;
+}
+
+.md-dropdown-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.md-dropdown-sub {
+    font-size: 0.75rem;
+    color: var(--md-on-surface-variant);
+    margin: 0 0 0.25rem 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.md-dropdown-badge {
+    font-size: 10px;
+    font-weight: 700;
+    color: #15803d;
+    background: #e6fdf0;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    width: max-content;
+}
+
+.md-dropdown-actions {
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.md-dropdown-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: none;
+    border: none;
+    border-radius: 0.5rem;
+    font-family: var(--md-font);
+    font-size: 0.875rem;
+    color: var(--md-on-surface-variant);
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.2s, color 0.2s;
+}
+
+.md-dropdown-btn:hover {
+    background: var(--md-surface-container-low);
+    color: var(--md-on-surface);
+}
+
+.md-dropdown-btn .material-symbols-outlined {
+    font-size: 1.25rem;
+}
+
+.md-btn-logout {
+    color: var(--md-error);
+    font-weight: 600;
+}
+
+.md-btn-logout:hover {
+    background: var(--md-error-container) !important;
+    color: var(--md-error) !important;
+}
+
+/* Photo Modal View Detail */
+.md-photo-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(11, 28, 48, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    animation: mdFadeIn 0.2s ease-out;
+}
+
+@keyframes mdFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.md-photo-modal-content {
+    background: var(--md-surface-container-lowest);
+    border-radius: 1.5rem;
+    padding: 1.5rem;
+    max-width: 360px;
+    width: 85%;
+    position: relative;
+    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.15);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: mdScaleIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes mdScaleIn {
+    from { transform: scale(0.92); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.md-photo-modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: var(--md-surface-container-low);
+    border: none;
+    border-radius: 50%;
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--md-on-surface-variant);
+    transition: background 0.2s;
+}
+
+.md-photo-modal-close:hover {
+    background: var(--md-surface-container-high);
+}
+
+.md-photo-modal-img {
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin: 1.5rem 0 1rem 0;
+    border: 4px solid var(--md-primary-fixed);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.md-photo-modal-footer {
+    text-align: center;
+    width: 100%;
+}
+
+.md-photo-modal-footer h3 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+}
+
+.md-photo-modal-footer p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--md-on-surface-variant);
+}
+
 /* ── Base ── */
 .mitra-dashboard-page {
     font-family: var(--md-font);

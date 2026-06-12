@@ -133,7 +133,7 @@ class AuthService{
         else {
             // Check if the credential is an email or phone number
             $authField = filter_var($credentials['email'], FILTER_VALIDATE_EMAIL) ? 'email' : 'nomor_telepon';
-            
+
             $attemptCredentials = [
                 $authField => $credentials['email'],
                 'password' => $credentials['password']
