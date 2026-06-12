@@ -239,6 +239,33 @@ class PesananController extends Controller {
     }
 
     // -------------------------------------------------------------------------
+    // PATCH /landing-page/pesanan/{idUniquePesanan}/selesai (user)
+    // -------------------------------------------------------------------------
+    public function selesaikanPesananUser(Request $request, string $idUniquePesanan): JsonResponse {
+        try {
+            /** @var \App\Models\User $user */
+            $user = $request->user();
+
+            $data = $this->PesananService->selesaikanPesananUser(
+                idUniquePesanan: $idUniquePesanan,
+                idUser:          (string) $user->id_user,
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pesanan berhasil diselesaikan.',
+                'data'    => $data,
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    // -------------------------------------------------------------------------
     // PATCH /mitra/pesanan/{idUniquePesanan}/cancel  (mitra)
     // -------------------------------------------------------------------------
     public function cancelPesananMitra(Request $request, string $idUniquePesanan): JsonResponse
