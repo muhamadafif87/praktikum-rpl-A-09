@@ -26,10 +26,17 @@ const LocationContext = createContext(undefined);
 export const LocationProvider = ({ children }) => {
     const [location, setLocationState] = useState(() => {
         try {
-            const saved = sessionStorage.getItem('userLocation');
-            if (saved) return JSON.parse(saved);
+            const saved = localStorage.getItem('userLocation');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                // Kompatibilitas mundur untuk data lama yang belum punya flag isConfirmed
+                if (parsed.isConfirmed === undefined) {
+                    parsed.isConfirmed = true;
+                }
+                return parsed;
+            }
         } catch (e) {
-            console.error('Failed to parse userLocation from sessionStorage', e);
+            console.error('Failed to parse userLocation from localStorage', e);
         }
         return DEFAULT_LOCATION;
     });
@@ -44,12 +51,12 @@ export const LocationProvider = ({ children }) => {
             isFromProfile,
         };
         setLocationState(newLocation);
-        sessionStorage.setItem('userLocation', JSON.stringify(newLocation));
+        localStorage.setItem('userLocation', JSON.stringify(newLocation));
     }, []);
 
     const clearLocation = useCallback(() => {
         setLocationState(DEFAULT_LOCATION);
-        sessionStorage.removeItem('userLocation');
+        localStorage.removeItem('userLocation');
     }, []);
 
     const syncWithUser = useCallback((user) => {
@@ -62,7 +69,7 @@ export const LocationProvider = ({ children }) => {
                 isFromProfile: true,
             };
             setLocationState(newLocation);
-            sessionStorage.setItem('userLocation', JSON.stringify(newLocation));
+            localStorage.setItem('userLocation', JSON.stringify(newLocation));
         }
     }, []);
 
