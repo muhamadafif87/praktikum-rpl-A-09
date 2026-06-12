@@ -7,6 +7,7 @@ import api from '../../../services/api';
 import './DetailMitraGas.css';
 import '../../landing/LandingPage/LandingPage.css';
 import TransitionLink from '../../../components/ViewTransition/TransitionLink';
+import Footer from '../../../components/Footer/Footer';
 
 const DetailMitraGas = ({ onOrderClick }) => {
     const navigate = useNavigate();
@@ -434,21 +435,7 @@ const DetailMitraGas = ({ onOrderClick }) => {
             </main>
 
             {/* Footer */}
-            <footer className="dm-footer">
-                <div className="dm-footer-inner">
-                    <div className="dm-footer-brand">
-                        <Link to="/" className="dm-brand-link">
-                            KostHub<span className="dm-brand-dot">.</span>
-                        </Link>
-                    </div>
-                    <div className="dm-footer-links">
-                        <a className="dm-footer-link" href="#">Syarat &amp; Ketentuan</a>
-                        <a className="dm-footer-link" href="#">Kebijakan Privasi</a>
-                        <a className="dm-footer-link" href="#">Hubungi Kami</a>
-                    </div>
-                    <p className="dm-footer-copy">© 2024 KostHub. Seluruh hak cipta dilindungi.</p>
-                </div>
-            </footer>
+            <Footer />
         </div>
     );
 };

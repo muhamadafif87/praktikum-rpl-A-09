@@ -1,0 +1,193 @@
+.kh-footer-container {
+    background-color: #ffffff;
+    border-top: 1px solid #e2e8f0;
+    padding: 1.5rem 2rem;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    font-family: 'Inter', sans-serif;
+    color: #475569;
+    font-size: 0.9rem;
+    width: 100%;
+}
+
+.kh-footer-logo {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #1e293b;
+    letter-spacing: -0.5px;
+    justify-self: start;
+}
+
+.kh-footer-logo span {
+    color: #2563eb;
+}
+
+.kh-footer-links {
+    display: flex;
+    gap: 2rem;
+    justify-self: center;
+}
+
+.kh-footer-link {
+    background: none;
+    border: none;
+    color: #64748b;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 0;
+    font-size: 0.9rem;
+    font-family: inherit;
+    transition: color 0.2s ease;
+}
+
+.kh-footer-link:hover {
+    color: #2563eb;
+}
+
+.kh-footer-copy {
+    color: #94a3b8;
+    font-size: 0.85rem;
+    justify-self: end;
+}
+
+/* Modal Styles */
+.kh-legal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(15, 23, 42, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 1rem;
+    opacity: 0;
+    animation: fadeIn 0.2s forwards ease-out;
+}
+
+.kh-legal-modal {
+    background: white;
+    width: 100%;
+    max-width: 650px;
+    max-height: 85vh;
+    border-radius: 1rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transform: translateY(20px);
+    animation: slideUp 0.3s forwards cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.kh-legal-header {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f8fafc;
+}
+
+.kh-legal-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.kh-legal-close {
+    background: #e2e8f0;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #64748b;
+    transition: all 0.2s ease;
+}
+
+.kh-legal-close:hover {
+    background: #cbd5e1;
+    color: #1e293b;
+    transform: rotate(90deg);
+}
+
+.kh-legal-body {
+    padding: 2rem;
+    overflow-y: auto;
+    color: #475569;
+    line-height: 1.6;
+}
+
+.kh-legal-body h4 {
+    color: #1e293b;
+    font-size: 1.1rem;
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.kh-legal-body h4:first-child {
+    margin-top: 0;
+}
+
+.kh-legal-body p {
+    margin-bottom: 1rem;
+}
+
+.kh-legal-body ul {
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+}
+
+.kh-legal-body li {
+    margin-bottom: 0.5rem;
+}
+
+.kh-contact-box {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    text-align: center;
+    margin-top: 1rem;
+}
+
+.kh-contact-box span.material-symbols-outlined {
+    font-size: 2.5rem;
+    color: #22c55e;
+    margin-bottom: 0.5rem;
+}
+
+.kh-contact-email {
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: #166534;
+    display: block;
+    margin: 0.5rem 0;
+}
+
+@keyframes fadeIn {
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    to { transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+    .kh-footer-container {
+        flex-direction: column;
+        gap: 1.5rem;
+        padding: 2rem 1rem;
+        text-align: center;
+    }
+    
+    .kh-footer-links {
+        flex-direction: column;
+        gap: 1rem;
+    }
+}

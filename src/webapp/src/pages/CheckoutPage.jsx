@@ -7,6 +7,7 @@ import FullScreenLoader from '../components/FullScreenLoader/FullScreenLoader';
 import './LaundryDetail.css'; // Reusing dp-* ecosystem
 import '../features/landing/LandingPage/LandingPage.css';
 import './CheckoutPage.css';
+import Footer from '../components/Footer/Footer';
 
 const fmt = (num) => {
     return parseInt(num || 0).toLocaleString('id-ID');
@@ -456,24 +457,7 @@ const CheckoutPage = () => {
                 </div>
             </main>
 
-            <footer className="lp-footer">
-                <div className="lp-container lp-footer-inner">
-                    <div className="lp-footer-brand">
-                        <Link to="/" className="lp-footer-logo">
-                            KostHub<span className="lp-footer-dot">.</span>
-                        </Link>
-                        <p className="lp-footer-desc">Solusi praktis anak kos di Solo.</p>
-                    </div>
-                    <div className="lp-footer-links">
-                        <a className="lp-footer-link" href="#">Syarat &amp; Ketentuan</a>
-                        <a className="lp-footer-link" href="#">Kebijakan Privasi</a>
-                        <a className="lp-footer-link" href="#">Hubungi Kami</a>
-                    </div>
-                    <p className="lp-footer-copy">
-                        &copy; {new Date().getFullYear()} KostHub. Seluruh hak cipta dilindungi.
-                    </p>
-                </div>
-            </footer>
+            <Footer />
         </div>
     );
 };
