@@ -466,6 +466,13 @@ const MitraDashboard = ({ initialTab = 'overview' }) => {
                                                                 </p>
                                                             </div>
                                                         </div>
+                                                        {isLow ? (
+                                                            <button className="md-stock-restock-btn">Restock</button>
+                                                        ) : (
+                                                            <button className="md-stock-more-btn">
+                                                                <span className="material-symbols-outlined">more_vert</span>
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 );
                                             })
