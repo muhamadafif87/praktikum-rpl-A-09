@@ -67,7 +67,7 @@ class GenerateFeeRequest extends FormRequest
                 },
             ],
 
-            'jarakOngkir'   => ['required', 'integer', 'min:0'],
+            'jarakOngkir'   => ['required', 'numeric', 'min:0'],
 
             'biayaTambahan' => ['nullable', 'array'],
             'biayaTambahan.*.idLayanan' => ['required_if:typeLayanan,galon_gas', 'string'],
@@ -107,7 +107,7 @@ class GenerateFeeRequest extends FormRequest
             'qty.integer' => 'qty harus berupa angka bulat.',
             'qty.min' => 'qty minimal 1.',
             'jarakOngkir.required' => 'jarakOngkir wajib diisi.',
-            'jarakOngkir.integer' => 'jarakOngkir harus berupa angka.',
+            'jarakOngkir.numeric' => 'jarakOngkir harus berupa angka.',
             'jarakOngkir.min' => 'jarakOngkir minimal 0.',
             'biayaTambahan.array' => 'biayaTambahan harus berupa array atau JSON object.',
             'biayaTambahan.*.numeric' => 'Setiap nilai biayaTambahan harus berupa angka.',

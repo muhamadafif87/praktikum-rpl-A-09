@@ -27,6 +27,14 @@ class Pesanan extends Model
         self::STATUS_DIBATALKAN,
     ];
 
+    const STATUS_MAP = [
+        'pending' => self::STATUS_MENUNGGU,
+        'diproses' => self::STATUS_PROSES,
+        'siap' => self::STATUS_SIAP,
+        'selesai' => self::STATUS_SELESAI,
+        'dibatalkan' => self::STATUS_DIBATALKAN,
+    ];
+
     protected $fillable = [
         'id_unique_pesanan',
         'id_user',

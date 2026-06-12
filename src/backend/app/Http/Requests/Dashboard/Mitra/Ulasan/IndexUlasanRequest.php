@@ -5,7 +5,7 @@ namespace App\Http\Requests\Dashboard\Mitra\Ulasan;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class IndexTransaksiRequest extends FormRequest
+class IndexUlasanRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -15,10 +15,10 @@ class IndexTransaksiRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'search'      => ['nullable', 'string', 'max:100'],
-            'status_dana' => ['nullable', 'string', 'in:all,tersedia,tertahan'],
-            'page'        => ['nullable', 'integer', 'min:1'],
-            'limit'       => ['nullable', 'integer', 'min:1', 'max:100'],
+            'rating' => ['nullable', 'integer', 'min:1', 'max:5'],
+            'search' => ['nullable', 'string', 'max:100'],
+            'page'   => ['nullable', 'integer', 'min:1'],
+            'limit'  => ['nullable', 'integer', 'min:1', 'max:100'],
         ];
     }
 }

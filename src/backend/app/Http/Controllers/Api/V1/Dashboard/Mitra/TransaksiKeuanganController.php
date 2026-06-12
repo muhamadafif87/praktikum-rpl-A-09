@@ -32,9 +32,34 @@ class TransaksiKeuanganController extends V1ApiController
      */
     public function ringkasan(Request $request): JsonResponse
     {
-        $mitraUser = $request->user('mitra');
+        $mitraUser = auth('mitra-api')->user();
         $data      = $this->transaksiService->ringkasan($mitraUser);
 
         return $this->success($data);
+    }
+
+    public function pendapatan(Request $request)
+    {
+        try {
+            // Ambil ID Mitra yang sedang login (Sesuaikan dengan auth Anda)
+            $mitraId = auth('mitra-api')->user();;
+
+            // Jika nanti ada filter bulanan/tahunan, Anda bisa menangkap $request->query('period') di sini
+
+            $chartData = $this->transaksiService->getTrenPendapatanMingguan($mitraId);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data tren pendapatan berhasil diambil',
+                'data' => $chartData
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat mengambil data pendapatan',
+                'error'   => $e->getMessage()
+            ], 500);
+        }
     }
 }

@@ -57,13 +57,19 @@ const MitraFinance = () => {
         const fetchFinanceData = async () => {
             setLoading(true);
             try {
-                // Fetch finance API
-                // If API is not ready, gracefully catch error
-                const response = await api.get('/v1/mitra/finance');
+                const response = await api.get('/v1/mitra/keuangan/ringkasan');
+                // response.data merujuk pada root JSON, response.data.data merujuk pada object isi data
                 const data = response.data?.data || response.data;
-                
-                // Assuming data structure has stats and transactions
-                if (data.stats) {
+
+                // Perbaikan: Mengubah responseData menjadi data agar sesuai dengan variabel yang di-declare
+                if (data && data.total_pendapatan !== undefined) {
+                    setStats({
+                        totalPendapatan: data.total_pendapatan || 0,
+                        saldoTersedia: data.saldo_tersedia || 0,
+                        pesananSelesai: data.pesanan_selesai || 0,
+                        saldoTertahan: data.saldo_tertahan || 0,
+                    });
+                } else if (data && data.stats) {
                     setStats({
                         totalPendapatan: data.stats.total_pendapatan || 0,
                         saldoTersedia: data.stats.saldo_tersedia || 0,
@@ -71,12 +77,13 @@ const MitraFinance = () => {
                         saldoTertahan: data.stats.saldo_tertahan || 0,
                     });
                 }
-                
-                const txList = data.transactions || data.items || [];
+
+                // Ambil data transaksi secara aman dari properti potensial atau fallback ke array kosong
+                const txList = data?.transactions || data?.items || response.data?.transactions || [];
                 setTransactions(Array.isArray(txList) ? txList : []);
             } catch (err) {
                 console.log('Finance API not yet available:', err.message);
-                // Set empty state if endpoint not found or error
+                // Set empty state jika endpoint tidak ditemukan atau error
                 setTransactions([]);
                 setStats({
                     totalPendapatan: 0,
@@ -143,13 +150,12 @@ const MitraFinance = () => {
                         <p className="mf-stat-card-label">Total Pendapatan</p>
                         <p className="mf-stat-card-value">{formatIDR(stats.totalPendapatan)}</p>
                     </div>
-                    {/* Hardcoded 0% format if empty, or hide if desired, mirroring UI file structure */}
                     <p className="mf-stat-card-note mf-stat-card-note--positive">
                         <span className="material-symbols-outlined mf-stat-card-note-icon">trending_up</span>
                         {stats.totalPendapatan > 0 ? '+12% dari bulan lalu' : '+0% dari bulan lalu'}
                     </p>
                 </div>
-                
+
                 <div className="mf-stat-card">
                     <div>
                         <p className="mf-stat-card-label">Saldo Tersedia</p>
@@ -253,7 +259,7 @@ const MitraFinance = () => {
                                     const customer = tx.customer || tx.pelanggan || '-';
                                     const amount = tx.amount || tx.jumlah || 0;
                                     const status = String(tx.status || '').toLowerCase();
-                                    
+
                                     // Map status to badge modifier class
                                     let badgeModifier = 'proses';
                                     if (status === 'selesai' || status === 'success') badgeModifier = 'selesai';

@@ -37,10 +37,38 @@ class PesananController extends V1ApiController
     public function show(PesananIndexPesananRequest $request, int $id): JsonResponse
     {
         try {
-            $mitraUser = auth('mitra-api')->user();;
+            $mitraUser = auth('mitra-api')->user();
             $pesanan   = $this->pesananService->show($mitraUser, $id);
 
-            return $this->success($pesanan);
+            $responseData = [
+                'status'            => $pesanan->status_pesanan,
+                'id_unique_pesanan' => $pesanan->id_unique_pesanan,
+                'pelanggan'         => [
+                    'nama_lengkap'    => $pesanan->User->nama_lengkap ?? '-',
+                    'alamat_kost'     => $pesanan->User->alamat_kost ?? '-',
+                    'tanggal_pesan'   => $pesanan->tgl_pesanan,
+                    'catatan_pesanan' => $pesanan->catatan['note'],
+                ],
+                'item_pesanan'      => [
+                    'items' => $pesanan->DetailPesanan->map(function ($item) {
+                        return [
+                            'layanan'  => $item->layanan->nama_layanan ?? '-',
+                            'qty'      => (int) ($item->jumlah ?? 1),
+                            'harga'    => (int) ($item->harga ?? 0),
+                            'subtotal' => (int) ($item->subtotal ?? (($item->harga ?? 0) * ($item->jumlah ?? 1))),
+                        ];
+                    })->toArray(),
+                    'total_pembayaran'  => (int) ($pesanan->catatan['total_pembayaran'] ?? 0),
+                    'metode_pembayaran' => $pesanan->Pembayaran->metode_pembayaran ?? 'Transfer',
+                    'status_pembayaran' => $pesanan->Pembayaran->status_pembayaran ?? 'Lunas',
+                ],
+                'ulasan'            => $pesanan->Ulasan ? [
+                    'rating'   => (int) $pesanan->Ulasan->rating,
+                    'komentar' => $pesanan->Ulasan->komentar,
+                ] : null,
+            ];
+
+            return $this->success($responseData);
 
         } catch (ModelNotFoundException $e) {
             return $this->error($e->getMessage(), 404);
@@ -62,7 +90,7 @@ class PesananController extends V1ApiController
     public function updateStatus(PesananUpdateStatusPesananRequest $request, int $id): JsonResponse
     {
         try {
-            $mitraUser  = $request->user('mitra');
+            $mitraUser  = auth('mitra-api')->user();
             $newStatus  = $request->validated('status_pesanan');
             $pesanan    = $this->pesananService->updateStatus($mitraUser, $id, $newStatus);
 

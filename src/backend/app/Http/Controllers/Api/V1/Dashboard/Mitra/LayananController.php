@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api\V1\Dashboard\Mitra;
 use App\Http\Controllers\Api\V1\ApiController as V1ApiController;
 use App\Http\Requests\Dashboard\Mitra\Layanan\StoreLayananRequest as LayananStoreLayananRequest;
 use App\Http\Requests\Mitra\Layanan\UpdateLayananRequest;
+use App\Models\Layanan;
+use App\Models\Mitra;
 use App\Services\Mitra\LayananService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -21,10 +23,20 @@ class LayananController extends V1ApiController
      */
     public function index(Request $request): JsonResponse
     {
-        $mitraUser = $request->user('mitra');
+        $mitraUser = auth('mitra-api')->user();
         $layanan   = $this->layananService->index($mitraUser);
 
         return $this->success($layanan);
+    }
+
+    public function stok(Request $request): JsonResponse{
+        $mitraUser = auth('mitra-api')->user();
+        $stok   = $this->layananService->stok($mitraUser);
+
+        return response()->json([
+            'success' => true,
+            'data' => $stok
+        ]);
     }
 
     /**
@@ -99,7 +111,7 @@ class LayananController extends V1ApiController
     public function toggle(Request $request, int $id): JsonResponse
     {
         try {
-            $mitraUser = $request->user('mitra');
+            $mitraUser = auth('mitra-api')->user();
             $layanan   = $this->layananService->toggle($mitraUser, $id);
             $statusMsg = $layanan->is_aktif ? 'diaktifkan' : 'dinonaktifkan';
 
@@ -107,6 +119,67 @@ class LayananController extends V1ApiController
 
         } catch (ModelNotFoundException $e) {
             return $this->error($e->getMessage(), 404);
+        }
+    }
+
+    public function stokManagement(Request $request)
+    {
+        try {
+            $mitraId = auth('mitra-api')->user();
+
+            $filters = [
+                'search' => $request->query('search'),
+                'status' => $request->query('status'),
+            ];
+
+            // Panggil Service
+            $items = $this->layananService->stokManagement($mitraId, $filters);
+
+            // Return response JSON sesuai ekspektasi MitraInventory.jsx
+            return response()->json([
+                'success' => true,
+                'message' => 'Data inventaris berhasil diambil.',
+                'data'    => [
+                    'items' => $items
+                ]
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil data inventaris: ' . $e->getMessage(),
+                'data'    => null
+            ], 500);
+        }
+    }
+
+    public function updateStok(Request $request, $id)
+    {
+        $request->validate([
+            'stok' => 'required|integer|min:0'
+        ]);
+
+        try {
+            $mitraId = auth('mitra-api')->user();
+            $stokBaru = $request->input('stok');
+
+            // Panggil service untuk eksekusi update
+            $layananUpdated = $this->layananService->updateStok($id, $mitraId, $stokBaru);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Stok produk berhasil diperbarui.',
+                'data'    => [
+                    'id'          => $layananUpdated->id_layanan,
+                    'stok_update' => $layananUpdated->stok_tersedia
+                ]
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memperbarui stok: ' . $e->getMessage()
+            ], 403);
         }
     }
 }

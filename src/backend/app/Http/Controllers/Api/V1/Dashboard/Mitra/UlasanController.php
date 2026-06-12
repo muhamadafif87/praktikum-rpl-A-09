@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\Dashboard\Mitra;
 
 use App\Http\Controllers\Api\V1\ApiController as V1ApiController;
 use App\Http\Controllers\ApiController;
+use App\Http\Requests\Dashboard\Mitra\Ulasan\IndexUlasanRequest as UlasanIndexUlasanRequest;
 use App\Http\Requests\Mitra\Ulasan\IndexUlasanRequest;
 use App\Services\Mitra\UlasanService;
 use Illuminate\Http\JsonResponse;
@@ -17,9 +18,9 @@ class UlasanController extends V1ApiController
      * GET /v1/mitra/ulasan
      * List ulasan dengan filter rating + search + pagination.
      */
-    public function index(IndexUlasanRequest $request): JsonResponse
+    public function index(UlasanIndexUlasanRequest $request): JsonResponse
     {
-        $mitraUser = $request->user('mitra');
+        $mitraUser = auth('mitra-api')->user();
         $paginator = $this->ulasanService->index($mitraUser, $request->validated());
 
         return $this->paginated($paginator);
@@ -31,7 +32,7 @@ class UlasanController extends V1ApiController
      */
     public function statistik(Request $request): JsonResponse
     {
-        $mitraUser = $request->user('mitra');
+        $mitraUser = auth('mitra-api')->user();
         $data      = $this->ulasanService->statistik($mitraUser);
 
         return $this->success($data);

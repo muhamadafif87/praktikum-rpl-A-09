@@ -1,0 +1,126 @@
+/* FullScreenLoader.css */
+.fsl-container {
+    background-color: var(--dp-surface-container-lowest);
+    color: var(--dp-on-surface);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+}
+
+.fsl-main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 24rem;
+    padding: 0 32px;
+    gap: 48px;
+    animation: fsl-fade-in-up 0.8s ease-out forwards;
+}
+
+.fsl-brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.fsl-brand-text {
+    font-size: 1.5rem;
+    line-height: 2rem;
+    font-weight: 700;
+    color: var(--dp-on-surface);
+    letter-spacing: -0.025em;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.fsl-brand-dot {
+    color: var(--primary, #2563eb);
+    font-size: 1.875rem;
+    line-height: 1;
+}
+
+.fsl-spinner-wrapper {
+    position: relative;
+    width: 3rem;
+    height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.fsl-spinner {
+    width: 100%;
+    height: 100%;
+    color: var(--primary, #2563eb);
+    animation: fsl-spin-slow 2s linear infinite;
+}
+
+.fsl-spinner-circle {
+    stroke: currentColor;
+    animation: fsl-dash 1.5s ease-in-out infinite;
+}
+
+.fsl-spinner-bg {
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px;
+    border: 1px solid var(--dp-surface-variant);
+    opacity: 0.2;
+}
+
+.fsl-message-wrapper {
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+}
+
+.fsl-message {
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    line-height: 1.5;
+    font-weight: 400;
+    color: var(--dp-on-surface-variant);
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    transition: opacity 0.5s ease-in-out;
+    animation: fsl-text-pulse 3s ease-in-out infinite;
+}
+
+@keyframes fsl-spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes fsl-dash {
+    0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; }
+    50% { stroke-dasharray: 90, 150; stroke-dashoffset: -35; }
+    100% { stroke-dasharray: 90, 150; stroke-dashoffset: -124; }
+}
+
+@keyframes fsl-fade-in-up {
+    0% { opacity: 0; transform: translateY(16px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fsl-text-pulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}

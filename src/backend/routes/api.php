@@ -113,6 +113,9 @@ Route::prefix('v1')->group(function () {
 
         Route::prefix('layanan')->name('layanan.')->group(function(){
             Route::get('/',                   [LayananController::class, 'index']);
+            Route::get('/informasi-stok', [LayananController::class, 'stok']);
+            Route::get('/inventory', [LayananController::class, 'stokManagement']);
+            Route::put('/update-stok/{id}', [LayananController::class, 'updateStok']);
             Route::post('/',                  [LayananController::class, 'store']);
             Route::get('layanan/{id}',              [LayananController::class, 'show']);
             Route::put('layanan/{id}',              [LayananController::class, 'update']);
@@ -123,6 +126,7 @@ Route::prefix('v1')->group(function () {
         Route::prefix('keuangan')->group(function () {
             Route::get('transaksi',             [TransaksiKeuanganController::class, 'index']);
             Route::get('ringkasan',             [TransaksiKeuanganController::class, 'ringkasan']);
+            Route::get('pendapatan', [TransaksiKeuanganController::class, 'pendapatan']);
         });
 
         Route::prefix('ulasan')->group(function () {
