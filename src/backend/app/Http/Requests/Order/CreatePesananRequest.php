@@ -65,31 +65,44 @@ class CreatePesananRequest extends FormRequest
             'estimasi.biaya_transportasi'   => ['nullable', 'numeric', 'min:0'],
             'estimasi.biaya_tambahan_alat'  => ['nullable', 'numeric', 'min:0'],
 
-            'catatanPengiriman' => ['nullable', 'string', 'max:500'],
+            'catatanPengiriman'       => ['nullable', 'string', 'max:500'],
+            'namaPengirim'            => ['nullable', 'string', 'max:255'],
+            'nomorWhatsAppPengirim'   => ['nullable', 'string', 'max:20'],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'idMitra.required'                    => 'idMitra wajib diisi.',
+            'idMitra.required'                    => 'Mitra wajib dipilih.',
             'idMitra.exists'                      => 'Mitra tidak ditemukan.',
-            'typeLayanan.required'                => 'typeLayanan wajib diisi.',
-            'typeLayanan.in'                      => 'typeLayanan tidak valid.',
-            'items.required'                      => 'items wajib diisi.',
+            'typeLayanan.required'                => 'Tipe layanan wajib diisi.',
+            'typeLayanan.in'                      => 'Tipe layanan tidak valid.',
+            'items.required'                      => 'Pilih minimal 1 item layanan.',
             'items.min'                           => 'Minimal 1 item layanan.',
-            'items.*.idLayanan.required'          => 'idLayanan wajib diisi pada setiap item.',
+            'items.*.idLayanan.required'          => 'Layanan wajib dipilih.',
             'items.*.idLayanan.exists'            => 'Salah satu layanan tidak ditemukan.',
-            'items.*.qty.required'                => 'qty wajib diisi pada setiap item.',
-            'items.*.qty.min'                     => 'qty minimal 1.',
-            'jarakOngkir.required'                => 'jarakOngkir wajib diisi.',
-            'jarakOngkir.min'                     => 'jarakOngkir minimal 0.',
-            'estimasi.required'                   => 'Data estimasi fee wajib disertakan.',
-            'estimasi.subtotal.required'          => 'estimasi.subtotal wajib diisi.',
-            'estimasi.biaya_ongkir.required'      => 'estimasi.biaya_ongkir wajib diisi.',
-            'estimasi.total_pembayaran.required'  => 'estimasi.total_pembayaran wajib diisi.',
+            'items.*.qty.required'                => 'Kuantitas wajib diisi.',
+            'items.*.qty.min'                     => 'Kuantitas minimal 1.',
+            'jarakOngkir.required'                => 'Jarak pengiriman wajib dihitung (Pastikan lokasi sudah diatur).',
+            'jarakOngkir.min'                     => 'Jarak pengiriman minimal 0.',
+            
+            'jadwal_layanan.required'             => 'Jadwal layanan wajib diatur.',
+            'jadwal_layanan.min'                  => 'Jadwal layanan wajib diatur.',
+            'jadwal_layanan.*.jam.required'       => 'Silakan pilih jam layanan (penjemputan/pengiriman) terlebih dahulu.',
+            'jadwal_layanan.*.jam.date_format'    => 'Format jam tidak valid.',
+            'jadwal_layanan.*.tanggal.required_if'=> 'Silakan pilih tanggal layanan terlebih dahulu.',
+            'jadwal_layanan.*.tanggal.date'       => 'Format tanggal tidak valid.',
+
+            'estimasi.required'                   => 'Mohon tunggu sistem menghitung estimasi biaya terlebih dahulu.',
+            'estimasi.subtotal.required'          => 'Estimasi subtotal gagal dihitung.',
+            'estimasi.biaya_ongkir.required'      => 'Estimasi biaya ongkir gagal dihitung.',
+            'estimasi.total_pembayaran.required'  => 'Estimasi total pembayaran gagal dihitung.',
             'biayaTambahan.beli_baru.required_if' => 'Untuk galon_gas, biayaTambahan.beli_baru wajib diisi.',
+            
             'catatanPengiriman.max'               => 'Catatan pengiriman maksimal 500 karakter.',
+            'namaPengirim.max'                    => 'Nama maksimal 255 karakter.',
+            'nomorWhatsAppPengirim.max'           => 'Nomor WhatsApp maksimal 20 karakter.',
         ];
     }
 }

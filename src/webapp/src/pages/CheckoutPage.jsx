@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useLayoutEffect, useCallback } from
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useLocation } from '../context/LocationContext';
 import FullScreenLoader from '../components/FullScreenLoader/FullScreenLoader';
 import './LaundryDetail.css'; // Reusing dp-* ecosystem
 import '../features/landing/LandingPage/LandingPage.css';
@@ -15,6 +16,7 @@ const CheckoutPage = () => {
     const { id_pesanan } = useParams();
     const navigate = useNavigate();
     const { user, isAuthenticated, logout } = useAuth();
+    const { location } = useLocation();
 
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -123,13 +125,11 @@ const CheckoutPage = () => {
 
     // Determine icons and descriptions based on service type
     const isLaundry = data.type_layanan === 'laundry';
-    const isGas = data.type_layanan === 'galon_gas';
-    const isCleaning = data.type_layanan === 'daily_cleaning';
-
     let serviceIcon = 'local_laundry_service';
-    let serviceName = 'Laundry Express';
-    if (isGas) { serviceIcon = 'propane'; serviceName = 'Gas & Galon'; }
-    if (isCleaning) { serviceIcon = 'cleaning_services'; serviceName = 'Daily Cleaning'; }
+    let serviceName = 'Layanan';
+    if (data?.mitra?.jenis_jasa === 'laundry') { serviceName = 'Laundry Express'; serviceIcon = 'local_laundry_service'; }
+    else if (data?.mitra?.jenis_jasa === 'daily_cleaning') { serviceName = 'Daily Cleaning'; serviceIcon = 'cleaning_services'; }
+    else if (data?.mitra?.jenis_jasa === 'gas_galon') { serviceName = 'Gas & Galon'; serviceIcon = 'propane'; }
 
     return (
         <div className="dp-page">
@@ -147,18 +147,22 @@ const CheckoutPage = () => {
                     </ul>
                     <div className="lp-nav-actions">
                         {isAuthenticated && user ? (
-                            <div className="lp-profile-menu-container">
+                            <div className="lp-profile-menu">
                                 <button
                                     className="lp-profile-btn"
                                     onClick={() => setShowProfileMenu(!showProfileMenu)}
                                 >
                                     <div className="lp-profile-avatar">
-                                        {user?.nama_lengkap ? user.nama_lengkap.charAt(0).toUpperCase() : 'U'}
+                                        {(() => {
+                                            const name = user?.nama_lengkap || user?.nama_mitra || user?.nama || 'User';
+                                            const names = name.trim().split(' ');
+                                            return names.length >= 2 ? (names[0][0] + names[1][0]).toUpperCase() : name.substring(0, 2).toUpperCase();
+                                        })()}
                                     </div>
                                 </button>
                                 {showProfileMenu && (
                                     <div className="lp-profile-dropdown">
-                                        <div className="lp-profile-header">
+                                        <div className="lp-profile-info">
                                             <p className="lp-profile-name">{user?.nama_lengkap || 'User'}</p>
                                             <p className="lp-profile-email">{user?.email || ''}</p>
                                         </div>
@@ -213,7 +217,7 @@ const CheckoutPage = () => {
                             <span className="material-symbols-outlined" style={{fontVariationSettings: "'FILL' 1"}}>{serviceIcon}</span>
                         </div>
                         <div className="dp-order-small-card-content">
-                            <h3>{serviceName} - Mitra: {data.mitra?.nama_toko || 'Mitra'}</h3>
+                            <h3>{serviceName} - Mitra: {data.mitra?.nama_mitra || 'Mitra'}</h3>
                             <p>Pesanan Anda telah dicatat dan siap diproses.</p>
                         </div>
                     </div>
@@ -241,9 +245,37 @@ const CheckoutPage = () => {
                                 <span className="material-symbols-outlined dp-user-data-icon">location_on</span>
                                 <div className="dp-user-data-content">
                                     <p className="dp-user-data-label">Alamat Pengiriman</p>
-                                    <p className="dp-user-data-value">{data.user?.address?.alamat_lengkap || user?.address?.alamat_lengkap || 'Alamat tidak ditemukan'}</p>
+                                    <p className="dp-user-data-value">{location?.isConfirmed && location?.address ? location.address : (data.user?.address?.alamat_lengkap || user?.address?.alamat_lengkap || 'Alamat tidak ditemukan')}</p>
                                 </div>
                             </div>
+                            <div className="dp-user-data-item">
+                                <span className="material-symbols-outlined dp-user-data-icon">schedule</span>
+                                <div className="dp-user-data-content">
+                                    <p className="dp-user-data-label">Jadwal Pesanan</p>
+                                    <p className="dp-user-data-value">
+                                        {(() => {
+                                            if (data.jadwal_layanan && data.jadwal_layanan.length > 0) {
+                                                const jadwal = data.jadwal_layanan[0];
+                                                const tanggalStr = jadwal.tanggal ? new Date(jadwal.tanggal).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Hari ini';
+                                                const jamStr = jadwal.jam ? ` pukul ${jadwal.jam}` : '';
+                                                return `${tanggalStr}${jamStr}`;
+                                            } else if (data.catatan_pengiriman?.tanggal) {
+                                                return `${data.catatan_pengiriman.tanggal} ${data.catatan_pengiriman.waktu ? `pukul ${data.catatan_pengiriman.waktu}` : ''}`;
+                                            }
+                                            return 'Hari ini';
+                                        })()}
+                                    </p>
+                                </div>
+                            </div>
+                            {typeof data.catatan_pengiriman === 'string' && data.catatan_pengiriman.trim() && (
+                                <div className="dp-user-data-item">
+                                    <span className="material-symbols-outlined dp-user-data-icon">note</span>
+                                    <div className="dp-user-data-content">
+                                        <p className="dp-user-data-label">Catatan Tambahan</p>
+                                        <p className="dp-user-data-value" style={{ whiteSpace: 'pre-wrap' }}>{data.catatan_pengiriman}</p>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </section>
 
@@ -277,14 +309,9 @@ const CheckoutPage = () => {
                                     <div className="dp-simulation-box" onClick={(e) => e.preventDefault()}>
                                         <p className="dp-simulation-title">Mockup QRIS (Testing)</p>
                                         <div className="dp-qr-mockup">
-                                            <div className="dp-qr-grid">
-                                                {Array.from({length: 16}).map((_, i) => (
-                                                    <div key={i} className="dp-qr-cell"></div>
-                                                ))}
-                                            </div>
+                                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=PembayaranKostHub" alt="QRIS Mockup" style={{width: '100%', height: '100%', objectFit: 'contain'}} />
                                             <span className="material-symbols-outlined" style={{position: 'absolute', backgroundColor: 'white', padding: '2px', borderRadius: '4px', fontSize: '20px'}}>qr_code_2</span>
                                         </div>
-                                        <button className="dp-simulation-btn" onClick={(e) => { e.preventDefault(); handlePayment(); }}>Simulasikan Pembayaran Sukses</button>
                                     </div>
                                 )}
                             </div>
@@ -314,7 +341,6 @@ const CheckoutPage = () => {
                                             <div className="dp-va-number">88000 1234 5678</div>
                                             <p style={{margin: '4px 0 0', fontSize: '12px', color: 'var(--dp-primary)', cursor: 'pointer', fontWeight: '600'}}>Salin Nomor</p>
                                         </div>
-                                        <button className="dp-simulation-btn" onClick={(e) => { e.preventDefault(); handlePayment(); }}>Simulasikan Pembayaran Sukses</button>
                                     </div>
                                 )}
                             </div>
@@ -353,43 +379,58 @@ const CheckoutPage = () => {
                         </div>
 
                         <div className="dp-summary-list mb-1">
-                            <div className="dp-summary-item">
-                                <span className="dp-summary-item-label">Subtotal</span>
-                                <span className="dp-summary-item-value">
-                                    Rp {fmt(data.total_biaya_layanan)}
-                                </span>
-                            </div>
-                            <div className="dp-summary-item">
-                                <span className="dp-summary-item-label">Biaya Ongkir</span>
-                                <span className="dp-summary-item-value">
-                                    Rp {fmt(data.total_ongkir)}
-                                </span>
-                            </div>
-                            {parseInt(data.total_biaya_tambahan) > 0 && (
+                            {data.detail_layanan && data.detail_layanan.length > 0 ? (
+                                data.detail_layanan.map((item, idx) => (
+                                    <div className="dp-summary-item" key={idx}>
+                                        <span className="dp-summary-item-label">
+                                            {item.nama_layanan} {item.jumlah > 1 ? `(x${item.jumlah})` : ''}
+                                        </span>
+                                        <span className="dp-summary-item-value">
+                                            Rp {fmt(item.subtotal)}
+                                        </span>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="dp-summary-item">
+                                    <span className="dp-summary-item-label">Subtotal</span>
+                                    <span className="dp-summary-item-value">
+                                        Rp {fmt(data.ringkasan_biaya?.subtotal || 0)}
+                                    </span>
+                                </div>
+                            )}
+                            {(data.ringkasan_biaya?.biaya_ongkir > 0 || data.ringkasan_biaya?.biaya_transportasi > 0) && (
+                                <div className="dp-summary-item">
+                                    <span className="dp-summary-item-label">Biaya Transportasi/Ongkir</span>
+                                    <span className="dp-summary-item-value">
+                                        Rp {fmt(data.ringkasan_biaya?.biaya_ongkir || data.ringkasan_biaya?.biaya_transportasi || 0)}
+                                    </span>
+                                </div>
+                            )}
+                            {(data.ringkasan_biaya?.biaya_tambahan > 0 || data.ringkasan_biaya?.biaya_tambahan_alat > 0) && (
                                 <div className="dp-summary-item">
                                     <span className="dp-summary-item-label">Biaya Tambahan</span>
                                     <span className="dp-summary-item-value">
-                                        + Rp {fmt(data.total_biaya_tambahan)}
+                                        + Rp {fmt(data.ringkasan_biaya?.biaya_tambahan || data.ringkasan_biaya?.biaya_tambahan_alat || 0)}
                                     </span>
                                 </div>
                             )}
                             <div className="dp-summary-item">
                                 <span className="dp-summary-item-label">Biaya Layanan Aplikasi</span>
                                 <span className="dp-summary-item-value">
-                                    Rp {fmt(data.total_biaya_aplikasi || 2000)}
+                                    Rp {fmt(data.ringkasan_biaya?.biaya_aplikasi || 2000)}
                                 </span>
                             </div>
                             <div className="dp-summary-total">
                                 <span className="dp-summary-total-label">Total Pembayaran</span>
                                 <span className="dp-summary-total-value" style={{color: 'var(--dp-primary)'}}>
-                                    Rp {fmt(data.total_harga)}
+                                    Rp {fmt(data.ringkasan_biaya?.total_pembayaran || 0)}
                                 </span>
                             </div>
                         </div>
 
-                        <div className="dp-escrow-note">
-                            <span className="material-symbols-outlined dp-escrow-note-icon">shield_lock</span>
-                            <p>Transaksi Anda dilindungi oleh Sistem Escrow KostHub. Dana akan diteruskan ke mitra hanya setelah layanan selesai sesuai pesanan Anda.</p>
+                        <div className="dp-info-box">
+                            <span className="material-symbols-outlined dp-info-icon">info</span>
+                            <p className="dp-info-text">Transaksi Anda dilindungi oleh Sistem Escrow KostHub. Dana akan diteruskan ke mitra hanya setelah layanan selesai sesuai pesanan Anda.</p>
                         </div>
 
                         {paymentMethod === 'cash' ? (
@@ -404,10 +445,11 @@ const CheckoutPage = () => {
                         ) : (
                             <button
                                 className="dp-btn-primary"
-                                disabled={true}
-                                style={{width: '100%', opacity: 0.5, cursor: 'not-allowed'}}
+                                onClick={handlePayment}
+                                style={{width: '100%'}}
                             >
                                 Selesaikan di Mockup {paymentMethod === 'qris' ? 'QRIS' : 'VA'}
+                                <span className="material-symbols-outlined">arrow_forward</span>
                             </button>
                         )}
                     </div>
@@ -417,32 +459,19 @@ const CheckoutPage = () => {
             <footer className="lp-footer">
                 <div className="lp-container lp-footer-inner">
                     <div className="lp-footer-brand">
-                        <Link to="/" className="lp-footer-logo">KostHub<span className="lp-footer-dot">.</span></Link>
+                        <Link to="/" className="lp-footer-logo">
+                            KostHub<span className="lp-footer-dot">.</span>
+                        </Link>
                         <p className="lp-footer-desc">Solusi praktis anak kos di Solo.</p>
                     </div>
                     <div className="lp-footer-links">
-                        <div className="lp-footer-column">
-                            <h4>Layanan</h4>
-                            <Link to="/gas-galon">Gas &amp; Galon</Link>
-                            <Link to="/laundry">Laundry Express</Link>
-                            <Link to="/daily-cleaning">Daily Cleaning</Link>
-                        </div>
-                        <div className="lp-footer-column">
-                            <h4>Perusahaan</h4>
-                            <Link to="/tentang-kami">Tentang Kami</Link>
-                            <Link to="/kontak">Hubungi Kami</Link>
-                            <Link to="/mitra">Gabung Mitra</Link>
-                        </div>
-                        <div className="lp-footer-column">
-                            <h4>Bantuan</h4>
-                            <Link to="/faq">FAQ</Link>
-                            <Link to="/syarat">Syarat &amp; Ketentuan</Link>
-                            <Link to="/privasi">Kebijakan Privasi</Link>
-                        </div>
+                        <a className="lp-footer-link" href="#">Syarat &amp; Ketentuan</a>
+                        <a className="lp-footer-link" href="#">Kebijakan Privasi</a>
+                        <a className="lp-footer-link" href="#">Hubungi Kami</a>
                     </div>
-                </div>
-                <div className="lp-footer-bottom">
-                    <p>&copy; {new Date().getFullYear()} KostHub. Seluruh hak cipta dilindungi.</p>
+                    <p className="lp-footer-copy">
+                        &copy; {new Date().getFullYear()} KostHub. Seluruh hak cipta dilindungi.
+                    </p>
                 </div>
             </footer>
         </div>

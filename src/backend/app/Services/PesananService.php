@@ -33,11 +33,12 @@ class PesananService
         array  $jadwalLayanan,
         array  $estimasi,
         array  $biayaTambahan,
-        ?string $catatanPengiriman
+        ?string $catatanPengiriman,
+        ?array  $kontakPengirim = null
     ): array {
         return DB::transaction(function () use (
             $idUser, $idMitra, $jadwalLayanan, $typeLayanan, $items,
-            $jarakOngkir, $estimasi, $biayaTambahan, $catatanPengiriman
+            $jarakOngkir, $estimasi, $biayaTambahan, $catatanPengiriman, $kontakPengirim
         ) {
             $mitra = Mitra::find($idMitra);
             if (!$mitra) {
@@ -84,6 +85,7 @@ class PesananService
                 'jadwal_layanan'     => $jadwalLayanan ?: null,
                 'total_pembayaran'   => $estimasi['total_pembayaran'],
                 'catatan_pengiriman' => $catatanPengiriman,
+                'kontak_pengirim'    => $kontakPengirim,
             ];
 
             if($typeLayanan === 'daily_cleaning'){
@@ -164,6 +166,9 @@ class PesananService
                     'id_pesanan'        => $pesanan->id_pesanan,
                     'id_unique_pesanan' => $pesanan->id_unique_pesanan,
                     'status_pesanan'    => $pesanan->status_pesanan,
+                    'tgl_pesanan'       => $pesanan->tgl_pesanan,
+                    'mitra'             => $pesanan->Mitra,
+                    'user'              => $pesanan->User,
                     'detail_layanan'    => $detailList,
                     'detail_alat_tambahan' => array_keys($biayaTambahan),
                     'ringkasan_biaya'   => [
@@ -181,6 +186,8 @@ class PesananService
                     'id_pesanan'         => $pesanan->id_pesanan,
                     'id_unique_pesanan'  => $pesanan->id_unique_pesanan,
                     'status_pesanan'     => $pesanan->status_pesanan,
+                    'mitra'              => $pesanan->Mitra,
+                    'user'               => $pesanan->User,
                     'detail_layanan'     => $detailList,
                     'ringkasan_biaya' => [
                         'subtotal'              => $estimasi['subtotal'],
@@ -198,6 +205,8 @@ class PesananService
                     'id_pesanan'         => $pesanan->id_pesanan,
                     'id_unique_pesanan'  => $pesanan->id_unique_pesanan,
                     'status_pesanan'     => $pesanan->status_pesanan,
+                    'mitra'              => $pesanan->Mitra,
+                    'user'               => $pesanan->User,
                     'detail_layanan'     => $detailList,
                     'ringkasan_biaya'    => [
                         'subtotal'          => $estimasi['subtotal'],
@@ -326,7 +335,12 @@ class PesananService
             'status_pesanan'     => $pesanan->status_pesanan,
             'tgl_pesanan'        => $pesanan->tgl_pesanan,
             'mitra'              => $pesanan->Mitra,
-            'user'               => $pesanan->User,
+            'user'               => isset($catatan['kontak_pengirim']) && $catatan['kontak_pengirim']['nama'] ? [
+                'id_user'       => $pesanan->User->id_user,
+                'nama_lengkap'  => $catatan['kontak_pengirim']['nama'],
+                'nomor_telepon' => $catatan['kontak_pengirim']['phone'] ?? $pesanan->User->nomor_telepon,
+                'alamat_kost'   => $pesanan->User->alamat_kost,
+            ] : $pesanan->User,
             'detail_layanan'     => $pesanan->DetailPesanan->map(fn($d) => [
                 'id_detail_pesanan' => $d->id_detail_pesanan,
                 'nama_layanan'      => $d->Layanan->nama_layanan ?? '-',
@@ -342,6 +356,7 @@ class PesananService
                 'biaya_tambahan_alat'   => $catatan['biaya_tambahan_alat'] ?? null,
                 'total_pembayaran'      => $catatan['total_pembayaran'] ?? null,
             ],
+            'jadwal_layanan'     => $catatan['jadwal_layanan'] ?? null,
             'catatan_pengiriman' => $catatan['catatan_pengiriman'] ?? null,
             'pembayaran'         => $pesanan->Pembayaran,
             'ulasan'             => $pesanan->Ulasan,
@@ -452,10 +467,13 @@ class PesananService
                 'nama_mitra'  => $pesanan->Mitra->nama_mitra,
                 'jenis_jasa'  => $pesanan->Mitra->jenis_jasa,
             ] : null,
-            'user'               => isset($pesanan->User) ? [
+            'user'               => isset($pesanan->User) ? (isset($catatan['kontak_pengirim']) && $catatan['kontak_pengirim']['nama'] ? [
+                'nama_lengkap'  => $catatan['kontak_pengirim']['nama'],
+                'nomor_telepon' => $catatan['kontak_pengirim']['phone'] ?? $pesanan->User->nomor_telepon,
+            ] : [
                 'nama_lengkap'  => $pesanan->User->nama_lengkap,
                 'nomor_telepon' => $pesanan->User->nomor_telepon,
-            ] : null,
+            ]) : null,
             'detail_layanan'     => $pesanan->DetailPesanan->map(fn($d) => [
                 'nama_layanan'  => $d->Layanan->nama_layanan ?? '-',
                 'jumlah'        => $d->jumlah,
