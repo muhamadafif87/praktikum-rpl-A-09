@@ -1,0 +1,179 @@
+.oc-card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e5e7eb;
+    padding: 20px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.oc-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+.oc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #f3f4f6;
+    padding-bottom: 12px;
+}
+
+.oc-mitra-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.oc-store-icon {
+    color: #2563eb;
+    font-size: 24px;
+}
+
+.oc-mitra-name {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.oc-status {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.oc-status-pending {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.oc-status-diterima {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.oc-status-selesai {
+    background: #d1fae5;
+    color: #059669;
+}
+
+.oc-status-batal {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.oc-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.oc-info-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.95rem;
+}
+
+.oc-label {
+    color: #6b7280;
+}
+
+.oc-value {
+    font-weight: 600;
+    color: #374151;
+}
+
+.capitalize {
+    text-transform: capitalize;
+}
+
+.oc-details {
+    background: #f9fafb;
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.oc-detail-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    color: #4b5563;
+}
+
+.oc-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.oc-total-price {
+    font-size: 1.1rem;
+    color: #2563eb;
+}
+
+.oc-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #f3f4f6;
+    padding-top: 16px;
+    margin-top: auto;
+}
+
+.oc-order-id {
+    font-size: 0.8rem;
+    color: #9ca3af;
+    font-family: monospace;
+}
+
+.oc-rate-btn {
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.oc-rate-btn:hover {
+    background: #059669;
+}
+
+.oc-reviewed-badge {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: #fdf6e3;
+    color: #b45309;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+
+.star-icon {
+    font-size: 18px;
+    color: #f59e0b;
+}
+
+.oc-reviewed-text {
+    margin-left: 4px;
+}

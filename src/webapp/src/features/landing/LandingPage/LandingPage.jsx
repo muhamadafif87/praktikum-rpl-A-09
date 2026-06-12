@@ -223,6 +223,9 @@ const LandingPage = () => {
                                         <button className="lp-profile-link" onClick={() => { navigate('/profile'); setShowProfileMenu(false); }}>
                                             <span className="material-symbols-outlined">person</span> Profil Saya
                                         </button>
+                                        <button className="lp-profile-link" onClick={() => { navigate('/pesanan-saya'); setShowProfileMenu(false); }}>
+                                            <span className="material-symbols-outlined">receipt_long</span> Pesanan Saya
+                                        </button>
                                         <button className="lp-profile-link lp-profile-logout" onClick={() => { logout(); setShowProfileMenu(false); window.location.href = '/'; }}>
                                             <span className="material-symbols-outlined">logout</span> Keluar
                                         </button>

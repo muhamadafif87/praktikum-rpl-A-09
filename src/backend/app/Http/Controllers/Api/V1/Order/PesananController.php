@@ -85,6 +85,41 @@ class PesananController extends Controller {
     }
 
     // -------------------------------------------------------------------------
+    // POST /landing-page/pesanan/{idUniquePesanan}/ulasan  (user)
+    // -------------------------------------------------------------------------
+    public function tambahUlasan(Request $request, string $idUniquePesanan): JsonResponse
+    {
+        $request->validate([
+            'rating' => 'required|integer|min:1|max:5',
+            'komentar' => 'nullable|string|max:1000'
+        ]);
+
+        try {
+            /** @var \App\Models\User $user */
+            $user = $request->user();
+
+            $data = $this->PesananService->tambahUlasan(
+                idUniquePesanan: $idUniquePesanan,
+                idUser:          (string) $user->id_user,
+                rating:          (int) $request->input('rating'),
+                komentar:        $request->input('komentar')
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Ulasan berhasil ditambahkan.',
+                'data'    => $data,
+            ], 201);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    // -------------------------------------------------------------------------
     // GET /mitra/pesanan/riwayat  (mitra)
     // -------------------------------------------------------------------------
     public function riwayatPesananMitra(RiwayatPesananRequest $request): JsonResponse

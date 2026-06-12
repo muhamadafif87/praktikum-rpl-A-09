@@ -223,6 +223,7 @@ class PesananService
     ) {
         $query = Pesanan::with([
                 'DetailPesanan.Layanan',
+                'Ulasan',
                 'Mitra:id_mitra,nama_mitra,jenis_jasa,alamat_mitra',
             ])
             ->where('id_user', $idUser)
@@ -265,6 +266,7 @@ class PesananService
     ) {
         $query = Pesanan::with([
                 'DetailPesanan.Layanan',
+                'Ulasan',
                 'User:id_user,nama_lengkap,nomor_telepon,alamat_kost',
             ])
             ->where('id_mitra', $idMitra)
@@ -302,6 +304,7 @@ class PesananService
     {
         $pesanan = Pesanan::with([
                 'DetailPesanan.Layanan',
+                'Ulasan',
                 'Mitra:id_mitra,nama_mitra,jenis_jasa,alamat_mitra,nomor_telepon',
                 'User:id_user,nama_lengkap,nomor_telepon,alamat_kost',
                 'Pembayaran',
@@ -342,6 +345,41 @@ class PesananService
             'catatan_pengiriman' => $catatan['catatan_pengiriman'] ?? null,
             'pembayaran'         => $pesanan->Pembayaran,
             'ulasan'             => $pesanan->Ulasan,
+        ];
+    }
+
+    // -------------------------------------------------------------------------
+    // TAMBAH ULASAN — USER (hanya saat selesai)
+    // -------------------------------------------------------------------------
+    public function tambahUlasan(string $idUniquePesanan, string $idUser, int $rating, ?string $komentar): array
+    {
+        $pesanan = Pesanan::where('id_unique_pesanan', $idUniquePesanan)
+            ->where('id_user', $idUser)
+            ->first();
+
+        if (!$pesanan) {
+            throw new \Exception('Pesanan tidak ditemukan.');
+        }
+
+        if ($pesanan->status_pesanan !== 'selesai') {
+            throw new \Exception('Hanya pesanan dengan status Selesai yang dapat diberi ulasan.');
+        }
+
+        if (Ulasan::where('id_pesanan', $pesanan->id_pesanan)->exists()) {
+            throw new \Exception('Pesanan ini sudah diberi ulasan.');
+        }
+
+        $ulasan = Ulasan::create([
+            'id_pesanan' => $pesanan->id_pesanan,
+            'rating'     => $rating,
+            'komentar'   => $komentar,
+            'created_at' => \Carbon\Carbon::now()
+        ]);
+
+        return [
+            'id_ulasan' => $ulasan->id_ulasan,
+            'rating'    => $ulasan->rating,
+            'komentar'  => $ulasan->komentar
         ];
     }
 
@@ -424,6 +462,10 @@ class PesananService
                 'subtotal'      => $d->subtotal,
             ]),
             'total_pembayaran'   => $catatan['total_pembayaran'] ?? null,
+            'ulasan'             => isset($pesanan->Ulasan) ? [
+                'rating'   => $pesanan->Ulasan->rating,
+                'komentar' => $pesanan->Ulasan->komentar,
+            ] : null,
         ];
     }
 
