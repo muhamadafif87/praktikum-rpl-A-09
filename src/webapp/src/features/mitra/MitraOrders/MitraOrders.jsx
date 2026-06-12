@@ -1,164 +1,150 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import api from '../../../services/api';
 import './MitraOrders.css';
 
 /**
  * MitraOrders — Halaman Manajemen Pesanan Mitra
  *
- * Menampilkan daftar pesanan mitra dengan fitur:
- * - Stats overview (Total, Menunggu Konfirmasi, Aktif, Selesai)
- * - Search & filter
- * - Tabel pesanan dengan pagination
- * - Empty state jika belum ada data
- *
- * API Endpoint:
- * - GET /v1/dashboard/mitra/orders
+ * API Endpoints (semua di bawah auth:mitra guard):
+ *   GET /v1/mitra/pesanan?search=&status=&page=&limit=
+ *   GET /v1/mitra/pesanan/stats          ← stats hari ini
+ *   PATCH /v1/mitra/pesanan/{id}/status  ← update status dari tombol aksi
  */
+
+// ─── Konstanta ────────────────────────────────────────────────────────────────
 
 const ITEMS_PER_PAGE = 10;
 
+// Query-param value yang dikirim ke backend
 const STATUS_OPTIONS = [
-    { value: '', label: 'Semua Status' },
-    { value: 'baru', label: 'BARU' },
-    { value: 'proses', label: 'PROSES' },
-    { value: 'siap_kirim', label: 'SIAP KIRIM' },
-    { value: 'selesai', label: 'SELESAI' },
-    { value: 'batal', label: 'BATAL' },
+    { value: '',                    label: 'Semua Status' },
+    { value: 'pending', label: 'BARU' },
+    { value: 'proses',       label: 'PROSES' },
+    { value: 'siap',          label: 'SIAP KIRIM' },
+    { value: 'selesai',             label: 'SELESAI' },
+    { value: 'dibatalkan',          label: 'BATAL' },
 ];
 
-/**
- * Maps a raw service type string to a display label and CSS modifier.
- */
+// Map status enum DB → slug lokal untuk badge & tombol aksi
+const DB_STATUS_TO_SLUG = {
+    'Menunggu Konfirmasi': 'baru',
+    'Proses Jemput':       'proses',
+    'Siap Kirim':          'siap',
+    'Selesai':             'selesai',
+    'Dibatalkan':          'dibatalkan',
+};
+
+// Status enum DB yang dikirim saat tombol aksi ditekan
+const NEXT_STATUS = {
+    'pending': 'diproses',
+    'diproses': 'siap',
+    'siap': 'selesai',
+};
+
+// ─── Helper: badge & tombol ───────────────────────────────────────────────────
+
 const getServiceBadge = (service) => {
     const s = (service || '').toLowerCase();
-    if (s.includes('laundry')) return { label: 'LAUNDRY', modifier: 'laundry' };
+    if (s.includes('laundry')) return { label: 'LAUNDRY',    modifier: 'laundry' };
     if (s.includes('cleaning') || s.includes('clean')) return { label: 'CLEANING', modifier: 'cleaning' };
-    if (s.includes('gas') || s.includes('galon')) return { label: 'GAS/GALON', modifier: 'gas' };
+    if (s.includes('gas') || s.includes('galon'))      return { label: 'GAS/GALON', modifier: 'gas' };
     return { label: service?.toUpperCase() || '-', modifier: 'laundry' };
 };
 
-/**
- * Maps a raw status string to a display label and CSS modifier.
- */
-const getStatusBadge = (status) => {
-    const s = (status || '').toLowerCase().replace(/\s+/g, '_');
-    switch (s) {
-        case 'baru': return { label: 'BARU', modifier: 'baru' };
-        case 'proses': return { label: 'PROSES', modifier: 'proses' };
-        case 'siap_kirim': return { label: 'SIAP KIRIM', modifier: 'siap-kirim' };
-        case 'selesai': return { label: 'SELESAI', modifier: 'selesai' };
-        case 'batal': return { label: 'BATAL', modifier: 'batal' };
-        default: return { label: status?.toUpperCase() || '-', modifier: 'baru' };
-    }
+const getStatusBadge = (dbStatus) => {
+    const slug = DB_STATUS_TO_SLUG[dbStatus] || 'baru';
+    const labels = {
+        baru:      { label: 'BARU',      modifier: 'baru' },
+        proses:    { label: 'PROSES',    modifier: 'proses' },
+        siap:{ label: 'SIAP KIRIM',modifier: 'siap' },
+        selesai:   { label: 'SELESAI',   modifier: 'selesai' },
+        dibatalkan:     { label: 'BATAL',     modifier: 'dibatalkan' },
+    };
+    return labels[slug] || { label: dbStatus?.toUpperCase() || '-', modifier: 'baru' };
 };
 
-/**
- * Returns the appropriate action button(s) for a given order status.
- */
-const getActionButton = (status) => {
-    const s = (status || '').toLowerCase().replace(/\s+/g, '_');
-    switch (s) {
-        case 'baru':
-            return <button className="mo-action-btn mo-action-btn--primary">Ambil Pesanan</button>;
-        case 'proses':
-            return <button className="mo-action-btn mo-action-btn--outline">Selesaikan</button>;
-        case 'siap_kirim':
-            return <button className="mo-action-btn mo-action-btn--secondary">Kirim</button>;
-        case 'selesai':
-            return <span className="mo-action-detail">Detail</span>;
-        case 'batal':
-            return <span className="mo-action-detail">Detail</span>;
-        default:
-            return <span className="mo-action-detail">Detail</span>;
-    }
-};
+// ─── Komponen Utama ───────────────────────────────────────────────────────────
 
 const MitraOrders = () => {
-    // ── Data State ──
-    const [orders, setOrders] = useState([]);
+    // ── Data state ────────────────────────────────────────────────────────────
+    const [orders, setOrders]   = useState([]);
+    const [meta, setMeta]       = useState({ current_page: 1, per_page: ITEMS_PER_PAGE, total_items: 0, total_pages: 1 });
+    const [stats, setStats]     = useState({ total: 0, menunggu: 0, aktif: 0, selesai: 0 });
     const [loading, setLoading] = useState(true);
+    const [actionLoading, setActionLoading] = useState(null); // id_pesanan yang sedang diproses
 
-    // ── UI State ──
-    const [searchQuery, setSearchQuery] = useState('');
+    // ── UI state ──────────────────────────────────────────────────────────────
+    const [searchQuery, setSearchQuery]   = useState('');
     const [statusFilter, setStatusFilter] = useState('');
-    const [currentPage, setCurrentPage] = useState(1);
+    const [currentPage, setCurrentPage]   = useState(1);
 
-    // ── Fetch orders from API ──
-    useEffect(() => {
-        const fetchOrders = async () => {
-            setLoading(true);
-            try {
-                const response = await api.get('/v1/mitra/orders');
-                const data = response.data?.data?.orders
-                    || response.data?.data
-                    || response.data?.orders
-                    || [];
-                setOrders(Array.isArray(data) ? data : []);
-            } catch (err) {
-                // Graceful: API belum tersedia → tetap empty state
-                console.log('Orders API not yet available:', err.message);
-                setOrders([]);
-            } finally {
-                setLoading(false);
-            }
-        };
+    // ── Fetch orders: server-side filter + pagination ─────────────────────────
+    const fetchOrders = useCallback(async () => {
+        setLoading(true);
+        try {
+            const params = {
+                page:  currentPage,
+                limit: ITEMS_PER_PAGE,
+                ...(searchQuery   && { search: searchQuery }),
+                ...(statusFilter  && { status: statusFilter }),
+            };
 
-        fetchOrders();
+            const res = await api.get('/v1/mitra/pesanan', { params });
+
+            // Struktur response: { status, meta, data: [...] }
+            setOrders(res.data?.data ?? []);
+            setMeta(res.data?.meta ?? meta);
+
+        } catch (err) {
+            console.error('Gagal memuat pesanan:', err.message);
+            setOrders([]);
+        } finally {
+            setLoading(false);
+        }
+    }, [currentPage, searchQuery, statusFilter]);
+
+    // ── Fetch stats hari ini ──────────────────────────────────────────────────
+    const fetchStats = useCallback(async () => {
+        try {
+            const res = await api.get('/v1/mitra/pesanan/stats');
+            setStats(res.data?.data ?? { total: 0, menunggu: 0, aktif: 0, selesai: 0 });
+        } catch (err) {
+            console.error('Gagal memuat stats:', err.message);
+        }
     }, []);
 
-    // ── Computed: filtered & paginated orders ──
-    const filteredOrders = useMemo(() => {
-        return orders.filter((order) => {
-            // Search filter
-            const query = searchQuery.toLowerCase();
-            const matchesSearch = !query
-                || (order.id && String(order.id).toLowerCase().includes(query))
-                || (order.order_id && String(order.order_id).toLowerCase().includes(query))
-                || (order.customerName && order.customerName.toLowerCase().includes(query))
-                || (order.pelanggan && order.pelanggan.toLowerCase().includes(query));
+    // Jalankan kedua fetch saat pertama load
+    useEffect(() => {
+        fetchOrders();
+        fetchStats();
+    }, [fetchOrders, fetchStats]);
 
-            // Status filter
-            const orderStatus = (order.status || '').toLowerCase().replace(/\s+/g, '_');
-            const matchesStatus = !statusFilter || orderStatus === statusFilter;
-
-            return matchesSearch && matchesStatus;
-        });
-    }, [orders, searchQuery, statusFilter]);
-
-    const totalPages = Math.max(1, Math.ceil(filteredOrders.length / ITEMS_PER_PAGE));
-    const paginatedOrders = filteredOrders.slice(
-        (currentPage - 1) * ITEMS_PER_PAGE,
-        currentPage * ITEMS_PER_PAGE
-    );
-
-    // Reset to page 1 when filters change
+    // Reset ke halaman 1 saat filter berubah
     useEffect(() => {
         setCurrentPage(1);
     }, [searchQuery, statusFilter]);
 
-    // ── Computed: stats from orders ──
-    const stats = useMemo(() => {
-        const today = new Date().toISOString().slice(0, 10);
-        const todayOrders = orders.filter((o) => {
-            const d = o.created_at || o.waktu || o.tanggal || '';
-            return d.startsWith(today);
-        });
+    // ── Handler: tombol aksi (Ambil / Selesaikan / Kirim) ────────────────────
+    const handleAction = async (order) => {
+        const nextStatus = NEXT_STATUS[order.status_pesanan];
+        if (!nextStatus) return;
 
-        // If no date matching possible, count all orders
-        const base = todayOrders.length > 0 ? todayOrders : orders;
+        setActionLoading(order.id_pesanan);
+        try {
+            await api.patch(`/v1/mitra/pesanan/${order.id_pesanan}/status`, {
+                status_pesanan: nextStatus,
+            });
+            // Refresh tabel dan stats setelah update berhasil
+            await Promise.all([fetchOrders(), fetchStats()]);
+        } catch (err) {
+            console.error('Gagal update status:', err.message);
+            alert(err.response?.data?.message || 'Gagal memperbarui status pesanan.');
+        } finally {
+            setActionLoading(null);
+        }
+    };
 
-        return {
-            total: base.length,
-            menunggu: base.filter((o) => (o.status || '').toLowerCase() === 'baru').length,
-            aktif: base.filter((o) => {
-                const s = (o.status || '').toLowerCase().replace(/\s+/g, '_');
-                return s === 'proses' || s === 'siap_kirim';
-            }).length,
-            selesai: base.filter((o) => (o.status || '').toLowerCase() === 'selesai').length,
-        };
-    }, [orders]);
-
-    // ── Format date helper ──
+    // ── Format waktu ──────────────────────────────────────────────────────────
     const formatDateTime = (dateStr) => {
         if (!dateStr) return '-';
         try {
@@ -171,7 +157,37 @@ const MitraOrders = () => {
         }
     };
 
-    if (loading) {
+    // ── Render tombol aksi per baris ──────────────────────────────────────────
+    const getActionButton = (order) => {
+        const isThisLoading = actionLoading === order.id_pesanan;
+        const slug = DB_STATUS_TO_SLUG[order.status_pesanan];
+
+        const btnProps = {
+            disabled: isThisLoading,
+            onClick:  () => handleAction(order),
+        };
+
+        if (isThisLoading) {
+            return <button className="mo-action-btn mo-action-btn--primary" disabled>...</button>;
+        }
+
+        switch (slug) {
+            case 'baru':
+                return <button className="mo-action-btn mo-action-btn--primary" {...btnProps}>Ambil Pesanan</button>;
+            case 'proses':
+                return <button className="mo-action-btn mo-action-btn--outline" {...btnProps}>Selesaikan</button>;
+            case 'siap_kirim':
+                return <button className="mo-action-btn mo-action-btn--secondary" {...btnProps}>Kirim</button>;
+            default:
+                return <span className="mo-action-detail">Detail</span>;
+        }
+    };
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Render
+    // ─────────────────────────────────────────────────────────────────────────
+
+    if (loading && orders.length === 0) {
         return (
             <div className="mo-loading">
                 <span className="material-symbols-outlined mo-loading-spinner">progress_activity</span>
@@ -244,96 +260,101 @@ const MitraOrders = () => {
                 <div className="mo-table-panel-header">
                     <h2 className="mo-table-panel-title">Daftar Pesanan</h2>
                 </div>
-                <div className="mo-table-wrap">
-                    <table className="mo-table">
-                        <thead>
-                            <tr>
-                                <th>ID Pesanan</th>
-                                <th>Pelanggan</th>
-                                <th>Layanan</th>
-                                <th>Waktu/Tanggal</th>
-                                <th>Status</th>
-                                <th style={{ textAlign: 'center' }}>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {paginatedOrders.length === 0 ? (
+
+                {/* Overlay loading saat filter/page berubah (bukan initial load) */}
+                <div style={{ position: 'relative', opacity: loading ? 0.6 : 1, transition: 'opacity 0.2s' }}>
+                    <div className="mo-table-wrap">
+                        <table className="mo-table">
+                            <thead>
                                 <tr>
-                                    <td colSpan="6">
-                                        <div className="mo-table-empty">
-                                            <span className="material-symbols-outlined mo-table-empty-icon">inbox</span>
-                                            <p className="mo-table-empty-title">Belum ada pesanan</p>
-                                            <p className="mo-table-empty-text">
-                                                Pesanan dari pelanggan akan muncul di sini secara real-time.
-                                            </p>
-                                        </div>
-                                    </td>
+                                    <th>ID Pesanan</th>
+                                    <th>Pelanggan</th>
+                                    <th>Layanan</th>
+                                    <th>Waktu/Tanggal</th>
+                                    <th>Status</th>
+                                    <th style={{ textAlign: 'center' }}>Aksi</th>
                                 </tr>
-                            ) : (
-                                paginatedOrders.map((order) => {
-                                    const serviceBadge = getServiceBadge(order.service || order.layanan);
-                                    const statusBadge = getStatusBadge(order.status);
-                                    const orderId = order.order_id || order.id || '-';
-                                    const customerName = order.customerName || order.pelanggan || order.nama_pelanggan || '-';
-                                    const customerAddr = order.customerAddress || order.alamat || '';
-                                    const orderTime = formatDateTime(order.created_at || order.waktu || order.tanggal);
+                            </thead>
+                            <tbody>
+                                {orders.length === 0 ? (
+                                    <tr>
+                                        <td colSpan="6">
+                                            <div className="mo-table-empty">
+                                                <span className="material-symbols-outlined mo-table-empty-icon">inbox</span>
+                                                <p className="mo-table-empty-title">Belum ada pesanan</p>
+                                                <p className="mo-table-empty-text">
+                                                    Pesanan dari pelanggan akan muncul di sini secara real-time.
+                                                </p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    orders.map((order) => {
+                                        // Ambil nama layanan dari relasi detail_pesanan pertama
+                                        const firstDetail  = order.detail_pesanan?.[0];
+                                        const layananName  = firstDetail?.layanan?.nama_layanan ?? order.jenis_jasa ?? '-';
+                                        const serviceBadge = getServiceBadge(layananName);
+                                        const statusBadge  = getStatusBadge(order.status_pesanan);
 
-                                    return (
-                                        <tr key={orderId}>
-                                            <td>
-                                                <span className="mo-order-id">#{orderId}</span>
-                                            </td>
-                                            <td>
-                                                <div className="mo-customer-name">{customerName}</div>
-                                                {customerAddr && (
-                                                    <div className="mo-customer-address">{customerAddr}</div>
-                                                )}
-                                            </td>
-                                            <td>
-                                                <span className={`mo-service-badge mo-service-badge--${serviceBadge.modifier}`}>
-                                                    {serviceBadge.label}
-                                                </span>
-                                            </td>
-                                            <td className="mo-order-time">{orderTime}</td>
-                                            <td>
-                                                <span className={`mo-status-badge mo-status-badge--${statusBadge.modifier}`}>
-                                                    {statusBadge.label}
-                                                </span>
-                                            </td>
-                                            <td style={{ textAlign: 'center' }}>
-                                                {getActionButton(order.status)}
-                                            </td>
-                                        </tr>
-                                    );
-                                })
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+                                        return (
+                                            <tr key={order.id_pesanan}>
+                                                <td>
+                                                    <span className="mo-order-id">#{order.id_unique_pesanan}</span>
+                                                </td>
+                                                <td>
+                                                    <div className="mo-customer-name">{order.nama_pelanggan}</div>
+                                                    {order.detail_kost && (
+                                                        <div className="mo-customer-address">{order.detail_kost}</div>
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    <span className={`mo-service-badge mo-service-badge--${serviceBadge.modifier}`}>
+                                                        {serviceBadge.label}
+                                                    </span>
+                                                </td>
+                                                <td className="mo-order-time">
+                                                    {formatDateTime(order.tgl_pesanan)}
+                                                </td>
+                                                <td>
+                                                    <span className={`mo-status-badge mo-status-badge--${statusBadge.modifier}`}>
+                                                        {statusBadge.label}
+                                                    </span>
+                                                </td>
+                                                <td style={{ textAlign: 'center' }}>
+                                                    {getActionButton(order)}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
 
-                {/* ── Pagination ── */}
-                <div className="mo-pagination">
-                    <span className="mo-pagination-info">
-                        {filteredOrders.length === 0
-                            ? 'Showing 0 of 0 orders'
-                            : `Showing ${(currentPage - 1) * ITEMS_PER_PAGE + 1}-${Math.min(currentPage * ITEMS_PER_PAGE, filteredOrders.length)} of ${filteredOrders.length} orders`
-                        }
-                    </span>
-                    <div className="mo-pagination-btns">
-                        <button
-                            className="mo-pagination-btn"
-                            disabled={currentPage <= 1}
-                            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                        >
-                            Previous
-                        </button>
-                        <button
-                            className="mo-pagination-btn"
-                            disabled={currentPage >= totalPages}
-                            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                        >
-                            Next
-                        </button>
+                    {/* ── Pagination ── */}
+                    <div className="mo-pagination">
+                        <span className="mo-pagination-info">
+                            {meta.total_items === 0
+                                ? 'Showing 0 of 0 orders'
+                                : `Showing ${(meta.current_page - 1) * meta.per_page + 1}–${Math.min(meta.current_page * meta.per_page, meta.total_items)} of ${meta.total_items} orders`
+                            }
+                        </span>
+                        <div className="mo-pagination-btns">
+                            <button
+                                className="mo-pagination-btn"
+                                disabled={currentPage <= 1 || loading}
+                                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                            >
+                                Previous
+                            </button>
+                            <button
+                                className="mo-pagination-btn"
+                                disabled={currentPage >= meta.total_pages || loading}
+                                onClick={() => setCurrentPage((p) => Math.min(meta.total_pages, p + 1))}
+                            >
+                                Next
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

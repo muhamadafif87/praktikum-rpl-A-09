@@ -13,6 +13,20 @@ class Pesanan extends Model
 
     public $timestamps = false;
 
+    const STATUS_MENUNGGU    = 'pending';
+    const STATUS_PROSES      = 'diproses';
+    const STATUS_SIAP        = 'siap';
+    const STATUS_SELESAI     = 'selesai';
+    const STATUS_DIBATALKAN  = 'dibatalkan';
+
+    const STATUSES = [
+        self::STATUS_MENUNGGU,
+        self::STATUS_PROSES,
+        self::STATUS_SIAP,
+        self::STATUS_SELESAI,
+        self::STATUS_DIBATALKAN,
+    ];
+
     protected $fillable = [
         'id_unique_pesanan',
         'id_user',
@@ -30,23 +44,43 @@ class Pesanan extends Model
         ];
     }
 
-    public function DetailPesanan(){
+    public function scopeByStatus($query, string $status)
+    {
+        return $query->where('status_pesanan', $status);
+    }
+
+    public function scopeSelesai($query)
+    {
+        return $query->where('status_pesanan', self::STATUS_SELESAI);
+    }
+
+    public function DetailPesanan()
+    {
         return $this->hasMany(DetailPesanan::class, 'id_pesanan');
     }
 
-    public function Ulasan(){
-        return $this->hasOne(Ulasan::class, 'id_pesanan', 'id_pesanan');
+    public function Ulasan()
+    {
+        return $this->hasOne(Ulasan::class, 'id_pesanan');
     }
 
-    public function Pembayaran(){
+    public function Pembayaran()
+    {
         return $this->hasOne(Pembayaran::class, 'id_pesanan');
     }
 
-    public function User(){
+    public function TransaksiKeuangan()
+    {
+        return $this->hasOne(TransaksiKeuangan::class, 'id_pesanan');
+    }
+
+    public function User()
+    {
         return $this->belongsTo(User::class, 'id_user', 'id_user');
     }
 
-    public function Mitra(){
+    public function Mitra()
+    {
         return $this->belongsTo(Mitra::class, 'id_mitra', 'id_mitra');
     }
 }

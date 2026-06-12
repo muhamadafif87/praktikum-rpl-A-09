@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Layanan extends Model {
     protected $table = 'layanan';
+    protected $primaryKey = 'id_layanan';
 
     public $timestamps = false;
 
@@ -18,6 +19,7 @@ class Layanan extends Model {
         'nama_layanan',
         'harga',
         'satuan',
+        'stok_tersedia',
         'catatan'
     ];
 
