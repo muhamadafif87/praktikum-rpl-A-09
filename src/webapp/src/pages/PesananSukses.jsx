@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
+import Footer from '../components/Footer/Footer';
 import './PesananSukses.css';
 
 const PesananSukses = () => {
@@ -30,19 +31,13 @@ const PesananSukses = () => {
                     <button className="ps-btn-primary" onClick={() => navigate('/')}>
                         Kembali ke Beranda
                     </button>
-                    {/* Placeholder for future history feature */}
-                    {/* <button className="ps-btn-secondary" onClick={() => navigate('/riwayat-pesanan')}>Lihat Riwayat Pesanan</button> */}
+                    <button className="ps-btn-secondary" onClick={() => navigate('/pesanan-saya')}>Lihat Riwayat Pesanan</button>
                 </div>
             </div>
 
-            <footer className="lp-footer" style={{marginTop: 'auto', width: '100%'}}>
-                <div className="lp-container lp-footer-inner" style={{paddingTop: '24px', paddingBottom: '24px'}}>
-                    <div className="lp-footer-brand">
-                        <Link to="/" className="lp-footer-logo">KostHub<span className="lp-footer-dot">.</span></Link>
-                        <p className="lp-footer-desc">Solusi praktis anak kos di Solo.</p>
-                    </div>
-                </div>
-            </footer>
+            <div style={{marginTop: 'auto', width: '100%'}}>
+                <Footer />
+            </div>
         </div>
     );
 };

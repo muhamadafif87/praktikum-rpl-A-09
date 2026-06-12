@@ -2,13 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useLocation as useGlobalLocation } from '../../context/LocationContext';
+import { useToast } from '../../context/ToastContext';
 import api from '../../services/api';
 import './ProfilePage.css';
 
 const ProfilePage = () => {
     const navigate = useNavigate();
-    const { user, isAuthenticated, updateUser, logout } = useAuth();
+    const { user, isAuthenticated, updateUser } = useAuth();
     const { location, openMap } = useGlobalLocation();
+    const { addToast } = useToast();
     
     // Redirect if not authenticated
     useEffect(() => {
@@ -18,8 +20,6 @@ const ProfilePage = () => {
     }, [isAuthenticated, navigate]);
 
     const [loading, setLoading] = useState(false);
-    const [successMessage, setSuccessMessage] = useState('');
-    const [errorMessage, setErrorMessage] = useState('');
 
     const [formData, setFormData] = useState({
         nama_lengkap: '',
@@ -49,16 +49,11 @@ const ProfilePage = () => {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
-        // Clear messages when user types
-        setSuccessMessage('');
-        setErrorMessage('');
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-        setSuccessMessage('');
-        setErrorMessage('');
 
         try {
             const payload = {
@@ -86,7 +81,7 @@ const ProfilePage = () => {
             // Update context so the navbar reflects changes immediately
             updateUser(response.data.data);
             
-            setSuccessMessage(response.data.message || 'Profil berhasil diperbarui!');
+            addToast(response.data.message || 'Profil berhasil diperbarui!', 'success');
             
             // Clear password fields
             setFormData(prev => ({
@@ -97,11 +92,7 @@ const ProfilePage = () => {
             }));
 
         } catch (error) {
-            if (error.response && error.response.data && error.response.data.message) {
-                setErrorMessage(error.response.data.message);
-            } else {
-                setErrorMessage('Terjadi kesalahan saat memperbarui profil.');
-            }
+            addToast(error.response?.data?.message || 'Terjadi kesalahan saat memperbarui profil.', 'error');
         } finally {
             setLoading(false);
         }
@@ -142,20 +133,6 @@ const ProfilePage = () => {
 
                 <form className="profile-form-container" onSubmit={handleSubmit}>
                     
-                    {successMessage && (
-                        <div className="profile-alert profile-alert-success">
-                            <span className="material-symbols-outlined">check_circle</span>
-                            <span>{successMessage}</span>
-                        </div>
-                    )}
-                    
-                    {errorMessage && (
-                        <div className="profile-alert profile-alert-error">
-                            <span className="material-symbols-outlined">error</span>
-                            <span>{errorMessage}</span>
-                        </div>
-                    )}
-
                     <section className="profile-section">
                         <h2 className="profile-section-title">Informasi Pribadi</h2>
                         

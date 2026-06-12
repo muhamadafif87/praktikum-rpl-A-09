@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import TransitionLink from '../../components/ViewTransition/TransitionLink';
 import '../landing/LandingPage/LandingPage.css';
 import './TentangKamiPage.css';
+import Footer from '../../components/Footer/Footer';
 
 const AnimatedStat = ({ target, suffix = "", prefix = "", label }) => {
     const [count, setCount] = useState(0);
@@ -442,24 +443,7 @@ const TentangKamiPage = () => {
             </main>
 
             {/* Footer */}
-            <footer className="lp-footer">
-                <div className="lp-container lp-footer-inner">
-                    <div className="lp-footer-brand">
-                        <Link to="/" className="lp-footer-logo">
-                            KostHub<span className="lp-footer-dot">.</span>
-                        </Link>
-                        <p className="lp-footer-desc">Solusi praktis anak kos di Solo.</p>
-                    </div>
-                    <div className="lp-footer-links">
-                        <a className="lp-footer-link" href="#">Syarat &amp; Ketentuan</a>
-                        <a className="lp-footer-link" href="#">Kebijakan Privasi</a>
-                        <a className="lp-footer-link" href="#">Hubungi Kami</a>
-                    </div>
-                    <p className="lp-footer-copy">
-                        © 2024 KostHub. All rights reserved.
-                    </p>
-                </div>
-            </footer>
+            <Footer />
         </div>
     );
 };

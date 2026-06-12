@@ -399,6 +399,32 @@ class PesananService
     }
 
     // -------------------------------------------------------------------------
+    // MOCK PAYMENT — USER (checkout simulated payment)
+    // -------------------------------------------------------------------------
+    public function mockPayment(string $idUniquePesanan, string $idUser): array
+    {
+        $pesanan = Pesanan::where('id_unique_pesanan', $idUniquePesanan)
+            ->where('id_user', $idUser)
+            ->first();
+
+        if (!$pesanan) {
+            throw new \Exception('Pesanan tidak ditemukan.');
+        }
+
+        if ($pesanan->status_pesanan !== 'pending') {
+            throw new \Exception('Hanya pesanan pending yang bisa dibayar.');
+        }
+
+        $pesanan->status_pesanan = 'diproses';
+        $pesanan->save();
+
+        return [
+            'id_unique_pesanan' => $pesanan->id_unique_pesanan,
+            'status' => $pesanan->status_pesanan
+        ];
+    }
+
+    // -------------------------------------------------------------------------
     // CANCEL PESANAN — USER (hanya saat pending)
     // -------------------------------------------------------------------------
     public function cancelPesananUser(string $idUniquePesanan, string $idUser): array

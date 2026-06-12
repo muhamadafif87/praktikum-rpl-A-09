@@ -7,6 +7,8 @@ import { useAuth } from '../context/AuthContext';
 import { useLocation as useGlobalLocation } from '../context/LocationContext';
 import { calculateDistance } from '../utils/distance';
 import FullScreenLoader from '../components/FullScreenLoader/FullScreenLoader';
+import Footer from '../components/Footer/Footer';
+import useWarnIfUnsavedChanges from '../hooks/useWarnIfUnsavedChanges';
 
 const GasGalonDetail = () => {
     const { id_mitra } = useParams();
@@ -50,6 +52,9 @@ const GasGalonDetail = () => {
     // Submit state
     const [submitLoading, setSubmitLoading] = useState(false);
     const [submitError, setSubmitError] = useState(null);
+
+    // Prevent leaving if user has selected items
+    useWarnIfUnsavedChanges(!submitLoading && selectedProductIds.size > 0);
 
     const navLinksRef = useRef(null);
     const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -612,20 +617,7 @@ const GasGalonDetail = () => {
                 </div>
             </main>
 
-                        <footer className="lp-footer">
-                <div className="lp-container lp-footer-inner">
-                    <div className="lp-footer-brand">
-                        <Link to="/" className="lp-footer-logo">KostHub<span className="lp-footer-dot">.</span></Link>
-                        <p className="lp-footer-desc">Solusi praktis anak kos di Solo.</p>
-                    </div>
-                    <div className="lp-footer-links">
-                        <a className="lp-footer-link" href="#">Syarat &amp; Ketentuan</a>
-                        <a className="lp-footer-link" href="#">Kebijakan Privasi</a>
-                        <a className="lp-footer-link" href="#">Hubungi Kami</a>
-                    </div>
-                    <p className="lp-footer-copy">© 2024 KostHub. All rights reserved.</p>
-                </div>
-            </footer>
+                        <Footer />
         </div>
     );
 };

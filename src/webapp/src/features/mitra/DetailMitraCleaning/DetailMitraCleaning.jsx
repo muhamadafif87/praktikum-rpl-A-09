@@ -7,6 +7,7 @@ import { useAuth } from '../../../context/AuthContext';
 import api from '../../../services/api';
 import './DetailMitraCleaning.css';
 import '../../landing/LandingPage/LandingPage.css';
+import Footer from '../../../components/Footer/Footer';
 
 const DetailMitraCleaning = ({ onOrderClick }) => {
     const navigate = useNavigate();
@@ -458,21 +459,7 @@ const DetailMitraCleaning = ({ onOrderClick }) => {
                 </div>
             </main>
 
-            <footer className="dmc-footer">
-                <div className="dmc-footer-inner">
-                    <div className="dmc-footer-brand">
-                        <Link to="/" className="dmc-brand-link">
-                            KostHub<span className="dmc-brand-dot">.</span>
-                        </Link>
-                    </div>
-                    <div className="dmc-footer-links">
-                        <a className="dmc-footer-link" href="#">Syarat &amp; Ketentuan</a>
-                        <a className="dmc-footer-link" href="#">Kebijakan Privasi</a>
-                        <a className="dmc-footer-link" href="#">Hubungi Kami</a>
-                    </div>
-                    <p className="dmc-footer-copy">© 2024 KostHub. Seluruh hak cipta dilindungi.</p>
-                </div>
-            </footer>
+            <Footer />
         </div>
     );
 };
