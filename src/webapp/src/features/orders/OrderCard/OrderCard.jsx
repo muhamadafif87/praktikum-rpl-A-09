@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
 import './OrderCard.css';
 import RatingModal from '../RatingModal/RatingModal';
+import { useToast } from '../../../context/ToastContext';
+import api from '../../../services/api';
 
-const OrderCard = ({ order }) => {
+const OrderCard = ({ order, onRefresh }) => {
+    const { addToast } = useToast();
     const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
+    const [cancelLoading, setCancelLoading] = useState(false);
     const [ulasan, setUlasan] = useState(order.ulasan);
 
     const formatCurrency = (amount) => {
@@ -25,6 +29,21 @@ const OrderCard = ({ order }) => {
 
     const handleReviewSuccess = (newUlasan) => {
         setUlasan(newUlasan);
+    };
+
+    const handleCancelOrder = async () => {
+        if (!window.confirm('Apakah Anda yakin ingin membatalkan pesanan ini?')) return;
+        
+        setCancelLoading(true);
+        try {
+            await api.patch(`/v1/landing-page/pesanan/${order.id_unique_pesanan}/cancel`);
+            addToast('Pesanan berhasil dibatalkan.', 'info');
+            if (onRefresh) onRefresh();
+        } catch (err) {
+            addToast(err.response?.data?.message || 'Gagal membatalkan pesanan.', 'error');
+        } finally {
+            setCancelLoading(false);
+        }
     };
 
     return (
@@ -67,9 +86,19 @@ const OrderCard = ({ order }) => {
             <div className="oc-footer">
                 <div className="oc-order-id">ID: {order.id_unique_pesanan}</div>
                 
-                {order.status_pesanan === 'selesai' && (
-                    <div className="oc-action">
-                        {ulasan ? (
+                <div className="oc-action">
+                    {order.status_pesanan === 'pending' && (
+                        <button 
+                            className="oc-cancel-btn"
+                            onClick={handleCancelOrder}
+                            disabled={cancelLoading}
+                        >
+                            {cancelLoading ? 'Membatalkan...' : 'Batalkan Pesanan'}
+                        </button>
+                    )}
+
+                    {order.status_pesanan === 'selesai' && (
+                        ulasan ? (
                             <div className="oc-reviewed-badge">
                                 <span className="material-symbols-outlined star-icon">star</span>
                                 <span>{ulasan.rating}/5</span>
@@ -82,9 +111,9 @@ const OrderCard = ({ order }) => {
                             >
                                 Beri Penilaian
                             </button>
-                        )}
-                    </div>
-                )}
+                        )
+                    )}
+                </div>
             </div>
 
             <RatingModal 

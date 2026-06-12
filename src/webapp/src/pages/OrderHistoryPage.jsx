@@ -71,7 +71,7 @@ const OrderHistoryPage = () => {
                 ) : (
                     <div className="ohp-list">
                         {orders.map((order) => (
-                            <OrderCard key={order.id_unique_pesanan} order={order} />
+                            <OrderCard key={order.id_unique_pesanan} order={order} onRefresh={fetchOrders} />
                         ))}
                     </div>
                 )}

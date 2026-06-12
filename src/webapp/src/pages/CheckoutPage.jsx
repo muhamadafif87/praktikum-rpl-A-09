@@ -3,6 +3,8 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useLocation } from '../context/LocationContext';
+import { useToast } from '../context/ToastContext';
+import useWarnIfUnsavedChanges from '../hooks/useWarnIfUnsavedChanges';
 import FullScreenLoader from '../components/FullScreenLoader/FullScreenLoader';
 import './LaundryDetail.css'; // Reusing dp-* ecosystem
 import '../features/landing/LandingPage/LandingPage.css';
@@ -22,9 +24,14 @@ const CheckoutPage = () => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [paymentLoading, setPaymentLoading] = useState(false);
+    const { addToast } = useToast();
 
     const [paymentMethod, setPaymentMethod] = useState('qris'); // qris, va, cash
     const [isSimulating, setIsSimulating] = useState(false);
+    
+    // Prevent leaving if payment isn't simulated yet
+    useWarnIfUnsavedChanges(!paymentLoading && data && data.status_pesanan === 'pending');
 
     const navLinksRef = useRef(null);
     const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -97,9 +104,17 @@ const CheckoutPage = () => {
         fetchOrder();
     }, [id_pesanan, isAuthenticated, navigate]);
 
-    const handlePayment = () => {
-        // Direct to success page
-        navigate(`/pesanan/${id_pesanan}/sukses`);
+    const handlePayment = async () => {
+        setPaymentLoading(true);
+        try {
+            await api.patch(`/v1/landing-page/pesanan/${id_pesanan}/mock-payment`);
+            addToast('Pembayaran berhasil dikonfirmasi!', 'success');
+            navigate(`/pesanan/${id_pesanan}/sukses`);
+        } catch (err) {
+            addToast(err.response?.data?.message || 'Terjadi kesalahan saat memproses pembayaran mock.', 'error');
+        } finally {
+            setPaymentLoading(false);
+        }
     };
 
     if (loading) {
@@ -439,18 +454,20 @@ const CheckoutPage = () => {
                                 className="dp-btn-primary"
                                 onClick={handlePayment}
                                 style={{width: '100%'}}
+                                disabled={paymentLoading}
                             >
-                                Proses Pesanan Sekarang
-                                <span className="material-symbols-outlined">arrow_forward</span>
+                                {paymentLoading ? 'Memproses...' : 'Proses Pesanan Sekarang'}
+                                {!paymentLoading && <span className="material-symbols-outlined">arrow_forward</span>}
                             </button>
                         ) : (
                             <button
                                 className="dp-btn-primary"
                                 onClick={handlePayment}
                                 style={{width: '100%'}}
+                                disabled={paymentLoading}
                             >
-                                Selesaikan di Mockup {paymentMethod === 'qris' ? 'QRIS' : 'VA'}
-                                <span className="material-symbols-outlined">arrow_forward</span>
+                                {paymentLoading ? 'Memproses...' : `Selesaikan di Mockup ${paymentMethod === 'qris' ? 'QRIS' : 'VA'}`}
+                                {!paymentLoading && <span className="material-symbols-outlined">arrow_forward</span>}
                             </button>
                         )}
                     </div>

@@ -8,6 +8,7 @@ import { useLocation as useGlobalLocation } from '../context/LocationContext';
 import { calculateDistance } from '../utils/distance';
 import FullScreenLoader from '../components/FullScreenLoader/FullScreenLoader';
 import Footer from '../components/Footer/Footer';
+import useWarnIfUnsavedChanges from '../hooks/useWarnIfUnsavedChanges';
 
 const GasGalonDetail = () => {
     const { id_mitra } = useParams();
@@ -51,6 +52,9 @@ const GasGalonDetail = () => {
     // Submit state
     const [submitLoading, setSubmitLoading] = useState(false);
     const [submitError, setSubmitError] = useState(null);
+
+    // Prevent leaving if user has selected items
+    useWarnIfUnsavedChanges(!submitLoading && selectedProductIds.size > 0);
 
     const navLinksRef = useRef(null);
     const [showProfileMenu, setShowProfileMenu] = useState(false);

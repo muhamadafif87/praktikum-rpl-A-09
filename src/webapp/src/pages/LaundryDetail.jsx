@@ -8,6 +8,7 @@ import FullScreenLoader from '../components/FullScreenLoader/FullScreenLoader';
 import './LaundryDetail.css';
 import '../features/landing/LandingPage/LandingPage.css';
 import Footer from '../components/Footer/Footer';
+import useWarnIfUnsavedChanges from '../hooks/useWarnIfUnsavedChanges';
 
 const LaundryDetail = () => {
     const { id_mitra } = useParams();
@@ -56,6 +57,9 @@ const LaundryDetail = () => {
     // Submit state
     const [submitLoading, setSubmitLoading] = useState(false);
     const [submitError, setSubmitError] = useState(null);
+
+    // Prevent leaving if user has selected items
+    useWarnIfUnsavedChanges(!submitLoading && selectedProductIds.size > 0);
 
     const navLinksRef = useRef(null);
     const [showProfileMenu, setShowProfileMenu] = useState(false);

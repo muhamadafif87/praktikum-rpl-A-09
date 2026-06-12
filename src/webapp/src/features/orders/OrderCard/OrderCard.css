@@ -141,6 +141,32 @@
     font-family: monospace;
 }
 
+.oc-action {
+    display: flex;
+    gap: 12px;
+}
+
+.oc-cancel-btn {
+    background: white;
+    color: #ef4444;
+    border: 1px solid #ef4444;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.oc-cancel-btn:hover:not(:disabled) {
+    background: #fef2f2;
+}
+
+.oc-cancel-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 .oc-rate-btn {
     background: #10b981;
     color: white;
