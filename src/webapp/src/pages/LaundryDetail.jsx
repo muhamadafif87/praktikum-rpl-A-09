@@ -59,7 +59,7 @@ const LaundryDetail = () => {
     const [submitError, setSubmitError] = useState(null);
 
     // Prevent leaving if user has selected items
-    useWarnIfUnsavedChanges(!submitLoading && selectedProductIds.size > 0);
+    useWarnIfUnsavedChanges(!submitLoading && (selectedKiloanIds.size > 0 || Object.keys(satuanQtyMap).length > 0));
 
     const navLinksRef = useRef(null);
     const [showProfileMenu, setShowProfileMenu] = useState(false);
