@@ -138,6 +138,7 @@ const DailyCleaningDetail = () => {
 
         if (selectedLayananIds.size === 0) {
             setEstimate(null);
+            setEstimateLoading(false);
             return;
         }
 
@@ -154,8 +155,8 @@ const DailyCleaningDetail = () => {
             });
         }
 
+        setEstimateLoading(true);
         const timer = setTimeout(async () => {
-            setEstimateLoading(true);
             setEstimateError(null);
             try {
                 const res = await api.post('/v1/landing-page/generate-fee-pesanan', {
@@ -223,6 +224,11 @@ const DailyCleaningDetail = () => {
             return;
         }
 
+        if (!useProfileData && (!namaLengkap.trim() || !noWa.trim())) {
+            setSubmitError('Nama Lengkap dan Nomor WhatsApp pengirim wajib diisi.');
+            return;
+        }
+
         const biayaTambahanAlat = {};
         if (data.alat_pembersih_tambahan) {
             Object.entries(data.alat_pembersih_tambahan).forEach(([nama, detail]) => {
@@ -265,6 +271,8 @@ const DailyCleaningDetail = () => {
                 ...(Object.keys(biayaTambahanAlat).length > 0 && { biayaTambahan: biayaTambahanAlat }),
                 estimasi: estimasiPayload,
                 catatanPengiriman: catatan || null,
+                namaPengirim:      !useProfileData ? namaLengkap : null,
+                nomorWhatsAppPengirim: !useProfileData ? noWa : null,
             });
             sessionStorage.setItem('checkoutContact', JSON.stringify({ nama: namaLengkap, phone: noWa }));
             navigate(`/checkout/${res.data.data.id_unique_pesanan}`);
@@ -310,6 +318,9 @@ const DailyCleaningDetail = () => {
                                         <hr className="lp-profile-divider" />
                                         <button className="lp-profile-link" onClick={() => { navigate('/profile'); setShowProfileMenu(false); }}>
                                             <span className="material-symbols-outlined">person</span> Profil Saya
+                                        </button>
+                                        <button className="lp-profile-link" onClick={() => { navigate('/pesanan-saya'); setShowProfileMenu(false); }}>
+                                            <span className="material-symbols-outlined">receipt_long</span> Pesanan Saya
                                         </button>
                                         <button className="lp-profile-link lp-profile-logout" onClick={() => { logout(); setShowProfileMenu(false); navigate('/'); }}>
                                             <span className="material-symbols-outlined">logout</span> Keluar
@@ -573,8 +584,12 @@ const DailyCleaningDetail = () => {
                                 className="dp-textarea"
                                 placeholder="Contoh: Tolong fokus bersihkan area kamar mandi..."
                                 value={catatan}
+                                maxLength={200}
                                 onChange={(e) => setCatatan(e.target.value)}
                             ></textarea>
+                            <div style={{fontSize: '12px', textAlign: 'right', color: 'var(--dp-on-surface-variant)', marginTop: '4px'}}>
+                                {catatan.length}/200
+                            </div>
                         </div>
                     </section>
                 </div>
@@ -630,7 +645,7 @@ const DailyCleaningDetail = () => {
                             </div>
                         )}
                         {submitError && (
-                            <div className="dp-summary-error" style={{marginTop: '10px'}}>
+                            <div className="dp-summary-error" >
                                 <span className="material-symbols-outlined">error</span>
                                 <span>{submitError}</span>
                             </div>

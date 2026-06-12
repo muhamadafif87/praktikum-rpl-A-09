@@ -89,6 +89,9 @@ Route::prefix('v1')->group(function () {
 
                 // Cancel pesanan — user hanya bisa saat status pending
                 Route::patch('/{idUniquePesanan}/cancel', [PesananController::class, 'cancelPesananUser'])->name('cancel');
+
+                // Tambah Ulasan
+                Route::post('/{idUniquePesanan}/ulasan', [PesananController::class, 'tambahUlasan'])->name('ulasan.store');
             });
         });
     });

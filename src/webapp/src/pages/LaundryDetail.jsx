@@ -156,13 +156,14 @@ const LaundryDetail = () => {
 
         if (items.length === 0) {
             setFeeEstimate(null);
+            setFeeLoading(false);
             return;
         }
 
         if (debounceRef.current) clearTimeout(debounceRef.current);
 
+        setFeeLoading(true);
         debounceRef.current = setTimeout(async () => {
-            setFeeLoading(true);
             setFeeError(null);
             try {
                 const requestBody = {
@@ -240,6 +241,11 @@ const LaundryDetail = () => {
             return;
         }
 
+        if (!useProfileData && (!namaLengkap.trim() || !noWa.trim())) {
+            setSubmitError('Nama Lengkap dan Nomor WhatsApp pengirim wajib diisi.');
+            return;
+        }
+
         const items = [];
         if (selectedKiloanIds.size > 0 && kiloanQty > 0) {
             [...selectedKiloanIds].forEach(id => {
@@ -252,6 +258,11 @@ const LaundryDetail = () => {
 
         if (items.length === 0) {
             setSubmitError('Pilih setidaknya satu layanan');
+            return;
+        }
+
+        if (!selectedJadwal) {
+            setSubmitError('Pilih jam pengambilan terlebih dahulu.');
             return;
         }
 
@@ -283,6 +294,8 @@ const LaundryDetail = () => {
                 biayaTambahan: { durasi_pengerjaan: { biaya: 0, type: 'reguler' } },
                 estimasi: estimasiPayload,
                 catatanPengiriman: finalCatatan || null,
+                namaPengirim:      !useProfileData ? namaLengkap : null,
+                nomorWhatsAppPengirim: !useProfileData ? noWa : null,
             });
             sessionStorage.setItem('checkoutContact', JSON.stringify({ nama: namaLengkap, phone: noWa }));
             navigate(`/checkout/${res.data.data.id_unique_pesanan}`);
@@ -345,6 +358,9 @@ const LaundryDetail = () => {
                                         <hr className="lp-profile-divider" />
                                         <button className="lp-profile-link" onClick={() => { navigate('/profile'); setShowProfileMenu(false); }}>
                                             <span className="material-symbols-outlined">person</span> Profil Saya
+                                        </button>
+                                        <button className="lp-profile-link" onClick={() => { navigate('/pesanan-saya'); setShowProfileMenu(false); }}>
+                                            <span className="material-symbols-outlined">receipt_long</span> Pesanan Saya
                                         </button>
                                         <button className="lp-profile-link lp-profile-logout" onClick={() => { logout(); setShowProfileMenu(false); navigate('/'); }}>
                                             <span className="material-symbols-outlined">logout</span> Keluar
@@ -599,8 +615,12 @@ const LaundryDetail = () => {
                                 className="dp-textarea"
                                 placeholder="Contoh: Pisahkan baju putih dan luntur, pewangi aroma lavender..."
                                 value={catatan}
+                                maxLength={200}
                                 onChange={(e) => setCatatan(e.target.value)}
                             ></textarea>
+                            <div style={{fontSize: '12px', textAlign: 'right', color: 'var(--dp-on-surface-variant)', marginTop: '4px'}}>
+                                {catatan.length}/200
+                            </div>
                         </div>
                     </section>
                 </div>
@@ -675,6 +695,11 @@ const LaundryDetail = () => {
                                 *Ini adalah estimasi biaya. Harga final akan ditentukan setelah mitra menimbang dan memeriksa pesanan Anda.
                             </p>
                         </div>
+                        {submitError && (
+                            <div className="dp-error-message mb-1" style={{color: 'var(--dp-error)', fontSize: '14px', marginBottom: '16px'}}>
+                                {submitError}
+                            </div>
+                        )}
                         <button
                             className="dp-btn-primary"
                             disabled={!feeEstimate || submitLoading}

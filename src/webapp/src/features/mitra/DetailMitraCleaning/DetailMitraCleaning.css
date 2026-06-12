@@ -489,12 +489,14 @@
     width: 100%;
     height: 12rem;
     overflow: hidden;
+    background-color: #f3f4f6;
 }
 
 @media (min-width: 768px) {
     .dmc-card-img-wrapper {
         width: 16rem;
-        height: auto;
+        height: 16rem;
+        flex-shrink: 0;
     }
 }
 
@@ -719,3 +721,8 @@
     margin: 0;
     text-align: center;
 }
+
+.ddc-card {
+    margin-bottom: 1.5rem;
+}
+

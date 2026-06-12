@@ -223,6 +223,9 @@ const LandingPage = () => {
                                         <button className="lp-profile-link" onClick={() => { navigate('/profile'); setShowProfileMenu(false); }}>
                                             <span className="material-symbols-outlined">person</span> Profil Saya
                                         </button>
+                                        <button className="lp-profile-link" onClick={() => { navigate('/pesanan-saya'); setShowProfileMenu(false); }}>
+                                            <span className="material-symbols-outlined">receipt_long</span> Pesanan Saya
+                                        </button>
                                         <button className="lp-profile-link lp-profile-logout" onClick={() => { logout(); setShowProfileMenu(false); window.location.href = '/'; }}>
                                             <span className="material-symbols-outlined">logout</span> Keluar
                                         </button>
@@ -266,6 +269,14 @@ const LandingPage = () => {
                             </div>
                             <span className="material-symbols-outlined lp-hero-location-chevron">expand_more</span>
                         </button>
+                        {(!location.isConfirmed || !location.isFromProfile) && (
+                            <div className="lp-hero-location-hint" style={{ marginTop: '0.75rem', fontSize: '0.875rem', color: 'var(--lp-on-surface-variant)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                                <span className="material-symbols-outlined" style={{ fontSize: '1.1rem', color: 'var(--lp-primary)' }}>lightbulb</span>
+                                <span>
+                                    Sering pesan? <Link to={isAuthenticated ? "/profile" : "/login"} style={{ color: 'var(--lp-primary)', fontWeight: 500, textDecoration: 'none' }}>Simpan lokasimu di Pengaturan Profil.</Link>
+                                </span>
+                            </div>
+                        )}
                     </div>
 
                     {/* Location Modal */}
