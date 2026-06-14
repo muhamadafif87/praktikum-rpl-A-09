@@ -48,7 +48,8 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         localStorage.removeItem('guard');
-        sessionStorage.removeItem('userLocation');
+        localStorage.removeItem('userLocation');
+        sessionStorage.removeItem('userLocation'); // Hapus dari sessionStorage juga buat jaga-jaga kalau ada sisa
 
         // Force a full page reload to ensure all states (like LocationContext) are fully reset
         window.location.href = '/';

@@ -90,6 +90,9 @@ Route::prefix('v1')->group(function () {
                 // Cancel pesanan — user hanya bisa saat status pending
                 Route::patch('/{idUniquePesanan}/cancel', [PesananController::class, 'cancelPesananUser'])->name('cancel');
 
+                // Selesaikan pesanan — user hanya bisa saat status diproses
+                Route::patch('/{idUniquePesanan}/selesai', [PesananController::class, 'selesaikanPesananUser'])->name('selesai');
+
                 // Mock Payment
                 Route::patch('/{idUniquePesanan}/mock-payment', [PesananController::class, 'mockPayment'])->name('mock-payment');
 

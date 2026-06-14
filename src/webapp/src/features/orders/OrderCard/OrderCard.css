@@ -167,6 +167,27 @@
     cursor: not-allowed;
 }
 
+.oc-complete-btn {
+    background: #3b82f6; /* Blue */
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.oc-complete-btn:hover:not(:disabled) {
+    background: #2563eb;
+}
+
+.oc-complete-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 .oc-rate-btn {
     background: #10b981;
     color: white;
