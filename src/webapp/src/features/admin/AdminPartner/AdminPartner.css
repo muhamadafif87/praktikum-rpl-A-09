@@ -696,7 +696,6 @@
   color: var(--color-primary);
 }
 
-<<<<<<< Updated upstream
 /* =====================
    Pagination
    ===================== */
@@ -714,45 +713,12 @@
     flex-direction: row;
     justify-content: space-between;
   }
-=======
-/* Suspend/Activate action button variants */
-.admin-action-btn.suspend-action {
-  color: var(--color-error);
-}
-
-.admin-action-btn.activate-action {
-  color: var(--color-success);
-}
-
-/* Table overlay (loading on filter/page change) */
-.admin-table-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(248, 249, 255, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-  border-radius: var(--radius-xl);
-}
-
-/* Pagination */
-.admin-pagination {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem 1.5rem;
-  border-top: 1px solid var(--color-outline-variant);
-  flex-wrap: wrap;
-  gap: 0.75rem;
->>>>>>> Stashed changes
 }
 
 .admin-pagination-info {
   color: var(--color-on-surface-variant);
 }
 
-<<<<<<< Updated upstream
 .admin-pagination-btns {
   display: flex;
   gap: 0.5rem;
@@ -770,44 +736,10 @@
   cursor: pointer;
   font-family: var(--font-inter);
   transition: background-color 0.15s;
-=======
-.admin-pagination-controls {
-  display: flex;
-  gap: 0.25rem;
-  align-items: center;
-}
-
-.admin-pagination-btn {
-  min-width: 2rem;
-  height: 2rem;
-  padding: 0 0.5rem;
-  border: 1px solid var(--color-outline-variant);
-  background: transparent;
-  border-radius: var(--radius-xl);
-  cursor: pointer;
-  font-family: var(--font-inter);
-  font-size: 13px;
-  color: var(--color-on-surface-variant);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.15s;
->>>>>>> Stashed changes
 }
 
 .admin-pagination-btn:hover:not(:disabled) {
   background-color: var(--color-surface-container-high);
-<<<<<<< Updated upstream
-=======
-  color: var(--color-on-surface);
-}
-
-.admin-pagination-btn.active {
-  background-color: var(--color-primary);
-  border-color: var(--color-primary);
-  color: white;
-  font-weight: 600;
->>>>>>> Stashed changes
 }
 
 .admin-pagination-btn:disabled {
@@ -815,7 +747,6 @@
   cursor: not-allowed;
 }
 
-<<<<<<< Updated upstream
 /* =====================
    Table Loading Overlay
    ===================== */
@@ -884,87 +815,11 @@ select.admin-filter-btn {
 }
 
 .modal-header {
-=======
-.admin-pagination-btn .material-symbols-outlined {
-  font-size: 18px;
-}
-
-/* Filter select */
-select.admin-filter-btn {
-  appearance: none;
-  padding-right: 1.5rem;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%23737686' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 0.5rem center;
-  color: var(--color-on-surface);
-}
-
-/* Toast */
-.admin-toast {
-  position: fixed;
-  bottom: 2rem;
-  right: 2rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.25rem;
-  border-radius: var(--radius-xl);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  z-index: 999;
-  animation: admin-toast-in 0.25s ease;
-  max-width: 360px;
-}
-
-@keyframes admin-toast-in {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-.admin-toast-success {
-  background-color: #ecfdf5;
-  border: 1px solid #6ee7b7;
-  color: #065f46;
-}
-
-.admin-toast-error {
-  background-color: var(--color-error-container);
-  border: 1px solid var(--color-error);
-  color: var(--color-on-error-container);
-}
-
-/* Detail Modal */
-.admin-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(11, 28, 48, 0.45);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-  padding: 1rem;
-}
-
-.admin-modal {
-  background: var(--color-surface-container-lowest);
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--color-outline-variant);
-  width: 100%;
-  max-width: 540px;
-  max-height: 85vh;
-  overflow-y: auto;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.18);
-  display: flex;
-  flex-direction: column;
-}
-
-.admin-modal-header {
->>>>>>> Stashed changes
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 1.25rem 1.5rem;
   border-bottom: 1px solid var(--color-outline-variant);
-<<<<<<< Updated upstream
   flex-shrink: 0;
 }
 
@@ -994,56 +849,11 @@ select.admin-filter-btn {
   padding: 1.5rem;
   overflow-y: auto;
   flex: 1;
-=======
-  position: sticky;
-  top: 0;
-  background: var(--color-surface-container-lowest);
-  z-index: 1;
-}
-
-.admin-modal-title {
-  color: var(--color-on-surface);
-}
-
-.admin-modal-close-btn {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  color: var(--color-on-surface-variant);
-  padding: 0.25rem;
-  border-radius: var(--radius-xl);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s;
-}
-
-.admin-modal-close-btn:hover {
-  background-color: var(--color-surface-container-high);
-}
-
-.admin-modal-loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 3rem;
-}
-
-.admin-modal-error {
-  padding: 2rem;
-  text-align: center;
-  color: var(--color-error);
-}
-
-.admin-modal-body {
-  padding: 1.5rem;
->>>>>>> Stashed changes
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
 
-<<<<<<< Updated upstream
 /* Loading & Error states in modal */
 .modal-loading {
   display: flex;
@@ -1109,45 +919,11 @@ select.admin-filter-btn {
 }
 
 .modal-services-list {
-=======
-.admin-modal-info-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid var(--color-outline-variant);
-}
-
-.admin-modal-info-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-}
-
-.admin-modal-info-icon {
-  font-size: 20px;
-  color: var(--color-primary);
-  margin-top: 2px;
-  flex-shrink: 0;
-}
-
-.admin-modal-info-label {
-  color: var(--color-on-surface-variant);
-  margin-bottom: 0.125rem;
-}
-
-.admin-modal-info-value {
-  color: var(--color-on-surface);
-}
-
-.admin-modal-services-section {
->>>>>>> Stashed changes
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
 }
 
-<<<<<<< Updated upstream
 .modal-service-card {
   border: 1px solid var(--color-outline-variant);
   border-radius: var(--radius-xl);
@@ -1165,47 +941,11 @@ select.admin-filter-btn {
 }
 
 .modal-order-stats {
-=======
-.admin-modal-services-title {
-  color: var(--color-on-surface-variant);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.admin-modal-services-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.admin-modal-service-card {
-  background-color: var(--color-surface-container-low);
-  border: 1px solid var(--color-outline-variant);
-  border-radius: var(--radius-xl);
-  padding: 0.875rem 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.625rem;
-}
-
-.admin-modal-service-header {
-  display: flex;
-  align-items: center;
-}
-
-.admin-modal-service-name {
-  font-weight: 500;
-  color: var(--color-on-surface);
-}
-
-.admin-modal-order-stats {
->>>>>>> Stashed changes
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 0.5rem;
 }
 
-<<<<<<< Updated upstream
 @media (max-width: 400px) {
   .modal-order-stats {
     grid-template-columns: repeat(2, 1fr);
@@ -1213,14 +953,10 @@ select.admin-filter-btn {
 }
 
 .modal-order-stat {
-=======
-.admin-modal-order-stat {
->>>>>>> Stashed changes
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.25rem;
-<<<<<<< Updated upstream
   background-color: var(--color-surface-container-low);
   border-radius: var(--radius-lg);
   padding: 0.5rem;
@@ -1304,22 +1040,3 @@ select.admin-filter-btn {
   background-color: var(--color-error);
   color: #ffffff;
 }
-=======
-  background: var(--color-surface-container-lowest);
-  border-radius: var(--radius-lg);
-  padding: 0.375rem 0.5rem;
-}
-
-.admin-modal-order-label {
-  color: var(--color-on-surface-variant);
-}
-
-.admin-modal-order-val {
-  font-weight: 600;
-}
-
-.admin-modal-order-val.pending  { color: var(--color-warning-text); }
-.admin-modal-order-val.proses   { color: var(--color-primary); }
-.admin-modal-order-val.selesai  { color: var(--color-success); }
-.admin-modal-order-val.batal    { color: var(--color-error); }
->>>>>>> Stashed changes
