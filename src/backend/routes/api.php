@@ -1,6 +1,9 @@
 <?php
 
 use App\Http\Controllers\Api\V1\Auth\AuthController;
+use App\Http\Controllers\Api\V1\Dashboard\Admin\InventoryController;
+use App\Http\Controllers\Api\V1\Dashboard\Admin\MitraManagementController;
+use App\Http\Controllers\Api\V1\Dashboard\Admin\StatisticController;
 use App\Http\Controllers\Api\V1\Dashboard\Mitra\LayananController;
 use App\Http\Controllers\Api\V1\Dashboard\Mitra\MitraAssetImageController;
 use App\Http\Controllers\Api\V1\Dashboard\Mitra\PesananController as MitraPesananController;
@@ -150,6 +153,28 @@ Route::prefix('v1')->group(function () {
             Route::post('/',      [MitraAssetImageController::class, 'store']);
             Route::post('{id}',   [MitraAssetImageController::class, 'update']);
             Route::delete('{id}', [MitraAssetImageController::class, 'destroy']);
+        });
+    });
+
+    // ----------------------------
+    // ADMIN DASHBOARD
+    // ----------------------------
+    Route::prefix('dashboard/admin')->middleware('auth:admin-api')->group(function(){
+        Route::prefix('inventory')->group(function(){
+            Route::get('list', [InventoryController::class, 'inventoryList']);
+            Route::get('summary', [StatisticController::class, 'inventorySummary']);
+        });
+
+        Route::prefix('mitra')->group(function(){
+            Route::get('list', [MitraManagementController::class, 'MitraList']);
+            Route::get('active-mitra', [MitraManagementController::class, 'OverviewActiveMitra']);
+            Route::get('{idMitra}', [MitraManagementController::class, 'MitraDetail']);
+            Route::patch('action', [MitraManagementController::class, 'MitraAction']);
+        });
+
+        Route::prefix('statistic')->group(function(){
+            Route::get('summary', [StatisticController::class, 'overviewSummary']);
+            Route::get('mitra-summary', [StatisticController::class, 'mitraSummary']);
         });
     });
 });

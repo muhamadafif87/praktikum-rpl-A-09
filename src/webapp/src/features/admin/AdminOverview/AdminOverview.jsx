@@ -1,44 +1,111 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import './AdminOverview.css';
 import { useAuth } from '../../../context/AuthContext';
+import api from '../../../services/api';
 
 // --- Sub-components ---
 
-const TopNavBar = () => (
-  <nav className="admin-top-nav">
-    <div className="flex items-center space-x-4">
-      <a className="admin-top-nav-logo" href="#">
-        KostHub<span>.</span>
-      </a>
-    </div>
-    <div className="admin-top-nav-actions">
-      <button className="admin-top-nav-icon-btn">
-        <span className="material-symbols-outlined">notifications</span>
-      </button>
-      <button className="admin-top-nav-icon-btn">
-        <span className="material-symbols-outlined">help</span>
-      </button>
-      <div className="admin-top-nav-profile">
-        <img
-          alt="Partner Profile"
-          src="https://lh3.googleusercontent.com/aida-public/AB6AXuDT0AdV5Z5MUcPbHK72cL-plOTymvr7uuBk_yFfOKmFw6N8eFX5bLkJvVmL36BnchaNyQQvKniLE6v3dRpZ9fGAII4TxeHz_SQr9qp5-Ozy-EvMWWxwAVJlQJjVI8PgAwxi4iKwYgjuIwrgOIF89jQag9GTQwZNhx50L8lKH2qCyr_AKiZ9sxJ3Mw2dzts4Glv4-kKTMPrDGQJMBGYptN6XAlTDbWX7y2MPHrMDHiI4Vq573jjkeF_4shWpCCn2_9J1WE7UPgVAHOw"
-        />
-        <span className="text-label-md admin-top-nav-profile-name">Admin Central</span>
+const TopNavBar = ({ user, onLogout }) => {
+  const navigate = useNavigate();
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Tutup dropdown saat klik di luar
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setShowProfileMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const getInitials = (name = '') => {
+    const parts = name.trim().split(' ');
+    return parts.length >= 2
+      ? (parts[0][0] + parts[1][0]).toUpperCase()
+      : name.substring(0, 2).toUpperCase();
+  };
+
+  const displayName = user?.nama_lengkap || user?.nama || 'Admin';
+  const displayEmail = user?.email || '';
+
+  return (
+    <nav className="admin-top-nav">
+      <div className="flex items-center space-x-4">
+        <a className="admin-top-nav-logo" href="#">
+          KostHub<span>.</span>
+        </a>
       </div>
-    </div>
-  </nav>
-);
+      <div className="admin-top-nav-actions">
+        <button className="admin-top-nav-icon-btn">
+          <span className="material-symbols-outlined">notifications</span>
+        </button>
+        <button className="admin-top-nav-icon-btn">
+          <span className="material-symbols-outlined">help</span>
+        </button>
+
+        {/* Profile dropdown — pola sama seperti LandingPage */}
+        <div className="admin-top-nav-profile-menu" ref={dropdownRef}>
+          <button
+            className="admin-top-nav-profile-btn"
+            onClick={() => setShowProfileMenu((prev) => !prev)}
+            title={displayName}
+          >
+            <div className="admin-top-nav-avatar">
+              {getInitials(displayName)}
+            </div>
+            <span className="text-label-md admin-top-nav-profile-name">{displayName}</span>
+            <span className="material-symbols-outlined admin-top-nav-chevron">
+              {showProfileMenu ? 'expand_less' : 'expand_more'}
+            </span>
+          </button>
+
+          {showProfileMenu && (
+            <div className="admin-top-nav-dropdown">
+              <div className="admin-top-nav-dropdown-info">
+                <p className="admin-top-nav-dropdown-name">{displayName}</p>
+                <p className="admin-top-nav-dropdown-email">{displayEmail}</p>
+              </div>
+              <hr className="admin-top-nav-dropdown-divider" />
+              <button
+                className="admin-top-nav-dropdown-link"
+                onClick={() => {
+                  navigate('/dashboard/admin/settings');
+                  setShowProfileMenu(false);
+                }}
+              >
+                <span className="material-symbols-outlined">manage_accounts</span>
+                Pengaturan Akun
+              </button>
+              <button
+                className="admin-top-nav-dropdown-link admin-top-nav-dropdown-logout"
+                onClick={() => {
+                  setShowProfileMenu(false);
+                  onLogout();
+                }}
+              >
+                <span className="material-symbols-outlined">logout</span>
+                Keluar
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </nav>
+  );
+};
 
 const SideNavBar = ({ onLogout, isLoggingOut }) => (
   <aside className="admin-side-nav">
     <div className="admin-side-nav-header">
-      <img
-        alt="KostHub Admin"
-        className="admin-side-nav-profile-img"
-        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBGYjeqX8fHQwiwWoGM55Tn_S265O77UcwSQ3I9oxzC6VEKAGOGmw5DlCMtPIJOrkS8hlluH2N6Qkd9h0nhOGuzQTCOngYr6OBPYGqHFog3-ALhupmVMNuC--NVRSQPHp8G-TJ-jLE02ulMXaS2ung3sH358WWxnDijTa7VKK4-dL2vI0n3-wrlT8unw7tsQcrAR7c_SPpSumAqsqPGAVMj9n0qzdPFCSJclO3iNv06yRgnW9bD94wiVS0wjKVWW3u-uJJ22gppitU"
-      />
+      <div className="admin-side-nav-avatar-placeholder">
+        <span className="material-symbols-outlined" style={{ fontSize: 28, color: 'var(--color-primary)' }}>
+          admin_panel_settings
+        </span>
+      </div>
       <div className="admin-side-nav-title text-label-md">Admin Panel</div>
       <div className="admin-side-nav-subtitle text-label-sm">System Control</div>
     </div>
@@ -145,8 +212,10 @@ const Footer = () => (
 
 // --- Overview Components ---
 
-const StatsCards = ({ stats }) => {
-  if (!stats) return null;
+const StatsCards = ({ summary }) => {
+  if (!summary) return null;
+
+  const { total_transaksi, mitra } = summary;
 
   return (
     <section>
@@ -154,118 +223,64 @@ const StatsCards = ({ stats }) => {
         <h1 className="text-headline-lg admin-header-title">Overview</h1>
       </header>
       <div className="admin-stats-grid">
+        {/* Hanya 2 kartu dari API — escrow & pencairan diabaikan */}
         <div className="admin-stat-card">
           <span className="text-label-md admin-stat-title">Total Transaksi</span>
-          <div className="text-headline-lg admin-stat-value">{stats.totalTransactions.value}</div>
+          <div className="text-headline-lg admin-stat-value">{total_transaksi.toLocaleString('id-ID')}</div>
           <div className="text-label-sm admin-stat-desc success">
             <span className="material-symbols-outlined admin-stat-icon-small">trending_up</span>
-            {stats.totalTransactions.trend}
+            Semua transaksi tercatat
           </div>
         </div>
 
         <div className="admin-stat-card">
           <span className="text-label-md admin-stat-title">Total Mitra Aktif</span>
-          <div className="text-headline-lg admin-stat-value">{stats.totalMitra.value}</div>
+          <div className="text-headline-lg admin-stat-value">{mitra.total_mitra_aktif}</div>
           <div className="text-label-sm admin-stat-desc success">
             <span className="material-symbols-outlined admin-stat-icon-small">trending_up</span>
-            {stats.totalMitra.trend}
+            +{mitra.penambahan_mitra} mitra baru
           </div>
         </div>
-
-        <div className="admin-stat-card primary-accent">
-          <div className="admin-stat-card-bg-icon">
-            <span className="material-symbols-outlined">lock</span>
-          </div>
-          <span className="text-label-md admin-stat-title font-bold">Saldo Escrow (Held)</span>
-          <div className="text-headline-lg admin-stat-value font-bold">{stats.saldoEscrow.value}</div>
-          <div className="text-label-sm admin-stat-desc">{stats.saldoEscrow.label}</div>
-        </div>
-
-        <div className="admin-stat-card">
-          <span className="text-label-md admin-stat-title">Total Pencairan Dana</span>
-          <div className="text-headline-lg admin-stat-value">{stats.totalPencairan.value}</div>
-          <div className="text-label-sm admin-stat-desc">{stats.totalPencairan.label}</div>
-        </div>
-      </div>
-    </section>
-  );
-};
-
-const FinanceEscrowTable = ({ transactions }) => {
-  if (!transactions) return null;
-
-  return (
-    <section className="admin-section-container admin-col-span-2">
-      <div className="admin-section-header">
-        <h2 className="text-headline-sm">Finance Escrow</h2>
-        <button className="text-label-md admin-view-all-btn">View All</button>
-      </div>
-      <div className="admin-table-wrapper">
-        <table className="admin-table">
-          <thead>
-            <tr className="text-label-sm">
-              <th>Transaction ID</th>
-              <th>Mitra Name</th>
-              <th>Amount</th>
-              <th>Status</th>
-              <th className="right">Action</th>
-            </tr>
-          </thead>
-          <tbody className="text-body-sm">
-            {transactions.map((trx, index) => (
-              <tr key={index}>
-                <td className="admin-trx-id">{trx.id}</td>
-                <td style={{ fontWeight: 500 }}>{trx.mitraName}</td>
-                <td>{trx.amount}</td>
-                <td>
-                  <span className={`admin-status-badge text-label-sm ${trx.status.toLowerCase()}`}>
-                    {trx.status}
-                  </span>
-                </td>
-                <td className="right">
-                  {trx.status === 'Hold' ? (
-                    <button className="admin-btn-primary">Release Funds</button>
-                  ) : (
-                    <span className="text-label-sm admin-td-action-text">Completed</span>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
       </div>
     </section>
   );
 };
 
 const ActivePartnersList = ({ partners }) => {
-  if (!partners) return null;
+  if (!partners || partners.length === 0) return null;
+
+  const getInitials = (name = '') => {
+    const parts = name.trim().split(' ');
+    return parts.length >= 2
+      ? (parts[0][0] + parts[1][0]).toUpperCase()
+      : name.substring(0, 2).toUpperCase();
+  };
 
   return (
     <section className="admin-section-container">
       <div className="admin-section-header">
-        <h2 className="text-headline-sm">Active Partners</h2>
+        <h2 className="text-headline-sm admin-section-title">Mitra Aktif</h2>
       </div>
       <ul className="admin-partner-list">
-        {partners.map((partner, index) => (
-          <li className="admin-partner-item" key={index}>
+        {partners.map((partner) => (
+          <li className="admin-partner-item" key={partner.id_mitra}>
             <div className="admin-partner-info">
-              <div className={`admin-partner-avatar text-label-md ${partner.avatarType}`}>
-                {partner.initials}
+              <div className="admin-partner-avatar default">
+                {getInitials(partner.nama_mitra)}
               </div>
               <div>
-                <div className="text-label-md admin-partner-name">{partner.name}</div>
+                <div className="text-label-md admin-partner-name">{partner.nama_mitra}</div>
                 <div className="text-label-sm admin-partner-rating">
                   <span className="material-symbols-outlined admin-partner-rating-icon">star</span>
-                  {partner.rating} Rating
+                  {partner.average_rate} Rating
                 </div>
               </div>
             </div>
             <div className="admin-partner-stats">
-              <div className={`text-label-sm admin-partner-orders ${partner.isHighLoad ? 'high' : ''}`}>
-                {partner.orders} Orders
+              <div className={`text-label-sm admin-partner-orders ${partner.order_count >= 10 ? 'high' : ''}`}>
+                {partner.order_count} Orders
               </div>
-              <div className="admin-partner-load">{partner.loadStatus}</div>
+              <div className="admin-partner-load">{partner.load_status}</div>
             </div>
           </li>
         ))}
@@ -274,129 +289,64 @@ const ActivePartnersList = ({ partners }) => {
   );
 };
 
-const SystemStatus = ({ logs }) => {
-  const [maintenanceMode, setMaintenanceMode] = useState(false);
-  if (!logs) return null;
-
-  return (
-    <section className="admin-section-container admin-system-grid">
-      <div className="admin-system-controls">
-        <h2 className="text-headline-sm mb-2" style={{ color: 'var(--color-on-surface)' }}>System Status</h2>
-        <p className="text-body-sm admin-system-desc">Control platform accessibility and view critical system events.</p>
-
-        <div className="admin-maintenance-box">
-          <div className="admin-maintenance-header">
-            <span className="text-label-md admin-maintenance-title">Maintenance Mode</span>
-            <label className="admin-toggle-switch">
-              <input
-                type="checkbox"
-                className="admin-toggle-input"
-                checked={maintenanceMode}
-                onChange={() => setMaintenanceMode(!maintenanceMode)}
-              />
-              <div className="admin-toggle-track">
-                <div className="admin-toggle-thumb"></div>
-              </div>
-            </label>
-          </div>
-          <p className="text-label-sm admin-maintenance-warning">
-            Warning: Activating this mode will lock out all users and partners except administrators.
-          </p>
-        </div>
-      </div>
-
-      <div className="admin-system-logs">
-        <div className="admin-logs-header">
-          <h3 className="text-label-md admin-logs-title">Recent System Logs</h3>
-          <button className="text-label-sm admin-logs-export">Export Logs</button>
-        </div>
-        <div className="text-label-sm admin-logs-list">
-          {logs.map((log, index) => (
-            <div className={`admin-log-item ${log.type}`} key={index}>
-              <span className="admin-log-time">{log.time}</span>
-              <span className="admin-log-message">{log.message}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-};
-
 // --- Main Component ---
 
 const AdminOverview = () => {
   const navigate = useNavigate();
-  const { logout } = useAuth(); // Using useAuth context like LandingPage
-  const [data, setData] = useState(null);
+  const { user, logout } = useAuth();
+
+  const [summary, setSummary] = useState(null);
+  const [partners, setPartners] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [logoutError, setLogoutError] = useState(null);
 
+  // ── Fetch summary & active partners secara paralel ──
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchOverviewData = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        setLoading(true);
-        const response = await axios.get('/v1/dashboard/admin/overview');
-        if (!response.data || !response.data.stats || !response.data.escrowTransactions) {
-          throw new Error("Invalid data structure received");
-        }
-        setData(response.data);
-      } catch (error) {
-        console.warn('Failed to fetch from backend, using dummy data', error);
+        const [summaryRes, partnersRes] = await Promise.all([
+          api.get('/v1/dashboard/admin/statistic/summary'),
+          api.get('/v1/dashboard/admin/mitra/active-mitra'),
+        ]);
 
-        setData({
-          stats: {
-            totalTransactions: { value: "14,205", trend: "+12% this month" },
-            totalMitra: { value: "342", trend: "+5 new today" },
-            saldoEscrow: { value: "Rp 45.2M", label: "Awaiting clearance" },
-            totalPencairan: { value: "Rp 128.5M", label: "Last 30 days" }
-          },
-          escrowTransactions: [
-            { id: "#TRX-8921", mitraName: "Kost Sejahtera Raya", amount: "Rp 1.500.000", status: "Hold" },
-            { id: "#TRX-8920", mitraName: "Laundry Bersih Selalu", amount: "Rp 450.000", status: "Hold" },
-            { id: "#TRX-8915", mitraName: "Catering Ibu Budi", amount: "Rp 800.000", status: "Released" },
-            { id: "#TRX-8912", mitraName: "Kost Amanah", amount: "Rp 2.100.000", status: "Released" }
-          ],
-          activePartners: [
-            { initials: "KS", name: "Kost Sejahtera Raya", rating: 4.8, orders: 12, loadStatus: "Current Load", avatarType: "primary", isHighLoad: false },
-            { initials: "LB", name: "Laundry Bersih Selalu", rating: 4.9, orders: 28, loadStatus: "High Load", avatarType: "default", isHighLoad: true },
-            { initials: "CB", name: "Catering Ibu Budi", rating: 4.5, orders: 5, loadStatus: "Current Load", avatarType: "default", isHighLoad: false },
-            { initials: "KA", name: "Kost Amanah", rating: 4.7, orders: 2, loadStatus: "Current Load", avatarType: "default", isHighLoad: false }
-          ],
-          systemLogs: [
-            { time: "10:42 AM", message: "System backup completed successfully. (Size: 4.2GB)", type: "success" },
-            { time: "09:15 AM", message: "High API latency detected on /api/v1/search (Avg: 850ms). Autoscaling triggered.", type: "warning" },
-            { time: "08:00 AM", message: "Admin 'admin_central' logged in from IP 192.168.1.105.", type: "info" },
-            { time: "02:30 AM", message: "Scheduled database optimization completed.", type: "default" }
-          ]
+        setSummary({
+          total_transaksi: summaryRes.data.total_transaksi,
+          mitra: summaryRes.data.mitra,
         });
+        setPartners(partnersRes.data.list_mitra ?? []);
+      } catch (err) {
+        console.error('Failed to fetch overview data:', err);
+        setError('Gagal memuat data. Silakan refresh halaman.');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
+    fetchOverviewData();
   }, []);
 
+  // ── Logout handlers — pola sama seperti LandingPage ──
   const handleLogoutClick = () => {
     setLogoutError(null);
     setShowLogoutModal(true);
   };
 
   const handleLogoutCancel = () => {
-    if (!isLoggingOut) {
-      setShowLogoutModal(false);
-    }
+    if (!isLoggingOut) setShowLogoutModal(false);
   };
 
   const handleLogoutConfirm = async () => {
     setIsLoggingOut(true);
     setLogoutError(null);
     try {
-      await logout(); // Using the logout function from AuthContext like LandingPage
-      navigate('/login'); // Navigate to login page after logout
+      await logout();
+      navigate('/login');
     } catch (err) {
       setIsLoggingOut(false);
       setLogoutError('Logout gagal. Silakan coba lagi.');
@@ -406,7 +356,7 @@ const AdminOverview = () => {
 
   return (
     <div className="admin-overview-page">
-      <TopNavBar />
+      <TopNavBar user={user} onLogout={handleLogoutClick} />
       <SideNavBar onLogout={handleLogoutClick} isLoggingOut={isLoggingOut} />
 
       {showLogoutModal && (
@@ -433,18 +383,26 @@ const AdminOverview = () => {
             <div className="admin-loading-container">
               <span className="material-symbols-outlined admin-spinner">progress_activity</span>
             </div>
-          ) : data ? (
+          ) : error ? (
+            <div className="admin-error-state">
+              <span className="material-symbols-outlined admin-error-icon">error_outline</span>
+              <p className="text-body-sm">{error}</p>
+              <button
+                className="admin-btn-primary text-label-md"
+                onClick={() => window.location.reload()}
+              >
+                Coba Lagi
+              </button>
+            </div>
+          ) : (
             <>
-              <StatsCards stats={data.stats} />
+              <StatsCards summary={summary} />
 
-              <div className="admin-layout-split">
-                <FinanceEscrowTable transactions={data.escrowTransactions} />
-                <ActivePartnersList partners={data.activePartners} />
+              <div className="admin-layout-split" style={{ gridTemplateColumns: '1fr' }}>
+                <ActivePartnersList partners={partners} />
               </div>
-
-              <SystemStatus logs={data.systemLogs} />
             </>
-          ) : null}
+          )}
         </div>
       </main>
 
