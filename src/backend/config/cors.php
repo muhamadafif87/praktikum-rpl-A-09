@@ -26,7 +26,7 @@ return [
         // Uncomment for production domains:
         'https://rpl-frontend-afl4tq1ep-apippw87s-projects-52bb5c64.vercel.app'
     ],
-            
+
     'allowed_origins_patterns' => [
         // Allow all localhost variations in development
         '/http:\/\/localhost(:\d+)?/',
