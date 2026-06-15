@@ -110,7 +110,7 @@ const DetailModal = ({ mitraId, onClose, onActionSuccess }) => {
       try {
         setLoading(true);
         setError(null);
-        const response = await axios.get(`/v1/dashboard/admin/mitra/${mitraId}`);
+        const response = await axios.get(`/api/v1/dashboard/admin/mitra/${mitraId}`);
         setDetail(response.data.data);
       } catch (err) {
         setError('Gagal memuat detail mitra.');
