@@ -24,7 +24,7 @@ return [
         'http://localhost:3000',        // Alternative dev port
         'http://127.0.0.1:5173',        // Vite dev server (IP)
         // Uncomment for production domains:
-        'https://rpl-frontend-afl4tq1ep-apippw87s-projects-52bb5c64.vercel.app'
+        'https://*.vercel.app'
     ],
 
     'allowed_origins_patterns' => [
