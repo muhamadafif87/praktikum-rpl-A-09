@@ -53,7 +53,7 @@ const RatingModal = ({ isOpen, onClose, idUniquePesanan, onReviewSuccess }) => {
                 <button className="rm-close-btn" onClick={onClose}>
                     <span className="material-symbols-outlined">close</span>
                 </button>
-                
+
                 <h2 className="rm-title">Beri Penilaian</h2>
                 <p className="rm-subtitle">Bagaimana pengalamanmu dengan layanan ini?</p>
 

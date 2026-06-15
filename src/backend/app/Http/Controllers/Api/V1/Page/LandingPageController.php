@@ -89,7 +89,7 @@ class LandingPageController extends Controller
                 $kategori = ['All'];
             }
 
-            $data = $this->landingPageService->laundryExpress($kategori, $sortBy, $lat, $lng);
+            $data = $this->landingPageService->seedingDataLayanan_laundryExpress($kategori, $sortBy, $lat, $lng);
 
             return response()->json([
                 'success' => true,
@@ -121,7 +121,7 @@ class LandingPageController extends Controller
                 $kategori = ['All'];
             }
 
-            $data = $this->landingPageService->galonGas($kategori, $sortBy, $lat, $lng);
+            $data = $this->landingPageService->seedingDataLayanan_galonGas($kategori, $sortBy, $lat, $lng);
 
             return response()->json([
                 'success' => true,
@@ -153,7 +153,7 @@ class LandingPageController extends Controller
                 $kategori = ['All'];
             }
 
-            $data = $this->landingPageService->dailyCleaning($kategori, $sortBy, $lat, $lng);
+            $data = $this->landingPageService->seedingDataLayanan_dailyCleaning($kategori, $sortBy, $lat, $lng);
 
             return response()->json([
                 'success' => true,
