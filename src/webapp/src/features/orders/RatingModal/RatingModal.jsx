@@ -24,7 +24,7 @@ const RatingModal = ({ isOpen, onClose, idUniquePesanan, onReviewSuccess }) => {
         try {
             const token = localStorage.getItem('token');
             const response = await axios.post(
-                `http://127.0.0.1:8000/api/v1/landing-page/pesanan/${idUniquePesanan}/ulasan`,
+                `/v1/landing-page/pesanan/${idUniquePesanan}/ulasan`,
                 { rating, komentar },
                 {
                     headers: {
