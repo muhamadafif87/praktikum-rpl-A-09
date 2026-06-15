@@ -24,7 +24,7 @@ const RatingModal = ({ isOpen, onClose, idUniquePesanan, onReviewSuccess }) => {
         try {
             const token = localStorage.getItem('token');
             const response = await axios.post(
-                `http://127.0.0.1:8000/api/v1/landing-page/pesanan/${idUniquePesanan}/ulasan`,
+                `/v1/landing-page/pesanan/${idUniquePesanan}/ulasan`,
                 { rating, komentar },
                 {
                     headers: {
@@ -53,7 +53,7 @@ const RatingModal = ({ isOpen, onClose, idUniquePesanan, onReviewSuccess }) => {
                 <button className="rm-close-btn" onClick={onClose}>
                     <span className="material-symbols-outlined">close</span>
                 </button>
-                
+
                 <h2 className="rm-title">Beri Penilaian</h2>
                 <p className="rm-subtitle">Bagaimana pengalamanmu dengan layanan ini?</p>
 

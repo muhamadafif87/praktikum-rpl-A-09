@@ -42,17 +42,16 @@ class LandingPageService {
 
     /**
      * Get data layanan laundry express dengan optional filter dan sorting
-     * @param array $kategori Filter kategori: 'Pakaian', 'Sprei', 'BedCover', atau 'All'
+     * @param array $kategori Filter kategori: 'Kiloan Express', 'Kiloan Reguler', 'Satuan', atau 'All'
      * @param string $sortBy Sort order: 'Terdekat', 'Terlaris', 'Terbaik', 'Harga Bersahabat'
      * @param float|null $lat User latitude
      * @param float|null $lng User longitude
      * @return SupportCollection
      */
-    public function laundryExpress(array $kategori = ['All'], string $sortBy = 'Terbaik', ?float $lat = null, ?float $lng = null): SupportCollection {
+    public function seedingDataLayanan_laundryExpress(array $kategori = ['All'], string $sortBy = 'Terbaik', ?float $lat = null, ?float $lng = null): SupportCollection {
         $query = Mitra::where('jenis_jasa', 'laundry')
             ->with([
                 'Layanan' => fn($q) => $q->select('id_mitra', 'id_layanan', 'nama_layanan', 'harga', 'satuan'),
-
                 'Ulasan.Pesanan.User:id_user,nama_lengkap',
             ])
             ->withAvg('Ulasan as avg_rating', 'rating')
@@ -63,12 +62,9 @@ class LandingPageService {
         if (!empty($kategori) && !in_array('All', $kategori, true)) {
             if (!empty($kategori)) {
                 $names = array_values(array_unique($kategori));
-                // $query->whereHas('Layanan', function ($q) use ($names) {
-                //     $q->whereIn('nama_layanan', $names);
-                // });
                 $query->where(function($q) use ($names) {
                     foreach ($names as $name) {
-                        $q->orWhereJsonContains('catatan->jenis_kain', $name);
+                        $q->orWhereJsonContains('catatan->kategori', $name);
                     }
                 });
             }
@@ -83,13 +79,13 @@ class LandingPageService {
 
     /**
      * Get data layanan galon/gas dengan optional filter dan sorting
-     * @param array $kategori Filter kategori: 'Galon', 'Gas', atau 'All'
+     * @param array $kategori Filter kategori: 'Galon 19L', 'Galon 15L', 'Galon 5L', 'Gas 3kg', 'Gas 5.5kg', 'Gas 12kg', atau 'All'
      * @param string $sortBy Sort order: 'Terdekat', 'Terlaris', 'Terbaik', 'Harga Bersahabat'
      * @param float|null $lat User latitude
      * @param float|null $lng User longitude
      * @return SupportCollection
      */
-    public function galonGas(array $kategori = ['All'], string $sortBy = 'Terbaik', ?float $lat = null, ?float $lng = null): SupportCollection {
+    public function seedingDataLayanan_galonGas(array $kategori = ['All'], string $sortBy = 'Terbaik', ?float $lat = null, ?float $lng = null): SupportCollection {
         $query = Mitra::whereIn('jenis_jasa', ['galon','gas','galon_gas'])
             ->with([
                 'Layanan' => fn($q) => $q->select('id_mitra', 'id_layanan', 'nama_layanan', 'harga', 'satuan'),
@@ -121,55 +117,30 @@ class LandingPageService {
 
     /**
      * Get data layanan daily cleaning dengan optional filter dan sorting
-     * @param array $kategori Filter kategori: 'KamarKost', 'Gudang', atau 'All'
+     * @param array $kategori Filter kategori: 'Paket Kamar Basic', 'Paket Kamar + Kamar Mandi', 'Paket Kamar Kosan Bareng', atau 'All'
      * @param string $sortBy Sort order: 'Terdekat', 'Terlaris', 'Terbaik', 'Harga Bersahabat'
      * @param float|null $lat User latitude
      * @param float|null $lng User longitude
      * @return SupportCollection
      */
-    public function dailyCleaning(array $kategori = ['All'], string $sortBy = 'Terbaik', ?float $lat = null, ?float $lng = null): SupportCollection {
-        $map = [
-            'sapu_pel'      => 'Sapu & Pel',
-            'cuci_piring'   => 'Cuci Piring',
-            'rapikan_kamar' => 'Rapikan Kamar',
-            'paket_lengkap' => 'Paket Lengkap',
-        ];
-
+    public function seedingDataLayanan_dailyCleaning(array $kategori = ['All'], string $sortBy = 'Terbaik', ?float $lat = null, ?float $lng = null): SupportCollection {
         $query = Mitra::where('jenis_jasa', 'daily_cleaning')
             ->with([
                 'Layanan' => fn($q) => $q->select('id_mitra', 'id_layanan', 'nama_layanan', 'harga', 'satuan'),
-
                 'Ulasan.Pesanan.User:id_user,nama_lengkap',
             ])
             ->withAvg('Ulasan as avg_rating', 'rating')
             ->withCount('Ulasan as jumlah_ulasan');
 
         $kategori = array_values(array_filter(array_map('trim', $kategori)));
-        $kategoriLower = array_map('strtolower', $kategori);
 
-
-        if (!empty($kategoriLower) && !in_array('all', $kategoriLower, true)) {
-
-            $availableNames = array_values($map);
-            $names = [];
-
-            foreach ($kategoriLower as $k) {
-                if (isset($map[$k])) {
-                    $names[] = $map[$k];
-                    continue;
-                }
-
-                foreach ($availableNames as $av) {
-                    if (strtolower($av) === $k) {
-                        $names[] = $av;
-                        break;
-                    }
-                }
-            }
-
-            if (!empty($names)) {
-                $names = array_values(array_unique($names));
-                $query->whereHas('Layanan', function ($q) use ($names) {
+        if (!empty($kategori) && !in_array('All', $kategori, true)) {
+            if (!empty($kategori)) {
+                $names = array_values(array_unique($kategori));
+                $query->whereHas('Layanan', function($q) use ($names) {
+                    // foreach ($names as $name) {
+                    //     $q->orWhereJsonContains('catatan->kategori', $name);
+                    // }
                     $q->whereIn('nama_layanan', $names);
                 });
             }
