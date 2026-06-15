@@ -22,7 +22,7 @@ const OrderHistoryPage = () => {
                 return;
             }
 
-            const response = await axios.get('http://127.0.0.1:8000/api/v1/landing-page/pesanan/riwayat', {
+            const response = await axios.get('/v1/landing-page/pesanan/riwayat', {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
