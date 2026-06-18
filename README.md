@@ -377,5 +377,5 @@ erDiagram
 ---
 
 <p align="center">
-  Built with ❤️ by <strong>Kelompok A-09</strong> — UNS 2026
+  Built with ❤️ by <strong>Kelompok A-09-KostHUB</strong> — UNS 2026
 </p>
