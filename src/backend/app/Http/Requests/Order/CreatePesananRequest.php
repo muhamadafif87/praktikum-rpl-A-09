@@ -37,7 +37,29 @@ class CreatePesananRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+        $type = $this->input('typeLayanan');
+
+        $biayaTambahanRules = match($type) {
+            'galon_gas' => [
+                'biayaTambahan'             => ['nullable', 'array'],
+                'biayaTambahan.*.idLayanan' => ['required', 'string'],
+                'biayaTambahan.*.beli_baru' => ['nullable', 'numeric', 'min:0'],
+            ],
+            'laundry' => [
+                'biayaTambahan'                          => ['nullable', 'array'],
+                'biayaTambahan.durasi_pengerjaan'        => ['nullable', 'array'],
+                'biayaTambahan.durasi_pengerjaan.biaya'  => ['required_with:biayaTambahan.durasi_pengerjaan', 'numeric', 'min:0'],
+                'biayaTambahan.durasi_pengerjaan.type'   => ['required_with:biayaTambahan.durasi_pengerjaan', 'string'],
+            ],
+            'daily_cleaning' => [
+                'biayaTambahan' => ['nullable', 'array'],
+            ],
+            default => [
+                'biayaTambahan' => ['nullable', 'array'],
+            ],
+        };
+
+        return array_merge([
             'idMitra'     => ['required', 'string', 'exists:mitra,id_mitra'],
             'typeLayanan' => ['required', 'string', Rule::in(['laundry', 'galon_gas', 'daily_cleaning'])],
 
@@ -47,28 +69,23 @@ class CreatePesananRequest extends FormRequest
 
             'jarakOngkir' => ['required', 'numeric', 'min:0'],
 
-            'jadwal_layanan'            => ['required', 'array', 'min:1'],
-            'jadwal_layanan.*.jam'      => ['required', 'date_format:H:i'],
-            'jadwal_layanan.*.tanggal'  => ['nullable', 'date', 'required_if:typeLayanan,daily_cleaning'],
+            'jadwal_layanan'           => ['required', 'array', 'min:1'],
+            'jadwal_layanan.*.jam'     => ['required', 'date_format:H:i'],
+            'jadwal_layanan.*.tanggal' => ['nullable', 'date', 'required_if:typeLayanan,daily_cleaning'],
 
-            'biayaTambahan'                         => ['nullable', 'array'],
-            'biayaTambahan.beli_baru'               => ['nullable', 'numeric', 'min:0'],
-            'biayaTambahan.durasi_pengerjaan'      => ['nullable', 'array'],
-            'biayaTambahan.durasi_pengerjaan.biaya'=> ['required_with:biayaTambahan.durasi_pengerjaan','numeric','min:0'],
-            'biayaTambahan.durasi_pengerjaan.type' => ['required_with:biayaTambahan.durasi_pengerjaan','string'],
+            'estimasi'                     => ['required', 'array'],
+            'estimasi.subtotal'            => ['required', 'numeric', 'min:0'],
+            'estimasi.biaya_ongkir'        => ['nullable', 'numeric', 'min:0'],
+            'estimasi.total_pembayaran'    => ['required', 'numeric', 'min:0'],
+            'estimasi.beli_baru'           => ['nullable', 'numeric', 'min:0'],
+            'estimasi.biaya_transportasi'  => ['nullable', 'numeric', 'min:0'],
+            'estimasi.biaya_tambahan_alat' => ['nullable', 'numeric', 'min:0'],
+            'estimasi.biaya_tambahan_durasi' => ['nullable', 'numeric', 'min:0'], // tambahan dari bug sebelumnya
 
-            'estimasi'                      => ['required', 'array'],
-            'estimasi.subtotal'             => ['required', 'numeric', 'min:0'],
-            'estimasi.biaya_ongkir'         => ['nullable', 'numeric', 'min:0'],
-            'estimasi.total_pembayaran'     => ['required', 'numeric', 'min:0'],
-            'estimasi.beli_baru'            => ['nullable', 'numeric', 'min:0'],
-            'estimasi.biaya_transportasi'   => ['nullable', 'numeric', 'min:0'],
-            'estimasi.biaya_tambahan_alat'  => ['nullable', 'numeric', 'min:0'],
-
-            'catatanPengiriman'       => ['nullable', 'string', 'max:500'],
-            'namaPengirim'            => ['nullable', 'string', 'max:255'],
-            'nomorWhatsAppPengirim'   => ['nullable', 'string', 'max:20'],
-        ];
+            'catatanPengiriman'     => ['nullable', 'string', 'max:500'],
+            'namaPengirim'          => ['nullable', 'string', 'max:255'],
+            'nomorWhatsAppPengirim' => ['nullable', 'string', 'max:20'],
+        ], $biayaTambahanRules);
     }
 
     public function messages(): array
@@ -86,7 +103,7 @@ class CreatePesananRequest extends FormRequest
             'items.*.qty.min'                     => 'Kuantitas minimal 1.',
             'jarakOngkir.required'                => 'Jarak pengiriman wajib dihitung (Pastikan lokasi sudah diatur).',
             'jarakOngkir.min'                     => 'Jarak pengiriman minimal 0.',
-            
+
             'jadwal_layanan.required'             => 'Jadwal layanan wajib diatur.',
             'jadwal_layanan.min'                  => 'Jadwal layanan wajib diatur.',
             'jadwal_layanan.*.jam.required'       => 'Silakan pilih jam layanan (penjemputan/pengiriman) terlebih dahulu.',
@@ -99,7 +116,7 @@ class CreatePesananRequest extends FormRequest
             'estimasi.biaya_ongkir.required'      => 'Estimasi biaya ongkir gagal dihitung.',
             'estimasi.total_pembayaran.required'  => 'Estimasi total pembayaran gagal dihitung.',
             'biayaTambahan.beli_baru.required_if' => 'Untuk galon_gas, biayaTambahan.beli_baru wajib diisi.',
-            
+
             'catatanPengiriman.max'               => 'Catatan pengiriman maksimal 500 karakter.',
             'namaPengirim.max'                    => 'Nama maksimal 255 karakter.',
             'nomorWhatsAppPengirim.max'           => 'Nomor WhatsApp maksimal 20 karakter.',

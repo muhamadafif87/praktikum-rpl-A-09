@@ -6,21 +6,21 @@ import './MitraOrders.css';
  * MitraOrders — Halaman Manajemen Pesanan Mitra (Integrated)
  *
  * API Endpoints (semua di bawah auth:mitra guard):
- *   GET    /v1/mitra/pesanan?search=&status=&page=&limit=
- *   GET    /v1/mitra/pesanan/stats
- *   GET    /v1/mitra/pesanan/{id}
- *   PATCH  /v1/mitra/pesanan/{id}/status  { status_pesanan: string }
+ * GET    /v1/mitra/pesanan?search=&status=&page=&limit=
+ * GET    /v1/mitra/pesanan/stats
+ * GET    /v1/mitra/pesanan/{id}
+ * PATCH  /v1/mitra/pesanan/{id}/status  { status_pesanan: string }
  */
 
 // ─── Konstanta ────────────────────────────────────────────────────────────────
 
 const ITEMS_PER_PAGE = 10;
 
-// Query-param yang dikirim ke backend (sesuai STATUS_MAP di PesananService)
+// Query-param yang dikirim ke backend (Diselaraskan dengan DB: 'diproses')
 const STATUS_OPTIONS = [
     { value: '',           label: 'Semua Status' },
     { value: 'pending',    label: 'Baru' },
-    { value: 'proses',     label: 'Proses' },
+    { value: 'diproses',   label: 'Proses' },
     { value: 'siap',       label: 'Siap Kirim' },
     { value: 'selesai',    label: 'Selesai' },
     { value: 'dibatalkan', label: 'Batal' },
@@ -40,10 +40,11 @@ const NEXT_STATUS = {
     siap:     'selesai',
 };
 
+// Label aksi disesuaikan berdasarkan status pesanan saat ini
 const ACTION_LABEL = {
     pending:  'Ambil Pesanan',
-    diproses: 'Selesaikan',
-    siap:     'Kirim',
+    diproses: 'Kirim Pesanan',
+    siap:     'Selesaikan',
 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -111,15 +112,15 @@ const OrderDetailModal = ({ orderId, onClose, onStatusUpdate }) => {
         }
     };
 
-    // Close on backdrop click
     const handleBackdrop = (e) => {
         if (e.target === e.currentTarget) onClose();
     };
 
-    // Peta status menggunakan key 'status' dari response baru
-    const statusMeta  = detail ? (DB_STATUS_META[detail.status] ?? {}) : {};
-    const nextStatus  = detail ? NEXT_STATUS[detail.status] : null;
-    const actionLabel = detail ? ACTION_LABEL[detail.status] : null;
+    // Fallback toleransi pembacaan key 'status' atau 'status_pesanan' dari backend
+    const currentStatus = detail ? (detail.status_pesanan || detail.status) : null;
+    const statusMeta    = currentStatus ? (DB_STATUS_META[currentStatus] ?? {}) : {};
+    const nextStatus    = currentStatus ? NEXT_STATUS[currentStatus] : null;
+    const actionLabel   = currentStatus ? ACTION_LABEL[currentStatus] : null;
 
     return (
         <div className="mo-modal-backdrop" onClick={handleBackdrop} role="dialog" aria-modal="true">
@@ -285,7 +286,7 @@ const OrderDetailModal = ({ orderId, onClose, onStatusUpdate }) => {
                                 {updating ? 'Memproses…' : actionLabel}
                             </button>
                         )}
-                        {!['selesai', 'dibatalkan'].includes(detail.status) && (
+                        {!['selesai', 'dibatalkan'].includes(currentStatus) && (
                             <button
                                 className="mo-modal-btn-cancel-order"
                                 disabled={updating}
@@ -307,7 +308,7 @@ const OrderDetailModal = ({ orderId, onClose, onStatusUpdate }) => {
 const MitraOrders = () => {
     // ── Data state ────────────────────────────────────────────────────────────
     const [orders, setOrders]   = useState([]);
-    const [meta, setMeta]       = useState({ current_page: 1, per_page: ITEMS_PER_PAGE, total_items: 0, total_pages: 1 });
+    const [meta, setMeta]       = useState({ current_page: 1, per_page: ITEMS_PER_PAGE, total: 0, last_page: 1 });
     const [stats, setStats]     = useState({ total: 0, pending: 0, aktif: 0, selesai: 0 , siap: 0, diproses: 0, dibatalkan: 0});
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(null);
@@ -316,8 +317,8 @@ const MitraOrders = () => {
     const [searchQuery, setSearchQuery]     = useState('');
     const [statusFilter, setStatusFilter]   = useState('');
     const [currentPage, setCurrentPage]     = useState(1);
-    const [selectedOrderId, setSelectedOrderId] = useState(null); // untuk modal detail
-    const [toast, setToast]                 = useState(null);     // { type: 'success'|'error', msg }
+    const [selectedOrderId, setSelectedOrderId] = useState(null);
+    const [toast, setToast]                 = useState(null);
 
     // Debounce search input
     const searchTimeout = useRef(null);
@@ -330,7 +331,6 @@ const MitraOrders = () => {
         }, 400);
     };
 
-    // ── Toast helper ──────────────────────────────────────────────────────────
     const showToast = useCallback((type, msg) => {
         setToast({ type, msg });
         setTimeout(() => setToast(null), 3500);
@@ -347,20 +347,16 @@ const MitraOrders = () => {
                 ...(statusFilter && { status: statusFilter }),
             };
             const res = await api.get('/v1/mitra/pesanan', { params });
-
-            /**
-             * FIX: Struktur paginasi Laravel default:
-             *   res.data.data      → array pesanan
-             *   res.data.current_page, res.data.last_page, res.data.total, res.data.per_page
-             * Sesuaikan sesuai transformasi resource Anda (atau pakai langsung).
-             */
             const payload = res.data;
+
             setOrders(payload.data ?? []);
+
+            // Pemetaan meta yang aman untuk framework pagination default (Laravel)
             setMeta({
                 current_page: payload.current_page ?? payload.meta?.current_page ?? 1,
                 per_page:     payload.per_page     ?? payload.meta?.per_page     ?? ITEMS_PER_PAGE,
-                total_items:        payload.total_items        ?? payload.meta?.total_items        ?? 0,
-                total_pages:    payload.total_pages    ?? payload.meta?.total_pages    ?? 1,
+                total:        payload.total        ?? payload.total_items        ?? payload.meta?.total ?? payload.meta?.total_items ?? 0,
+                last_page:    payload.last_page    ?? payload.total_pages        ?? payload.meta?.last_page ?? payload.meta?.total_pages ?? 1
             });
         } catch (err) {
             console.error('Gagal memuat pesanan:', err);
@@ -395,7 +391,7 @@ const MitraOrders = () => {
 
     // ── Quick-action dari baris tabel (tanpa buka modal) ─────────────────────
     const handleQuickAction = async (e, order) => {
-        e.stopPropagation(); // jangan trigger row click (buka modal)
+        e.stopPropagation();
         const nextStatus = NEXT_STATUS[order.status_pesanan];
         if (!nextStatus) return;
 
@@ -428,7 +424,6 @@ const MitraOrders = () => {
         }
 
         if (!nextStatus) {
-            // Terminal state — hanya link ke detail
             return (
                 <button
                     className="mo-action-btn mo-action-btn--detail"
@@ -461,10 +456,6 @@ const MitraOrders = () => {
         const to   = Math.min(meta.current_page * meta.per_page, meta.total);
         return `Menampilkan ${from}–${to} dari ${meta.total} pesanan`;
     };
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Render
-    // ─────────────────────────────────────────────────────────────────────────
 
     return (
         <>
@@ -507,7 +498,6 @@ const MitraOrders = () => {
                     <div
                         key={label}
                         className={`mo-stat-card ${mod ? `mo-stat-card--${mod}` : ''}`}
-                        // Klik stat card langsung filter tabel
                         onClick={() => {
                             const filterMap = {
                                 'Menunggu Konfirmasi': 'pending',
@@ -576,7 +566,7 @@ const MitraOrders = () => {
             <div className="mo-table-panel">
                 <div className="mo-table-panel-header">
                     <h2 className="mo-table-panel-title">Daftar Pesanan</h2>
-                    <span className="mo-table-panel-count">{meta.total_items} pesanan</span>
+                    <span className="mo-table-panel-count">{meta.total} pesanan</span>
                 </div>
 
                 <div style={{ position: 'relative', opacity: loading ? 0.5 : 1, transition: 'opacity 0.2s' }}>

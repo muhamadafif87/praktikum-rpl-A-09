@@ -34,7 +34,7 @@ const OrderCard = ({ order, onRefresh }) => {
 
     const handleCancelOrder = async () => {
         if (!window.confirm('Apakah Anda yakin ingin membatalkan pesanan ini?')) return;
-        
+
         setCancelLoading(true);
         try {
             await api.patch(`/v1/landing-page/pesanan/${order.id_unique_pesanan}/cancel`);
@@ -49,11 +49,11 @@ const OrderCard = ({ order, onRefresh }) => {
 
     const handleCompleteOrder = async () => {
         if (!window.confirm('Apakah Anda yakin ingin mengonfirmasi bahwa layanan telah selesai?')) return;
-        
+
         setCompleteLoading(true);
         try {
             await api.patch(`/v1/landing-page/pesanan/${order.id_unique_pesanan}/selesai`);
-            addToast('Pesanan berhasil diselesaikan! Silakan berikan ulasan Anda.', 'success');
+            addToast('Pesanan berhasil diselesaikan! Silakan berikan     Anda.', 'success');
             if (onRefresh) onRefresh();
         } catch (err) {
             addToast(err.response?.data?.message || 'Gagal menyelesaikan pesanan.', 'error');
@@ -83,7 +83,7 @@ const OrderCard = ({ order, onRefresh }) => {
                     <span className="oc-label">Jenis Layanan:</span>
                     <span className="oc-value capitalize">{order.mitra?.jenis_jasa?.replace('_', ' ') || '-'}</span>
                 </div>
-                
+
                 <div className="oc-details">
                     {order.detail_layanan && order.detail_layanan.map((item, idx) => (
                         <div key={idx} className="oc-detail-item">
@@ -101,10 +101,10 @@ const OrderCard = ({ order, onRefresh }) => {
 
             <div className="oc-footer">
                 <div className="oc-order-id">ID: {order.id_unique_pesanan}</div>
-                
+
                 <div className="oc-action">
                     {order.status_pesanan === 'pending' && (
-                        <button 
+                        <button
                             className="oc-cancel-btn"
                             onClick={handleCancelOrder}
                             disabled={cancelLoading}
@@ -114,7 +114,7 @@ const OrderCard = ({ order, onRefresh }) => {
                     )}
 
                     {order.status_pesanan === 'diproses' && (
-                        <button 
+                        <button
                             className="oc-complete-btn"
                             onClick={handleCompleteOrder}
                             disabled={completeLoading}
@@ -131,7 +131,7 @@ const OrderCard = ({ order, onRefresh }) => {
                                 <span className="oc-reviewed-text">Dinilai</span>
                             </div>
                         ) : (
-                            <button 
+                            <button
                                 className="oc-rate-btn"
                                 onClick={() => setIsRatingModalOpen(true)}
                             >
@@ -142,7 +142,7 @@ const OrderCard = ({ order, onRefresh }) => {
                 </div>
             </div>
 
-            <RatingModal 
+            <RatingModal
                 isOpen={isRatingModalOpen}
                 onClose={() => setIsRatingModalOpen(false)}
                 idUniquePesanan={order.id_unique_pesanan}
