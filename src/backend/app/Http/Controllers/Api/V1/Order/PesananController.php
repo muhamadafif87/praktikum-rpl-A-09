@@ -36,11 +36,11 @@ class PesananController extends Controller {
                 estimasi:          $request->input('estimasi', []),
                 biayaTambahan:     $request->input('biayaTambahan', []),
                 catatanPengiriman: $request->input('catatanPengiriman'),
-                kontakPengirim:    $request->has('namaPengirim') || $request->has('nomorWhatsAppPengirim') 
+                kontakPengirim:    $request->has('namaPengirim') || $request->has('nomorWhatsAppPengirim')
                                     ? [
                                         'nama'  => $request->input('namaPengirim'),
                                         'phone' => $request->input('nomorWhatsAppPengirim')
-                                      ] 
+                                      ]
                                     : null,
             );
 

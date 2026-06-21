@@ -25,7 +25,7 @@ const DailyCleaningDetail = () => {
     const [selectedLayananIds, setSelectedLayananIds] = useState(new Set()); // multi-select
     const [qtyLayanan, setQtyLayanan] = useState({});         // { id_layanan: qty }
     const [selectedAlat, setSelectedAlat] = useState(new Set());
-    
+
     const [jarakOngkir, setJarakOngkir] = useState(state?.jarak_km ? parseFloat(state.jarak_km) : 1);
     const [tanggal, setTanggal] = useState('');
     const [jam, setJam] = useState('');
@@ -184,12 +184,12 @@ const DailyCleaningDetail = () => {
 
     if (loading) {
         return (
-            <FullScreenLoader 
+            <FullScreenLoader
                 messages={[
                     "Mempersiapkan halaman pemesanan...",
                     "Menyiapkan preferensi...",
                     "Menghitung ketersediaan jadwal..."
-                ]} 
+                ]}
             />
         );
     }
@@ -251,18 +251,23 @@ const DailyCleaningDetail = () => {
             { jam: jam || null, tanggal: tanggal || null }
         ];
 
-        const subtotal = estimate?.detail_layanan?.reduce(
-            (sum, item) => sum + (item.subtotal || 0), 0
-        ) || 0;
-
         const estimasiPayload = {
-            subtotal,
+            subtotal: estimate?.ringkasan?.subtotal ?? 0,
             biaya_ongkir: 0,
             biaya_transportasi: estimate?.ringkasan?.biaya_transportasi ?? 0,
             biaya_tambahan_alat: estimate?.ringkasan?.biaya_tambahan_alat ?? 0,
             total_pembayaran: estimate?.ringkasan?.total_pembayaran ?? 0,
             beli_baru: 0,
         };
+
+        if (!tanggal) {
+            setSubmitError('Pilih tanggal layanan terlebih dahulu.');
+            return;
+        }
+        if (!jam) {
+            setSubmitError('Pilih jam layanan terlebih dahulu.');
+            return;
+        }
 
         setSubmitLoading(true);
         setSubmitError(null);
@@ -273,7 +278,7 @@ const DailyCleaningDetail = () => {
                 items,
                 jarakOngkir,
                 jadwal_layanan,
-                ...(Object.keys(biayaTambahanAlat).length > 0 && { biayaTambahan: biayaTambahanAlat }),
+                biayaTambahan: biayaTambahanAlat,
                 estimasi: estimasiPayload,
                 catatanPengiriman: catatan || null,
                 namaPengirim:      !useProfileData ? namaLengkap : null,
@@ -532,7 +537,7 @@ const DailyCleaningDetail = () => {
                             <span className="material-symbols-outlined dp-section-icon" style={{fontVariationSettings: "'FILL' 1"}}>person</span>
                             <h2 className="dp-section-title">Detail Pengiriman</h2>
                         </div>
-                        
+
                         {user && (
                             <div
                                 className={`dp-profile-toggle-card ${useProfileData ? 'active' : ''}`}

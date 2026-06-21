@@ -7,6 +7,7 @@ use App\Models\Pesanan;
 use App\Models\MitraLoginAccess;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
 class PesananService
@@ -159,7 +160,17 @@ class PesananService
             );
         }
 
-        $pesanan->update(['status_pesanan' => $newStatus]);
+        DB::transaction(function () use ($pesanan, $newStatus) {
+            $pesanan->update(['status_pesanan' => $newStatus]);
+
+            if ($newStatus === Pesanan::STATUS_SELESAI) {
+                foreach ($pesanan->DetailPesanan as $detail) {
+                    if ($detail->id_layanan) {
+                        $detail->Layanan()->decrement('stok_tersedia', $detail->jumlah);
+                    }
+                }
+            }
+        });
 
         return $pesanan->fresh(['DetailPesanan.Layanan']);
     }

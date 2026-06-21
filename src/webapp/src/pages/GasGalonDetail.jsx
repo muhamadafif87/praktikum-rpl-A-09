@@ -194,12 +194,12 @@ const GasGalonDetail = () => {
 
     if (loading) {
         return (
-            <FullScreenLoader 
+            <FullScreenLoader
                 messages={[
                     "Mempersiapkan halaman pemesanan...",
                     "Mengambil daftar produk...",
                     "Menyiapkan data harga..."
-                ]} 
+                ]}
             />
         );
     }
@@ -233,6 +233,11 @@ const GasGalonDetail = () => {
             return;
         }
 
+        if (!jam) {
+            setSubmitError('Pilih jam pengiriman terlebih dahulu.');
+            return;
+        }
+
         if (!useProfileData && (!namaLengkap.trim() || !noWa.trim())) {
             setSubmitError('Nama Lengkap dan Nomor WhatsApp pengirim wajib diisi.');
             return;
@@ -252,12 +257,12 @@ const GasGalonDetail = () => {
             qty: qtyProduct[id] || 1,
         }));
 
-        const jadwal_layanan = [
-            {
-                jam: jam || null,
-                tanggal: null
-            }
-        ]
+        if (!jam) {
+            setSubmitError('Pilih jam pengiriman terlebih dahulu.');
+            return;
+        }
+
+        const jadwal_layanan = [{ jam: jam, tanggal: null }];
 
         setSubmitLoading(true);
         setSubmitError(null);
@@ -268,7 +273,11 @@ const GasGalonDetail = () => {
                 items,
                 jarakOngkir,
                 jadwal_layanan,
-                estimasi:          estimate,
+                estimasi: {
+                    subtotal:         estimate.subtotal,
+                    biaya_ongkir:     estimate.biaya_ongkir,
+                    total_pembayaran: estimate.total_pembayaran,
+                },
                 biayaTambahan,
                 catatanPengiriman: catatan || null,
                 namaPengirim:      !useProfileData ? namaLengkap : null,
@@ -423,10 +432,10 @@ const GasGalonDetail = () => {
                                                         <button
                                                             className="dp-qty-btn"
                                                             disabled={product.stok_tersedia !== null && qty >= product.stok_tersedia}
-                                                            onClick={e => { 
-                                                                e.preventDefault(); 
+                                                            onClick={e => {
+                                                                e.preventDefault();
                                                                 if (product.stok_tersedia !== null && qty >= product.stok_tersedia) return;
-                                                                setQtyProduct(prev => ({ ...prev, [product.id_layanan]: (prev[product.id_layanan] || 1) + 1 })); 
+                                                                setQtyProduct(prev => ({ ...prev, [product.id_layanan]: (prev[product.id_layanan] || 1) + 1 }));
                                                             }}
                                                         >+</button>
                                                     </div>
@@ -483,7 +492,7 @@ const GasGalonDetail = () => {
                         </div>
 
                         <h2 className="dp-section-title-sm" style={{marginTop: '20px'}}>Detail Pengiriman</h2>
-                        
+
                         {user && (
                             <div
                                 className={`dp-profile-toggle-card ${useProfileData ? 'active' : ''}`}

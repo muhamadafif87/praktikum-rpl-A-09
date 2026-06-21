@@ -59,7 +59,7 @@ class PesananService
             if ($typeLayanan === 'daily_cleaning') {
                 $catatanMitra = is_string($mitra->catatan) ? json_decode($mitra->catatan, true) : ($mitra->catatan ?? []);
                 $alatPembersihMitra = $catatanMitra['alat_pembersih_tambahan'] ?? [];
-                
+
                 foreach ($biayaTambahan as $alat => $hargaRequest) {
                     if (isset($alatPembersihMitra[$alat])) {
                         $stokAlat = is_array($alatPembersihMitra[$alat]) ? ($alatPembersihMitra[$alat]['stok'] ?? null) : null;
@@ -71,7 +71,7 @@ class PesananService
                         }
                     }
                 }
-                
+
                 $catatanMitra['alat_pembersih_tambahan'] = $alatPembersihMitra;
                 $mitra->catatan = $catatanMitra;
                 $mitra->save();
