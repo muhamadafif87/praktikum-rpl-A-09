@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './RatingModal.css';
-import axios from 'axios';
+import api from '../../../services/api';
+import { useAuth } from '../../../context/AuthContext';
 
 const RatingModal = ({ isOpen, onClose, idUniquePesanan, onReviewSuccess }) => {
     const [rating, setRating] = useState(0);
@@ -8,6 +9,7 @@ const RatingModal = ({ isOpen, onClose, idUniquePesanan, onReviewSuccess }) => {
     const [komentar, setKomentar] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
+    const { user, isAuthenticated, logout } = useAuth();
 
     if (!isOpen) return null;
 
@@ -22,16 +24,9 @@ const RatingModal = ({ isOpen, onClose, idUniquePesanan, onReviewSuccess }) => {
         setError(null);
 
         try {
-            const token = localStorage.getItem('token');
-            const response = await axios.post(
+            const response = await api.post(
                 `/v1/landing-page/pesanan/${idUniquePesanan}/ulasan`,
-                { rating, komentar },
-                {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    }
-                }
+                { rating: rating, komentar: komentar }
             );
 
             if (response.data.success) {

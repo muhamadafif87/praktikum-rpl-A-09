@@ -50,6 +50,7 @@ class LandingPageService {
      */
     public function seedingDataLayanan_laundryExpress(array $kategori = ['All'], string $sortBy = 'Terbaik', ?float $lat = null, ?float $lng = null): SupportCollection {
         $query = Mitra::where('jenis_jasa', 'laundry')
+        ->where('status_verifikasi', 'TRUE')
             ->with([
                 'Layanan' => fn($q) => $q->select('id_mitra', 'id_layanan', 'nama_layanan', 'harga', 'satuan'),
                 'Ulasan.Pesanan.User:id_user,nama_lengkap',
@@ -87,6 +88,7 @@ class LandingPageService {
      */
     public function seedingDataLayanan_galonGas(array $kategori = ['All'], string $sortBy = 'Terbaik', ?float $lat = null, ?float $lng = null): SupportCollection {
         $query = Mitra::whereIn('jenis_jasa', ['galon','gas','galon_gas'])
+            ->where('status_verifikasi', 'TRUE')
             ->with([
                 'Layanan' => fn($q) => $q->select('id_mitra', 'id_layanan', 'nama_layanan', 'harga', 'satuan'),
 
@@ -125,6 +127,7 @@ class LandingPageService {
      */
     public function seedingDataLayanan_dailyCleaning(array $kategori = ['All'], string $sortBy = 'Terbaik', ?float $lat = null, ?float $lng = null): SupportCollection {
         $query = Mitra::where('jenis_jasa', 'daily_cleaning')
+        ->where('status_verifikasi', 'TRUE')
             ->with([
                 'Layanan' => fn($q) => $q->select('id_mitra', 'id_layanan', 'nama_layanan', 'harga', 'satuan'),
                 'Ulasan.Pesanan.User:id_user,nama_lengkap',

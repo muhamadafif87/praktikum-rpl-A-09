@@ -24,9 +24,9 @@ const LaundryDetail = () => {
     // Form state
     const [selectedKiloanIds, setSelectedKiloanIds] = useState(new Set());
     const [kiloanQty, setKiloanQty] = useState(1);
-    
+
     const [satuanQtyMap, setSatuanQtyMap] = useState({});
-    
+
     const [selectedJenisKain, setSelectedJenisKain] = useState([]);
 
     const [selectedJadwal, setSelectedJadwal] = useState(null);
@@ -209,12 +209,12 @@ const LaundryDetail = () => {
 
     if (loading) {
         return (
-            <FullScreenLoader 
+            <FullScreenLoader
                 messages={[
                     "Mempersiapkan halaman pemesanan...",
                     "Mengambil layanan mitra...",
                     "Menyiapkan preferensi..."
-                ]} 
+                ]}
             />
         );
     }
@@ -271,7 +271,7 @@ const LaundryDetail = () => {
             return;
         }
 
-        const jadwal_layanan = [{ jam: selectedJadwal || null, tanggal: null }];
+        const jadwal_layanan = [{ jam: selectedJadwal?.jam || selectedJadwal || null, tanggal: null }];
 
         const subtotal = feeEstimate?.ringkasan?.subtotal ?? 0;
 
@@ -283,8 +283,8 @@ const LaundryDetail = () => {
             beli_baru:              0,
         };
 
-        const finalCatatan = selectedJenisKain.length > 0 
-            ? `[Jenis Kain: ${selectedJenisKain.join(', ')}] ${catatan}` 
+        const finalCatatan = selectedJenisKain.length > 0
+            ? `[Jenis Kain: ${selectedJenisKain.join(', ')}] ${catatan}`
             : catatan;
 
         setSubmitLoading(true);
@@ -315,7 +315,7 @@ const LaundryDetail = () => {
     const layananSatuan = data.layanan.filter(l => l.satuan === 'pcs');
 
     const toggleJenisKain = (kain) => {
-        setSelectedJenisKain(prev => 
+        setSelectedJenisKain(prev =>
             prev.includes(kain) ? prev.filter(k => k !== kain) : [...prev, kain]
         );
     };
@@ -406,7 +406,7 @@ const LaundryDetail = () => {
                 </div>
 
                 <div className="dp-content-left">
-                    
+
                     {layananKiloan.length > 0 && (
                         <section className="dp-section">
                             <div className="dp-section-header">
@@ -446,7 +446,7 @@ const LaundryDetail = () => {
                                     );
                                 })}
                             </div>
-                            
+
                             {selectedKiloanIds.size > 0 && (
                                 <div className="dp-form-group" style={{marginTop: '1rem'}}>
                                     <label className="dp-form-label">Estimasi Berat (kg)</label>
@@ -500,12 +500,12 @@ const LaundryDetail = () => {
                             {data.jenis_kain.map((kain) => {
                                 const isSelected = selectedJenisKain.includes(kain);
                                 return (
-                                    <button 
-                                        key={kain} 
+                                    <button
+                                        key={kain}
                                         onClick={() => toggleJenisKain(kain)}
                                         style={{
-                                            padding: '0.5rem 1rem', 
-                                            borderRadius: '9999px', 
+                                            padding: '0.5rem 1rem',
+                                            borderRadius: '9999px',
                                             border: `1px solid ${isSelected ? '#2563eb' : '#cbd5e1'}`,
                                             backgroundColor: isSelected ? '#eff6ff' : '#ffffff',
                                             color: isSelected ? '#1e40af' : '#475569',
@@ -563,7 +563,7 @@ const LaundryDetail = () => {
                             <span className="material-symbols-outlined dp-section-icon" style={{fontVariationSettings: "'FILL' 1"}}>person</span>
                             <h2 className="dp-section-title">Detail Pengiriman</h2>
                         </div>
-                        
+
                         {user && (
                             <div
                                 className={`dp-profile-toggle-card ${useProfileData ? 'active' : ''}`}

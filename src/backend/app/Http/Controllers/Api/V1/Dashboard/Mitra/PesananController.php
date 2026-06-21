@@ -47,7 +47,7 @@ class PesananController extends V1ApiController
                     'nama_lengkap'    => $pesanan->User->nama_lengkap ?? '-',
                     'alamat_kost'     => $pesanan->User->alamat_kost ?? '-',
                     'tanggal_pesan'   => $pesanan->tgl_pesanan,
-                    'catatan_pesanan' => $pesanan->catatan['note'],
+                    'catatan_pesanan' => $pesanan->catatan['catatan_pengiriman'],
                 ],
                 'item_pesanan'      => [
                     'items' => $pesanan->DetailPesanan->map(function ($item) {

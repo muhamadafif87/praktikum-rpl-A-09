@@ -110,13 +110,6 @@ Route::prefix('v1')->group(function () {
     // -------------------------------------------------------------------------
     Route::prefix('mitra')->middleware('auth:mitra-api')->name('mitra.')->group(function () {
         Route::prefix('pesanan')->name('pesanan.')->group(function () {
-            // // GET /mitra/pesanan/riwayat?status=diproses&per_page=10
-            // Route::get('/riwayat', [PesananController::class, 'riwayatPesananMitra'])->name('riwayat');
-            // // Detail pesanan (mitra bisa lihat info user)
-            // Route::get('/{idUniquePesanan}', [PesananController::class, 'showDetailPesanan'])->name('detail');
-            // // Cancel pesanan — mitra bisa cancel kecuali status selesai/dibatalkan
-            // Route::patch('/{idUniquePesanan}/cancel', [PesananController::class, 'cancelPesananMitra'])->name('cancel');
-
             Route::get('/',                   [MitraPesananController::class, 'index']);
             Route::get('/stats',             [MitraPesananController::class, 'stats']);
             Route::get('/{id}',              [MitraPesananController::class, 'show']);
