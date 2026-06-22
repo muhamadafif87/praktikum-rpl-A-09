@@ -39,6 +39,28 @@ class LandingPageController extends Controller
     }
 
     /**
+     * Get 3 layanan terpopuler berdasarkan rating bayesian
+     * @return JsonResponse
+     */
+    public function terpopuler(): JsonResponse
+    {
+        try {
+            $data = $this->landingPageService->layananTerpopuler();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Layanan terpopuler berhasil diambil',
+                'data' => $data
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil layanan terpopuler: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Search layanan
      * @param Request $request
      * @return JsonResponse
