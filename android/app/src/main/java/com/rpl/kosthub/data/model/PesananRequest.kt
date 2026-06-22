@@ -96,7 +96,8 @@ data class CreatePesananDailyCleaningRequest(
 data class EstimateFeePesananRequest(
     @SerializedName("idMitra")           val idMitra: String,
     @SerializedName("typeLayanan")       val typeLayanan: String,
-    @SerializedName("layanan")           val layanan: List<ItemLayanan>,
+    // Backend GenerateFeeRequest.php memvalidasi field 'items', bukan 'layanan' (inkonsistensi dengan docs)
+    @SerializedName("items")             val layanan: List<ItemLayanan>,
     @SerializedName("jarakOngkir")       val jarakOngkir: Int,
     /** Laundry   → BiayaTambahanLaundry
      *  Galon/Gas → List<BiayaTambahanGalonItem>

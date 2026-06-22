@@ -40,9 +40,9 @@ fun HomeScreen(
     isLoggedIn: Boolean,
     onNavigateToLogin: () -> Unit,
     onNavigateToRegister: () -> Unit,
-    onNavigateToGasGalon: () -> Unit,
-    onNavigateToLaundry: () -> Unit,
-    onNavigateToDailyCleaning: () -> Unit,
+    onNavigateToGasGalon: (Int) -> Unit,
+    onNavigateToLaundry: (Int) -> Unit,
+    onNavigateToDailyCleaning: (Int) -> Unit,
     onNavigateToMap: () -> Unit,
     locationViewModel: com.rpl.kosthub.ui.screens.map.LocationViewModel,
     onLogout: () -> Unit,
@@ -220,12 +220,12 @@ fun HomeScreen(
                     isLoggedIn = isLoggedIn,
                     onNavigateToLogin = onNavigateToLogin,
                     onNavigateToRegister = onNavigateToRegister,
-                    onNavigateToOrderForm = { _, category ->
+                    onNavigateToOrderForm = { mitraId, category ->
                         when (category) {
-                            "gas_galon", "gas", "galon" -> onNavigateToGasGalon()
-                            "laundry", "laundry_express" -> onNavigateToLaundry()
-                            "cleaning", "daily_cleaning" -> onNavigateToDailyCleaning()
-                            else -> onNavigateToGasGalon()
+                            "gas_galon", "gas", "galon" -> onNavigateToGasGalon(mitraId)
+                            "laundry", "laundry_express" -> onNavigateToLaundry(mitraId)
+                            "cleaning", "daily_cleaning" -> onNavigateToDailyCleaning(mitraId)
+                            else -> onNavigateToGasGalon(mitraId)
                         }
                     },
                     onNavigateToMap = onNavigateToMap,

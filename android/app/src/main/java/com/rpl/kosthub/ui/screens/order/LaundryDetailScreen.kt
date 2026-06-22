@@ -1,5 +1,6 @@
 package com.rpl.kosthub.ui.screens.order
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.BorderStroke
@@ -7,8 +8,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -16,42 +18,132 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.rpl.kosthub.data.model.*
 import com.rpl.kosthub.ui.components.KostHubTextField
 import com.rpl.kosthub.ui.components.PrimaryButton
 import com.rpl.kosthub.ui.components.Stepper
+import com.rpl.kosthub.ui.screens.map.LocationViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LaundryDetailScreen(
+    mitraId: Int,
+    orderViewModel: OrderViewModel,
+    locationViewModel: LocationViewModel,
     onNavigateBack: () -> Unit,
-    onNavigateToPayment: () -> Unit
+    onNavigateToPayment: (String) -> Unit
 ) {
-    var selectedService by remember { mutableStateOf("cuci_setrika") }
+    val context = LocalContext.current
+    val seedingState by orderViewModel.seedingState.collectAsState()
+    val estimateState by orderViewModel.estimateState.collectAsState()
+    val createOrderState by orderViewModel.createOrderState.collectAsState()
+    val locationState by locationViewModel.locationState.collectAsState()
+
+    var selectedLayananId by remember { mutableStateOf<Int?>(null) }
     var weight by remember { mutableStateOf("") }
-    var date by remember { mutableStateOf("") }
-    var time by remember { mutableStateOf("") }
-    var name by remember { mutableStateOf("") }
-    var wa by remember { mutableStateOf("") }
+    var selectedDurasi by remember { mutableStateOf<String>("reguler") } // default
     var note by remember { mutableStateOf("") }
+
+    // Fetch Seeding Detail
+    LaunchedEffect(mitraId) {
+        orderViewModel.fetchSeedingDetail("laundry", mitraId)
+    }
+
+    // Effect for handling creation state
+    LaunchedEffect(createOrderState) {
+        if (createOrderState is CreateOrderState.Success) {
+            val orderId = (createOrderState as CreateOrderState.Success).idUniquePesanan
+            orderViewModel.resetCreateState()
+            onNavigateToPayment(orderId)
+        } else if (createOrderState is CreateOrderState.Error) {
+            Toast.makeText(context, (createOrderState as CreateOrderState.Error).message, Toast.LENGTH_SHORT).show()
+            orderViewModel.resetCreateState()
+        }
+    }
+
+    // Helper to request estimation
+    val requestEstimation = {
+        val qty = weight.toIntOrNull() ?: 0
+        if (selectedLayananId != null && qty > 0 && seedingState is SeedingState.Success) {
+            val seedingData = (seedingState as SeedingState.Success).data
+            
+            val durasiBiaya = seedingData.durasiPengerjaan?.get(selectedDurasi) ?: 0
+            
+            val req = EstimateFeePesananRequest(
+                idMitra = mitraId.toString(),
+                typeLayanan = "laundry",
+                layanan = listOf(ItemLayanan(idLayanan = selectedLayananId.toString(), qty = qty)),
+                jarakOngkir = 5, // Mock distance
+                biayaTambahan = BiayaTambahanLaundry(
+                    durasiPengerjaan = DurasiPengerjaan(
+                        biaya = durasiBiaya,
+                        type = selectedDurasi
+                    )
+                )
+            )
+            orderViewModel.estimateFee(req)
+        }
+    }
+
+    // Update estimation when weight or duration changes
+    LaunchedEffect(weight, selectedLayananId, selectedDurasi) {
+        requestEstimation()
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Konfigurasi Pesanan", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, fontSize = 18.sp) },
+                title = { Text("Detail Pesanan Laundry", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, fontSize = 18.sp) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
         },
         bottomBar = {
+            val qty = weight.toIntOrNull() ?: 0
+            val isEnabled = selectedLayananId != null && qty > 0 && locationState.isConfirmed && createOrderState !is CreateOrderState.Loading
+            
             Box(modifier = Modifier.padding(16.dp)) {
-                PrimaryButton(text = "Lanjutkan ke Pembayaran →", onClick = onNavigateToPayment)
+                PrimaryButton(
+                    text = if (createOrderState is CreateOrderState.Loading) "Memproses..." else "Buat Pesanan →", 
+                    onClick = {
+                        if (estimateState is EstimateState.Success && seedingState is SeedingState.Success) {
+                            val est = (estimateState as EstimateState.Success).data
+                            val seedingData = (seedingState as SeedingState.Success).data
+                            val durasiBiaya = seedingData.durasiPengerjaan?.get(selectedDurasi) ?: 0
+
+                            val req = CreatePesananLaundryRequest(
+                                idMitra = mitraId.toString(),
+                                typeLayanan = "laundry",
+                                items = listOf(ItemLayanan(idLayanan = selectedLayananId.toString(), qty = qty)),
+                                jarakOngkir = 5,
+                                jadwalLayanan = listOf(JadwalLayanan(jam = "10:00")), // Mock schedule
+                                biayaTambahan = BiayaTambahanLaundry(
+                                    durasiPengerjaan = DurasiPengerjaan(
+                                        biaya = durasiBiaya,
+                                        type = selectedDurasi
+                                    )
+                                ),
+                                estimasi = EstimasiPesanan(
+                                    subtotal = est.ringkasan.subtotal,
+                                    biayaOngkir = est.ringkasan.biayaOngkir ?: 0,
+                                    totalPembayaran = est.ringkasan.totalPembayaran
+                                ),
+                                catatanPengiriman = "Alamat: ${locationState.address}\nCatatan: $note"
+                            )
+                            orderViewModel.createPesananLaundry(req)
+                        }
+                    },
+                    enabled = isEnabled
+                )
             }
         }
     ) { paddingValues ->
@@ -70,113 +162,201 @@ fun LaundryDetailScreen(
                 Stepper(currentStep = 2, currentStepLabel = "Detail Pesanan")
             }
 
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text("Detail Pesanan", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(4.dp))
-                Text("Mitra: Laundry Wangi Jaya", color = MaterialTheme.colorScheme.secondary, fontSize = 14.sp)
-                
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Text("Pilih Jenis Pakaian", fontWeight = FontWeight.SemiBold)
-                Spacer(modifier = Modifier.height(8.dp))
-
-                ServiceOptionCard(
-                    title = "Cuci Setrika",
-                    price = "Rp 8.000 / kg",
-                    selected = selectedService == "cuci_setrika",
-                    onClick = { selectedService = "cuci_setrika" }
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                ServiceOptionCard(
-                    title = "Cuci Kering",
-                    price = "Rp 6.000 / kg",
-                    selected = selectedService == "cuci_kering",
-                    onClick = { selectedService = "cuci_kering" }
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                ServiceOptionCard(
-                    title = "Setrika Saja",
-                    price = "Rp 5.000 / kg",
-                    selected = selectedService == "setrika",
-                    onClick = { selectedService = "setrika" }
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Text("Estimasi Berat Pakaian", fontWeight = FontWeight.SemiBold)
-                Spacer(modifier = Modifier.height(8.dp))
-                KostHubTextField(value = weight, onValueChange = { weight = it }, label = "Berat (kg)", placeholder = "Misal: 3")
-                Spacer(modifier = Modifier.height(4.dp))
-                Text("*Berat aktual akan ditimbang oleh kurir.", color = MaterialTheme.colorScheme.secondary, fontSize = 12.sp)
-
-                Spacer(modifier = Modifier.height(24.dp))
-                
-                Text("Jadwal Penjemputan", fontWeight = FontWeight.SemiBold)
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Box(modifier = Modifier.weight(1f)) {
-                        KostHubTextField(value = date, onValueChange = { date = it }, label = "Tanggal", placeholder = "DD/MM/YYYY")
-                    }
-                    Box(modifier = Modifier.weight(1f)) {
-                        KostHubTextField(value = time, onValueChange = { time = it }, label = "Waktu", placeholder = "HH:MM")
+            when (seedingState) {
+                is SeedingState.Loading -> {
+                    Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
                     }
                 }
-
-                Spacer(modifier = Modifier.height(24.dp))
-                
-                Text("Detail Pengiriman", fontWeight = FontWeight.SemiBold)
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                KostHubTextField(value = name, onValueChange = { name = it }, label = "Nama Lengkap", placeholder = "Masukkan nama Anda")
-                Spacer(modifier = Modifier.height(12.dp))
-                KostHubTextField(value = wa, onValueChange = { wa = it }, label = "Nomor WhatsApp", placeholder = "08xxxxxxxxxx")
-                Spacer(modifier = Modifier.height(12.dp))
-                KostHubTextField(value = note, onValueChange = { note = it }, label = "Catatan Pengiriman", placeholder = "Contoh: Titip di Bapak Kos")
-
-                Spacer(modifier = Modifier.height(24.dp))
-                HorizontalDivider()
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text("Ringkasan Pembayaran", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text("Subtotal", color = MaterialTheme.colorScheme.secondary)
-                    Text("Rp 24.000", fontWeight = FontWeight.SemiBold)
+                is SeedingState.Error -> {
+                    Text(
+                        (seedingState as SeedingState.Error).message,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(16.dp)
+                    )
                 }
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text("Biaya Pengiriman", color = MaterialTheme.colorScheme.secondary)
-                    Text("Rp 5.000", fontWeight = FontWeight.SemiBold)
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-                Spacer(modifier = Modifier.height(16.dp))
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text("Total Pembayaran Sementara", fontWeight = FontWeight.Bold)
-                    Text("Rp 29.000", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, fontSize = 18.sp)
-                }
+                is SeedingState.Success -> {
+                    val data = (seedingState as SeedingState.Success).data
+                    
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text("Mitra: ${data.namaMitra}", color = MaterialTheme.colorScheme.secondary, fontSize = 14.sp)
+                        Spacer(modifier = Modifier.height(24.dp))
 
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
-                        .padding(12.dp)
-                ) {
-                    Row {
-                        Icon(Icons.Outlined.Info, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Transaksi Anda dilindungi oleh Sistem Escrow KostHub. Dana akan diteruskan ke mitra hanya setelah layanan selesai sesuai pesanan Anda.",
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.secondary
+                        Text("Pilih Layanan Laundry", fontWeight = FontWeight.SemiBold)
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        data.layanan.forEach { layanan ->
+                            val isSelected = selectedLayananId == layanan.idLayanan
+                            Card(
+                                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.05f) else MaterialTheme.colorScheme.surface
+                                ),
+                                border = BorderStroke(
+                                    if (isSelected) 2.dp else 1.dp, 
+                                    if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+                                ),
+                                onClick = { selectedLayananId = layanan.idLayanan }
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Column {
+                                        Text(layanan.namaLayanan, fontWeight = FontWeight.Bold)
+                                        Text("Rp ${layanan.hargaLayanan ?: 0} / kg", fontSize = 14.sp, color = MaterialTheme.colorScheme.secondary)
+                                    }
+                                    RadioButton(
+                                        selected = isSelected,
+                                        onClick = { selectedLayananId = layanan.idLayanan },
+                                        colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.primary)
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Text("Estimasi Berat Pakaian (kg)", fontWeight = FontWeight.SemiBold)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = weight,
+                            onValueChange = { if (it.isEmpty() || it.matches(Regex("^\\d+\$"))) weight = it },
+                            placeholder = { Text("Misal: 3") },
+                            modifier = Modifier.fillMaxWidth(),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            shape = RoundedCornerShape(8.dp)
                         )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text("*Berat aktual akan ditimbang oleh kurir.", color = MaterialTheme.colorScheme.secondary, fontSize = 12.sp)
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        // Durasi Pengerjaan
+                        if (!data.durasiPengerjaan.isNullOrEmpty()) {
+                            Text("Pilih Durasi Pengerjaan", fontWeight = FontWeight.SemiBold)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            
+                            data.durasiPengerjaan.forEach { (type, biaya) ->
+                                val isSelected = selectedDurasi == type
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                                ) {
+                                    RadioButton(
+                                        selected = isSelected,
+                                        onClick = { selectedDurasi = type }
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Column {
+                                        Text(type.replaceFirstChar { it.uppercase() }, fontSize = 14.sp)
+                                        if (biaya > 0) {
+                                            Text("+ Rp $biaya", fontSize = 12.sp, color = MaterialTheme.colorScheme.secondary)
+                                        } else {
+                                            Text("Gratis", fontSize = 12.sp, color = MaterialTheme.colorScheme.secondary)
+                                        }
+                                    }
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(24.dp))
+                        }
+
+                        Text("Detail Pengiriman", fontWeight = FontWeight.SemiBold)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        // Show Location
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.05f),
+                            shape = RoundedCornerShape(8.dp),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+                        ) {
+                            Column(modifier = Modifier.padding(12.dp)) {
+                                Text("Alamat Pengiriman/Penjemputan:", fontSize = 12.sp, color = MaterialTheme.colorScheme.secondary)
+                                if (locationState.isConfirmed && locationState.address.isNotEmpty()) {
+                                    Text(locationState.address, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                                } else {
+                                    Text("Belum Diatur! Silakan atur lokasi di Beranda.", fontSize = 14.sp, color = MaterialTheme.colorScheme.error)
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+                        KostHubTextField(value = note, onValueChange = { note = it }, label = "Catatan Pengiriman (Opsional)", placeholder = "Contoh: Titip di Bapak Kos")
+
+                        Spacer(modifier = Modifier.height(24.dp))
+                        HorizontalDivider()
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Text("Ringkasan Pembayaran", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
+                        when (estimateState) {
+                            is EstimateState.Loading -> {
+                                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally).padding(16.dp))
+                            }
+                            is EstimateState.Error -> {
+                                Text(
+                                    (estimateState as EstimateState.Error).message,
+                                    color = MaterialTheme.colorScheme.error,
+                                    fontSize = 14.sp
+                                )
+                            }
+                            is EstimateState.Success -> {
+                                val est = (estimateState as EstimateState.Success).data
+                                
+                                // Detail Items
+                                Text("Detail Item:", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                                Spacer(modifier = Modifier.height(8.dp))
+                                est.detailLayanan.forEach { item ->
+                                    Row(modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                                        Text("${item.qty}x ${item.namaLayanan}", color = MaterialTheme.colorScheme.secondary, fontSize = 14.sp)
+                                        Text("Rp ${item.subtotal}", fontSize = 14.sp)
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                                Spacer(modifier = Modifier.height(8.dp))
+                                
+                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                    Text("Subtotal", color = MaterialTheme.colorScheme.secondary)
+                                    Text("Rp ${est.ringkasan.subtotal}", fontWeight = FontWeight.SemiBold)
+                                }
+                                if (est.ringkasan.biayaTambahanDurasi != null && est.ringkasan.biayaTambahanDurasi > 0) {
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                        Text("Biaya Layanan (${selectedDurasi.replaceFirstChar{it.uppercase()}})", color = MaterialTheme.colorScheme.secondary)
+                                        Text("Rp ${est.ringkasan.biayaTambahanDurasi}", fontWeight = FontWeight.SemiBold)
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                    Text("Biaya Pengiriman", color = MaterialTheme.colorScheme.secondary)
+                                    Text("Rp ${est.ringkasan.biayaOngkir ?: 0}", fontWeight = FontWeight.SemiBold)
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                    Text("Biaya Layanan Aplikasi", color = MaterialTheme.colorScheme.secondary)
+                                    Text("Rp ${est.ringkasan.biayaLayananAplikasi}", fontWeight = FontWeight.SemiBold)
+                                }
+                                Spacer(modifier = Modifier.height(16.dp))
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                    Text("Total Pembayaran Sementara", fontWeight = FontWeight.Bold)
+                                    Text("Rp ${est.ringkasan.totalPembayaran}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, fontSize = 18.sp)
+                                }
+                            }
+                            else -> {
+                                Text("Lengkapi form untuk melihat estimasi.", color = MaterialTheme.colorScheme.secondary, fontSize = 14.sp)
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(32.dp))
                     }
                 }
-                
-                Spacer(modifier = Modifier.height(32.dp))
+                else -> {}
             }
         }
     }

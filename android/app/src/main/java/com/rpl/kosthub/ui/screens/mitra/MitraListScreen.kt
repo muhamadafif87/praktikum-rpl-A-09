@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -234,19 +235,20 @@ fun MitraCardItem(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
+                val imageUrl = if (!mitra.profilImage.isNullOrEmpty()) {
+                    mitra.profilImage
+                } else {
+                    "https://ui-avatars.com/api/?name=${java.net.URLEncoder.encode(mitra.namaMitra, "UTF-8")}&background=random&color=fff&size=150"
+                }
+
+                coil.compose.AsyncImage(
+                    model = imageUrl,
+                    contentDescription = "Profil Mitra",
                     modifier = Modifier
                         .size(48.dp)
-                        .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(8.dp)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        mitra.namaMitra.take(1).uppercase(),
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
-                    )
-                }
+                        .clip(RoundedCornerShape(8.dp)),
+                    contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                )
                 Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Row(
