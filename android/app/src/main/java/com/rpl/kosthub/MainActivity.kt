@@ -96,7 +96,7 @@ class MainActivity : ComponentActivity() {
                                 onLogout = {
                                     isLoggedIn = false
                                     context.getSharedPreferences("auth_prefs", android.content.Context.MODE_PRIVATE)
-                                        .edit().remove("token").apply()
+                                        .edit().remove("token").remove("user_name").apply()
                                     locationViewModel.clearLocation()
                                 }
                             )
