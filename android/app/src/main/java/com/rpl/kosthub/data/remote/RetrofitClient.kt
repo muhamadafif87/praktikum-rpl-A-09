@@ -5,7 +5,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
     // Updated to current local network IP for physical device testing
-    private const val BASE_URL = "http://192.168.1.32:8000/api/v1/"
+    private const val BASE_URL = "http://10.0.2.2:8000/api/v1/"
 
     val instance: ApiService by lazy {
         val retrofit = Retrofit.Builder()

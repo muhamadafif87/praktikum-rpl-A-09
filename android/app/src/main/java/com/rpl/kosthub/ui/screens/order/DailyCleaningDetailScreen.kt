@@ -43,12 +43,6 @@ fun DailyCleaningDetailScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
-                actions = {
-                    com.rpl.kosthub.ui.components.ProfileAvatar(
-                        initials = "VA",
-                        modifier = Modifier.padding(end = 16.dp)
-                    )
-                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
         },
