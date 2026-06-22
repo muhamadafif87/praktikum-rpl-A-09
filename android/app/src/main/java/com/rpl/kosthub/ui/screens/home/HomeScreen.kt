@@ -482,9 +482,7 @@ fun ServiceGridItem(
 
 @Composable
 fun OrdersContent() {
-    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background), contentAlignment = Alignment.Center) {
-        Text("Pesanan Kosong", color = MaterialTheme.colorScheme.secondary)
-    }
+    com.rpl.kosthub.ui.screens.order.OrderHistoryScreen()
 }
 
 
