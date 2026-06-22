@@ -41,6 +41,34 @@ class LandingPageService {
     }
 
     /**
+     * Get 3 Layanan Terpopuler (Top 3) dengan Bayesian average sederhana
+     * (rating terbaik dan jumlah ulasan terbanyak)
+     * @return SupportCollection
+     */
+    public function layananTerpopuler(): SupportCollection
+    {
+        $query = Mitra::where('status_verifikasi', 'TRUE')
+            ->with([
+                'Layanan' => fn($q) => $q->select('id_mitra', 'id_layanan', 'nama_layanan', 'harga', 'satuan'),
+                'Ulasan.Pesanan.User:id_user,nama_lengkap',
+            ])
+            ->withAvg('Ulasan as avg_rating', 'rating')
+            ->withCount('Ulasan as jumlah_ulasan');
+
+        $data = $query->get();
+
+        // Hitung bayesian score: Score = avg_rating * log10(jumlah_ulasan + 1)
+        // Semakin banyak ulasan dan semakin tinggi rating, score semakin besar.
+        $sorted = $data->sortByDesc(function ($mitra) {
+            $rating = $mitra->avg_rating ?? 0;
+            $jumlah = $mitra->jumlah_ulasan ?? 0;
+            return $rating * log10($jumlah + 1);
+        })->take(3);
+
+        return $this->enrichLayananData(new EloquentCollection($sorted->values()));
+    }
+
+    /**
      * Get data layanan laundry express dengan optional filter dan sorting
      * @param array $kategori Filter kategori: 'Kiloan Express', 'Kiloan Reguler', 'Satuan', atau 'All'
      * @param string $sortBy Sort order: 'Terdekat', 'Terlaris', 'Terbaik', 'Harga Bersahabat'
