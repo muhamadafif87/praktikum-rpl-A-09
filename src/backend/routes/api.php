@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\Dashboard\Admin\MitraManagementController;
 use App\Http\Controllers\Api\V1\Dashboard\Admin\StatisticController;
 use App\Http\Controllers\Api\V1\Dashboard\Mitra\LayananController;
 use App\Http\Controllers\Api\V1\Dashboard\Mitra\MitraAssetImageController;
+use App\Http\Controllers\Api\V1\Dashboard\Mitra\MitraProfileController;
 use App\Http\Controllers\Api\V1\Dashboard\Mitra\PesananController as MitraPesananController;
 use App\Http\Controllers\Api\V1\Dashboard\Mitra\TransaksiKeuanganController;
 use App\Http\Controllers\Api\V1\Dashboard\Mitra\UlasanController;
@@ -27,6 +28,7 @@ Route::prefix('v1')->group(function () {
     Route::prefix('landing-page')->name('landing-page.')->group(function () {
         Route::get('/statistic', [LandingPageController::class, 'statistic'])->name('statistic');
         Route::get('/search',    [LandingPageController::class, 'searchLayanan'])->name('search');
+        Route::get('/terpopuler', [LandingPageController::class, 'terpopuler'])->name('terpopuler');
 
         Route::prefix('laundry-express')->name('laundry-express.')->group(function () {
             Route::get('/', [LandingPageController::class, 'laundryExpress'])->name('index');
@@ -147,6 +149,12 @@ Route::prefix('v1')->group(function () {
             Route::post('{id}',   [MitraAssetImageController::class, 'update']);
             Route::delete('{id}', [MitraAssetImageController::class, 'destroy']);
         });
+
+        Route::prefix('settings')->group(function () {
+        Route::get('/', [MitraProfileController::class, 'getSettings']);
+        Route::put('/profil', [MitraProfileController::class, 'updateProfil']);
+        Route::put('/jadwal', [MitraProfileController::class, 'updateJadwal']);
+        Route::put('/password', [MitraProfileController::class, 'updatePassword']);
     });
 
     // ----------------------------
@@ -169,5 +177,6 @@ Route::prefix('v1')->group(function () {
             Route::get('summary', [StatisticController::class, 'overviewSummary']);
             Route::get('mitra-summary', [StatisticController::class, 'mitraSummary']);
         });
+    });
     });
 });

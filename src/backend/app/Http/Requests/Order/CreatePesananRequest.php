@@ -18,6 +18,12 @@ class CreatePesananRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        if ($this->has('catatanPengiriman') && is_string($this->input('catatanPengiriman'))) {
+            $this->merge([
+                'catatanPengiriman' => strip_tags($this->input('catatanPengiriman'))
+            ]);
+        }
+
         if ($this->has('biayaTambahan') && is_string($this->input('biayaTambahan'))) {
             $decoded = json_decode($this->input('biayaTambahan'), true);
             if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {

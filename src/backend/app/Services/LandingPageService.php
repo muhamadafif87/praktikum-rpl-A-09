@@ -41,6 +41,34 @@ class LandingPageService {
     }
 
     /**
+     * Get 3 Layanan Terpopuler (Top 3) dengan Bayesian average sederhana
+     * (rating terbaik dan jumlah ulasan terbanyak)
+     * @return SupportCollection
+     */
+    public function layananTerpopuler(): SupportCollection
+    {
+        $query = Mitra::where('status_verifikasi', 'TRUE')
+            ->with([
+                'Layanan' => fn($q) => $q->select('id_mitra', 'id_layanan', 'nama_layanan', 'harga', 'satuan'),
+                'Ulasan.Pesanan.User:id_user,nama_lengkap',
+            ])
+            ->withAvg('Ulasan as avg_rating', 'rating')
+            ->withCount('Ulasan as jumlah_ulasan');
+
+        $data = $query->get();
+
+        // Hitung bayesian score: Score = avg_rating * log10(jumlah_ulasan + 1)
+        // Semakin banyak ulasan dan semakin tinggi rating, score semakin besar.
+        $sorted = $data->sortByDesc(function ($mitra) {
+            $rating = $mitra->avg_rating ?? 0;
+            $jumlah = $mitra->jumlah_ulasan ?? 0;
+            return $rating * log10($jumlah + 1);
+        })->take(3);
+
+        return $this->enrichLayananData(new EloquentCollection($sorted->values()));
+    }
+
+    /**
      * Get data layanan laundry express dengan optional filter dan sorting
      * @param array $kategori Filter kategori: 'Kiloan Express', 'Kiloan Reguler', 'Satuan', atau 'All'
      * @param string $sortBy Sort order: 'Terdekat', 'Terlaris', 'Terbaik', 'Harga Bersahabat'
@@ -211,13 +239,33 @@ class LandingPageService {
      * @return SupportCollection
      */
     private function enrichLayananData(EloquentCollection $data): SupportCollection {
-        return $data->map(function ($mitra) {
+        $now = \Carbon\Carbon::now('Asia/Jakarta')->format('H:i');
+
+        return $data->map(function ($mitra) use ($now) {
             $rating = $mitra->avg_rating ?? 0;
             $jumlahUlasan = $mitra->jumlah_ulasan ?? 0;
 
             $reviews = $mitra->Ulasan
                     ->sortByDesc('created_at')
                     ->take(5);
+
+            $isBuka = true;
+            $catatan = is_string($mitra->catatan) ? json_decode($mitra->catatan, true) : $mitra->catatan;
+
+            if (is_array($catatan)) {
+                $jadwal = $catatan['jadwal_pengiriman'] ?? $catatan['jadwal_penjemputan'] ?? $catatan['jadwal_pembersihan'] ?? null;
+
+                if (is_array($jadwal) && count($jadwal) > 0) {
+                    sort($jadwal); // Pastikan jadwal urut
+                    $jamBuka = $jadwal[0];
+                    $jamTutup = end($jadwal);
+
+                    // Jika waktu saat ini di luar jam operasional
+                    if ($now < $jamBuka || $now > $jamTutup) {
+                        $isBuka = false;
+                    }
+                }
+            }
 
             return [
                 'id_mitra'       => $mitra->id_mitra,
@@ -228,6 +276,7 @@ class LandingPageService {
                 'lokasi_layanan' => $mitra->alamat_mitra,
                 'rating'         => round((float) $rating, 1),
                 'jumlah_ulasan'  => $jumlahUlasan,
+                'is_buka'        => $isBuka, // Mengirim status ke frontend
                 'layanan'        => $mitra->Layanan->map(fn($l) => [
                     'id_layanan'   => $l->id_layanan ?? null,
                     'nama_layanan' => $l->nama_layanan,
