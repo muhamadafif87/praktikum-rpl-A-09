@@ -68,6 +68,7 @@ const DetailMitraLaundry = ({ onOrderClick }) => {
     useEffect(() => {
         const kategoriParam = selectedCategories.length > 0 ? selectedCategories : ['All'];
         fetchMitraData(kategoriParam, sortBy);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedCategories, sortBy, location.lat, location.lng]);
 
     const handleOrderClick = (mitra) => {
@@ -113,6 +114,7 @@ const DetailMitraLaundry = ({ onOrderClick }) => {
                     location: mitra.lokasi_layanan,
                     distance: mitra.jarak_km ? `${mitra.jarak_km.toFixed(1)} KM` : 'Jarak Tidak Diketahui',
                     isDalamJangkauan: mitra.is_dalam_jangkauan !== false,
+                    isBuka: mitra.is_buka !== false, // Membaca status buka dari backend
                     rating: mitra.rating,
                     reviewCount: mitra.jumlah_ulasan,
                     description: mitra.deskripsi || `${mitra.jenis_jasa} terpercaya. ${mitra.layanan?.length || 0} jenis layanan tersedia.`,
@@ -311,7 +313,7 @@ const DetailMitraLaundry = ({ onOrderClick }) => {
                                 <span className="material-symbols-outlined">error_outline</span>
                                 <p>{mitraError}</p>
                                 <button
-                                    onClick={() => fetchMitraData()}
+                                    onClick={() => fetchMitraData(selectedCategories, sortBy)}
                                     className="dm-retry-btn"
                                 >
                                     Coba Lagi
@@ -352,9 +354,9 @@ const DetailMitraLaundry = ({ onOrderClick }) => {
                                 ) : mitraList.map((mitra) => (
                                     <article
                                         key={mitra.id}
-                                        className={`dm-card ${(location.isConfirmed && mitra.isDalamJangkauan) ? 'dm-card-clickable' : ''}`}
-                                        onClick={() => location.isConfirmed && mitra.isDalamJangkauan && handleOrderClick(mitra)}
-                                        style={{ cursor: (location.isConfirmed && mitra.isDalamJangkauan) ? 'pointer' : 'default' }}
+                                        className={`dm-card ${(location.isConfirmed && mitra.isDalamJangkauan && mitra.isBuka) ? 'dm-card-clickable' : ''}`}
+                                        onClick={() => location.isConfirmed && mitra.isDalamJangkauan && mitra.isBuka && handleOrderClick(mitra)}
+                                        style={{ cursor: (location.isConfirmed && mitra.isDalamJangkauan && mitra.isBuka) ? 'pointer' : 'default' }}
                                     >
                                         <div className="dm-card-body">
                                             <div className="dm-card-img-wrapper">
@@ -364,12 +366,20 @@ const DetailMitraLaundry = ({ onOrderClick }) => {
                                                 <div>
                                                     <div className="dm-card-header">
                                                         <h3 className="dm-card-title">{mitra.name}</h3>
-                                                        <span
-                                                            className="dm-card-badge"
-                                                            style={!mitra.isDalamJangkauan ? { backgroundColor: '#fee2e2', color: '#ef4444' } : {}}
-                                                        >
-                                                            {mitra.isDalamJangkauan ? `Berada dalam jangkauan (${mitra.distance})` : `Di luar jangkauan (${mitra.distance})`}
-                                                        </span>
+                                                        {/* Menambahkan dua badge dengan flexbox */}
+                                                        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'flex-end', marginLeft: '0.5rem' }}>
+                                                            <span
+                                                                className="dm-card-badge"
+                                                                style={{ ...( !mitra.isDalamJangkauan ? { backgroundColor: '#fee2e2', color: '#ef4444' } : {} ), marginLeft: 0 }}
+                                                            >
+                                                                {mitra.isDalamJangkauan ? `Berada dalam jangkauan (${mitra.distance})` : `Di luar jangkauan (${mitra.distance})`}
+                                                            </span>
+                                                            {!mitra.isBuka && (
+                                                                <span className="dm-card-badge" style={{ backgroundColor: '#e2e8f0', color: '#475569', marginLeft: 0 }}>
+                                                                    Toko Tutup
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                     <div className="dm-card-rating">
                                                         <span className="material-symbols-outlined">star</span>
@@ -381,15 +391,18 @@ const DetailMitraLaundry = ({ onOrderClick }) => {
                                                 <div className="dm-card-footer">
                                                     <div className="dm-card-price">{mitra.price}</div>
                                                     <button
-                                                        className={`dmc-card-order-btn ${(!location.isConfirmed || !mitra.isDalamJangkauan) ? 'dmc-card-order-btn-disabled' : ''}`}
+                                                        className={`dmc-card-order-btn ${(!location.isConfirmed || !mitra.isDalamJangkauan || !mitra.isBuka) ? 'dmc-card-order-btn-disabled' : ''}`}
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            if (location.isConfirmed && mitra.isDalamJangkauan) handleOrderClick(mitra);
+                                                            if (location.isConfirmed && mitra.isDalamJangkauan && mitra.isBuka) handleOrderClick(mitra);
                                                         }}
-                                                        disabled={!location.isConfirmed || !mitra.isDalamJangkauan}
-                                                        style={{ opacity: (!location.isConfirmed || !mitra.isDalamJangkauan) ? 0.5 : 1, cursor: (!location.isConfirmed || !mitra.isDalamJangkauan) ? 'not-allowed' : 'pointer' }}
+                                                        disabled={!location.isConfirmed || !mitra.isDalamJangkauan || !mitra.isBuka}
+                                                        style={{
+                                                            opacity: (!location.isConfirmed || !mitra.isDalamJangkauan || !mitra.isBuka) ? 0.5 : 1,
+                                                            cursor: (!location.isConfirmed || !mitra.isDalamJangkauan || !mitra.isBuka) ? 'not-allowed' : 'pointer'
+                                                        }}
                                                     >
-                                                        {!location.isConfirmed ? 'Atur Lokasi' : (!mitra.isDalamJangkauan ? 'Di Luar Jangkauan' : 'Pesan Sekarang')}
+                                                        {!location.isConfirmed ? 'Atur Lokasi' : (!mitra.isBuka ? 'Toko Tutup' : (!mitra.isDalamJangkauan ? 'Di Luar Jangkauan' : 'Pesan Sekarang'))}
                                                     </button>
                                                 </div>
                                             </div>
