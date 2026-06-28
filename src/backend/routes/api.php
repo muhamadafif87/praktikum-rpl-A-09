@@ -28,7 +28,6 @@ Route::prefix('v1')->group(function () {
     Route::prefix('landing-page')->name('landing-page.')->group(function () {
         Route::get('/statistic', [LandingPageController::class, 'statistic'])->name('statistic');
         Route::get('/search',    [LandingPageController::class, 'searchLayanan'])->name('search');
-        Route::get('/terpopuler', [LandingPageController::class, 'terpopuler'])->name('terpopuler');
 
         Route::prefix('laundry-express')->name('laundry-express.')->group(function () {
             Route::get('/', [LandingPageController::class, 'laundryExpress'])->name('index');
@@ -73,13 +72,13 @@ Route::prefix('v1')->group(function () {
 
             // Seeding detail (form order)
             Route::prefix('laundry-express')->name('laundry-express.')->group(function () {
-                Route::post('/detail-pesanan', [PesananController::class, 'seedingDetailPesanan'])->name('detail-pesanan');
+                Route::get('/detail-pesanan', [PesananController::class, 'seedingDetailPesanan'])->name('detail-pesanan');
             });
             Route::prefix('galon-gas')->name('galon-gas.')->group(function () {
-                Route::post('/detail-pesanan', [PesananController::class, 'seedingDetailPesanan'])->name('detail-pesanan');
+                Route::get('/detail-pesanan', [PesananController::class, 'seedingDetailPesanan'])->name('detail-pesanan');
             });
             Route::prefix('daily-cleaning')->name('daily-cleaning.')->group(function () {
-                Route::post('/detail-pesanan', [PesananController::class, 'seedingDetailPesanan'])->name('detail-pesanan');
+                Route::get('/detail-pesanan', [PesananController::class, 'seedingDetailPesanan'])->name('detail-pesanan');
             });
 
             Route::prefix('pesanan')->name('pesanan.')->group(function () {
