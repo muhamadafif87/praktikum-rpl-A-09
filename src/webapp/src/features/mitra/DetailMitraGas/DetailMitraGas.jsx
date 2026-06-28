@@ -56,7 +56,7 @@ const DetailMitraGas = ({ onOrderClick }) => {
     const [selectedCategories, setSelectedCategories] = useState([]);
     const [sortBy, setSortBy] = useState('Terbaik');
 
-    const fetchMitraData = async (kategori = 'All', sortByValue = 'Terbaik') => {
+    const fetchMitraData = async (kategori = ['All'], sortByValue = 'Terbaik') => {
         setMitraLoading(true);
         setMitraError('');
 
@@ -81,11 +81,12 @@ const DetailMitraGas = ({ onOrderClick }) => {
                 image: mitra.profil_image || `https://ui-avatars.com/api/?name=${encodeURIComponent(mitra.nama_mitra)}&background=random&color=fff&size=300`,
                 type: mitra.jenis_jasa,
                 location: mitra.lokasi_layanan,
-                distance: mitra.jarak_km ? `${mitra.jarak_km.toFixed(1)} KM` : 'Jarak Tidak Diketahui',
+                distance: mitra.jarak_km ? `${parseFloat(mitra.jarak_km).toFixed(1)} KM` : 'Jarak Tidak Diketahui',
                 isDalamJangkauan: mitra.is_dalam_jangkauan !== false,
-                rating: mitra.rating,
-                reviewCount: mitra.jumlah_ulasan,
-                description: mitra.deskripsi || `${mitra.jenis_jasa === 'gas' ? 'Agen gas LPG' : mitra.jenis_jasa === 'galon' ? 'Agen air galon' : 'Agen Gas & Galon'} terpercaya. ${mitra.layanan?.length || 0} jenis layanan tersedia.`,
+                isBuka: mitra.is_buka !== false, // Membaca status buka dari backend
+                rating: parseFloat(mitra.rating || 0).toFixed(1),
+                reviewCount: mitra.jumlah_ulasan || 0,
+                description: mitra.deskripsi || `${mitra.jenis_jasa === 'gas' ? 'Agen gas LPG' : mitra.jenis_jasa === 'galon' ? 'Agen air galon' : 'Agen Gas & Galon'} terpercaya.`,
                 price: (() => {
                     if (!mitra.layanan || mitra.layanan.length === 0) return 'Hubungi untuk info harga';
                     const prices = mitra.layanan.map(l => parseInt(l.harga_satuan)).filter(p => !isNaN(p) && p > 0);
@@ -93,9 +94,9 @@ const DetailMitraGas = ({ onOrderClick }) => {
                 })(),
                 layanan: mitra.layanan || [],
                 reviews: (mitra.sample_ulasan || []).map((ulasan) => ({
-                    name: ulasan.nama_user,
-                    rating: `${ulasan.rating}.0`,
-                    text: ulasan.komentar,
+                    name: ulasan.nama_user || 'Pengguna',
+                    rating: `${ulasan.rating || 5}.0`,
+                    text: ulasan.komentar || '',
                 })),
                 marqueeSpeed: '30s',
             }));
@@ -122,6 +123,7 @@ const DetailMitraGas = ({ onOrderClick }) => {
     useEffect(() => {
         const kategoriParam = selectedCategories.length > 0 ? selectedCategories : ['All'];
         fetchMitraData(kategoriParam, sortBy);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedCategories, sortBy, location.lat, location.lng]);
 
     const handleCategoryChange = (category) => {
@@ -132,7 +134,6 @@ const DetailMitraGas = ({ onOrderClick }) => {
             } else {
                 newCategories = [...prev, category];
             }
-
             return newCategories;
         });
     };
@@ -322,7 +323,7 @@ const DetailMitraGas = ({ onOrderClick }) => {
                                 <span className="material-symbols-outlined">error_outline</span>
                                 <p>{mitraError}</p>
                                 <button
-                                    onClick={() => fetchMitraData()}
+                                    onClick={() => fetchMitraData(selectedCategories, sortBy)}
                                     className="dmg-retry-btn"
                                 >
                                     Coba Lagi
@@ -335,7 +336,7 @@ const DetailMitraGas = ({ onOrderClick }) => {
                                 </div>
                                 <h4 style={{ margin: '0 0 0.5rem', color: '#0f172a', fontSize: '1.5rem', fontWeight: '700', textAlign: 'center', letterSpacing: '-0.025em' }}>Mitra Tidak Ditemukan</h4>
                                 <p style={{ color: '#64748b', textAlign: 'center', maxWidth: '450px', margin: '0 auto 2rem', lineHeight: '1.6' }}>Maaf, kami tidak dapat menemukan mitra yang sesuai dengan filter pencarianmu. Coba sesuaikan filter untuk melihat hasil lainnya.</p>
-                                <button 
+                                <button
                                     onClick={() => setSelectedCategories([])}
                                     style={{ padding: '0.875rem 1.5rem', background: '#ffffff', color: '#0f172a', border: '1px solid #cbd5e1', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.5rem', transition: 'all 0.2s', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}
                                     onMouseOver={(e) => { e.currentTarget.style.backgroundColor = '#f8fafc'; e.currentTarget.style.borderColor = '#94a3b8'; }}
@@ -352,7 +353,7 @@ const DetailMitraGas = ({ onOrderClick }) => {
                                         <span className="material-symbols-outlined" style={{ fontSize: '64px', color: '#9ca3af' }}>location_off</span>
                                         <h4 style={{ margin: '1rem 0 0.5rem', color: '#1f2937', fontSize: '1.25rem', fontWeight: '600', textAlign: 'center' }}>Lokasi Pengiriman Belum Diatur</h4>
                                         <p style={{ color: '#6b7280', textAlign: 'center', maxWidth: '400px', margin: '0 auto 1.5rem', lineHeight: '1.5' }}>Silakan atur lokasi pengiriman terlebih dahulu di Beranda untuk melihat daftar mitra yang menjangkau areamu.</p>
-                                        <button 
+                                        <button
                                             onClick={() => navigate('/')}
                                             style={{ padding: '0.75rem 1.5rem', background: '#2563eb', color: 'white', border: 'none', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.5rem', transition: 'background-color 0.2s' }}
                                             onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#1d4ed8'}
@@ -367,22 +368,30 @@ const DetailMitraGas = ({ onOrderClick }) => {
                                         <article key={mitra.id} className="dmg-card">
                                             <div className="dmg-card-body">
                                                 <div className="dmg-card-img-wrapper">
-                                                    <img 
-                                                        className="dmg-card-img" 
-                                                        src={mitra.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(mitra.name)}&background=random&color=fff&size=300`}
-                                                        alt={mitra.name} 
+                                                    <img
+                                                        className="dmg-card-img"
+                                                        src={mitra.image}
+                                                        alt={mitra.name}
                                                     />
                                                 </div>
                                                 <div className="dmg-card-content">
                                                     <div>
                                                         <div className="dmg-card-header">
                                                             <h3 className="dmg-card-title">{mitra.name}</h3>
-                                                            <span 
-                                                                className="dmg-card-badge"
-                                                                style={!mitra.isDalamJangkauan ? { backgroundColor: '#fee2e2', color: '#ef4444' } : {}}
-                                                            >
-                                                                {mitra.isDalamJangkauan ? `Berada dalam jangkauan (${mitra.distance})` : `Di luar jangkauan (${mitra.distance})`}
-                                                            </span>
+                                                            {/* Menambahkan dua badge dengan flexbox */}
+                                                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'flex-end', marginLeft: '0.5rem' }}>
+                                                                <span
+                                                                    className="dmg-card-badge"
+                                                                    style={{ ...( !mitra.isDalamJangkauan ? { backgroundColor: '#fee2e2', color: '#ef4444' } : {} ), marginLeft: 0 }}
+                                                                >
+                                                                    {mitra.isDalamJangkauan ? `Berada dalam jangkauan (${mitra.distance})` : `Di luar jangkauan (${mitra.distance})`}
+                                                                </span>
+                                                                {!mitra.isBuka && (
+                                                                    <span className="dmg-card-badge" style={{ backgroundColor: '#e2e8f0', color: '#475569', marginLeft: 0 }}>
+                                                                        Toko Tutup
+                                                                    </span>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                         <div className="dmg-card-rating">
                                                             <span className="material-symbols-outlined">star</span>
@@ -394,12 +403,16 @@ const DetailMitraGas = ({ onOrderClick }) => {
                                                     <div className="dmg-card-footer">
                                                         <div className="dmg-card-price">{mitra.price}</div>
                                                         <button
-                                                            className={`dmg-card-order-btn ${(!location.isConfirmed || !mitra.isDalamJangkauan) ? 'dmg-card-order-btn-disabled' : ''}`}
-                                                            onClick={() => location.isConfirmed && mitra.isDalamJangkauan && handleOrderClick(mitra)}
-                                                            disabled={!location.isConfirmed || !mitra.isDalamJangkauan}
-                                                            style={{ opacity: (!location.isConfirmed || !mitra.isDalamJangkauan) ? 0.5 : 1, cursor: (!location.isConfirmed || !mitra.isDalamJangkauan) ? 'not-allowed' : 'pointer' }}
+                                                            className={`dmg-card-order-btn ${(!location.isConfirmed || !mitra.isDalamJangkauan || !mitra.isBuka) ? 'dmg-card-order-btn-disabled' : ''}`}
+                                                            onClick={() => location.isConfirmed && mitra.isDalamJangkauan && mitra.isBuka && handleOrderClick(mitra)}
+                                                            disabled={!location.isConfirmed || !mitra.isDalamJangkauan || !mitra.isBuka}
+                                                            style={{
+                                                                opacity: (!location.isConfirmed || !mitra.isDalamJangkauan || !mitra.isBuka) ? 0.5 : 1,
+                                                                cursor: (!location.isConfirmed || !mitra.isDalamJangkauan || !mitra.isBuka) ? 'not-allowed' : 'pointer'
+                                                            }}
                                                         >
-                                                            {!location.isConfirmed ? 'Atur Lokasi' : (!mitra.isDalamJangkauan ? 'Di Luar Jangkauan' : 'Pesan Sekarang')}
+                                                            {/* Ganti teks berdasar validasi */}
+                                                            {!location.isConfirmed ? 'Atur Lokasi' : (!mitra.isBuka ? 'Toko Tutup' : (!mitra.isDalamJangkauan ? 'Di Luar Jangkauan' : 'Pesan Sekarang'))}
                                                         </button>
                                                     </div>
                                                 </div>
