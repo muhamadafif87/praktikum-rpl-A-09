@@ -4,8 +4,7 @@ namespace App\Http\Controllers\Api\V1\Dashboard\Mitra;
 
 use App\Http\Controllers\Api\V1\ApiController as V1ApiController;
 use App\Http\Controllers\ApiController;
-use App\Http\Requests\Dashboard\Mitra\Ulasan\IndexTransaksiRequest as UlasanIndexTransaksiRequest;
-use App\Http\Requests\Mitra\TransaksiKeuangan\IndexTransaksiRequest;
+use App\Http\Requests\Dashboard\Mitra\TransaksiKeuangan\IndexTransaksiRequest;
 use App\Services\Mitra\TransaksiKeuanganService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -18,9 +17,9 @@ class TransaksiKeuanganController extends V1ApiController
      * GET /v1/mitra/keuangan/transaksi
      * List transaksi dengan filter status_dana + search + pagination.
      */
-    public function index(UlasanIndexTransaksiRequest $request): JsonResponse
+    public function index(IndexTransaksiRequest $request): JsonResponse
     {
-        $mitraUser = $request->user('mitra');
+        $mitraUser = auth('mitra-api')->user();
         $paginator = $this->transaksiService->index($mitraUser, $request->validated());
 
         return $this->paginated($paginator);

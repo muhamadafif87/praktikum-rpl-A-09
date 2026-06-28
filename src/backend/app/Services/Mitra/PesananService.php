@@ -62,53 +62,40 @@ class PesananService
         $idMitra = $mitraUser->id_mitra;
         $date = $date ?? now()->toDateString();
 
-        $statusMap = [
-            'pending' => Pesanan::STATUS_MENUNGGU,
-            'diproses' => Pesanan::STATUS_PROSES,
-            'siap' => Pesanan::STATUS_SIAP,
-            'selesai' => Pesanan::STATUS_SELESAI,
-            'dibatalkan' => Pesanan::STATUS_DIBATALKAN,
-        ];
-
-        $cases = [];
-        $bindings = [];
-
-        foreach ($statusMap as $key => $statusValue) {
-            $cases[] = "SUM(CASE WHEN status_pesanan = ? THEN 1 ELSE 0 END) as {$key}";
-            $bindings[] = $statusValue;
-        }
-
-        $cases[] = "SUM(CASE WHEN status_pesanan IN (?, ?) THEN 1 ELSE 0 END) as aktif";
-        $bindings[] = Pesanan::STATUS_PROSES;
-        $bindings[] = Pesanan::STATUS_SIAP;
-
-        $selectRaw = implode(", ", array_merge(
-            ["COUNT(*) as total"],
-            $cases
-        ));
-
-        $counts = Pesanan::where('id_mitra', $idMitra)
+        // 1. Hitung statistik yang spesifik untuk "Hari Ini" (Total, Selesai, Dibatalkan)
+        $countsToday = Pesanan::where('id_mitra', $idMitra)
             ->whereDate('tgl_pesanan', $date)
-            ->selectRaw($selectRaw, $bindings)
+            ->selectRaw("
+                COUNT(*) as total,
+                SUM(CASE WHEN status_pesanan = ? THEN 1 ELSE 0 END) as selesai,
+                SUM(CASE WHEN status_pesanan = ? THEN 1 ELSE 0 END) as dibatalkan
+            ", [Pesanan::STATUS_SELESAI, Pesanan::STATUS_DIBATALKAN])
             ->first();
 
-        if (!$counts) {
-            return array_merge(
-                ['total' => 0, 'aktif' => 0],
-                array_fill_keys(array_keys($statusMap), 0)
-            );
-        }
+        // 2. Hitung statistik untuk pesanan aktif/pending tanpa batas waktu (All-Time Active)
+        $countsAllTime = Pesanan::where('id_mitra', $idMitra)
+            ->selectRaw("
+                SUM(CASE WHEN status_pesanan = ? THEN 1 ELSE 0 END) as pending,
+                SUM(CASE WHEN status_pesanan = ? THEN 1 ELSE 0 END) as diproses,
+                SUM(CASE WHEN status_pesanan = ? THEN 1 ELSE 0 END) as siap,
+                SUM(CASE WHEN status_pesanan IN (?, ?) THEN 1 ELSE 0 END) as aktif
+            ", [
+                Pesanan::STATUS_MENUNGGU,
+                Pesanan::STATUS_PROSES,
+                Pesanan::STATUS_SIAP,
+                Pesanan::STATUS_PROSES, Pesanan::STATUS_SIAP
+            ])
+            ->first();
 
-        $result = [
-            'total' => (int) ($counts->total ?? 0),
-            'aktif' => (int) ($counts->aktif ?? 0),
+        return [
+            'total'      => (int) ($countsToday->total ?? 0),
+            'selesai'    => (int) ($countsToday->selesai ?? 0),
+            'dibatalkan' => (int) ($countsToday->dibatalkan ?? 0),
+            'pending'    => (int) ($countsAllTime->pending ?? 0),
+            'diproses'   => (int) ($countsAllTime->diproses ?? 0),
+            'siap'       => (int) ($countsAllTime->siap ?? 0),
+            'aktif'      => (int) ($countsAllTime->aktif ?? 0),
         ];
-
-        foreach ($statusMap as $key => $statusValue) {
-            $result[$key] = (int) ($counts->{$key} ?? 0);
-        }
-
-        return $result;
     }
 
     /**
