@@ -1,20 +1,17 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-<<<<<<< Updated upstream
-import { Link } from 'react-router-dom';
-=======
 import { Link, useNavigate } from 'react-router-dom';
->>>>>>> Stashed changes
-import axios from 'axios';
 import './AdminPartner.css';
+import { useAuth } from '../../../context/AuthContext';
+import api from '../../../services/api';
 
-// --- Sub-components ---
-
+// ─────────────────────────────────────────────
+// TopNavBar
+// ─────────────────────────────────────────────
 const TopNavBar = ({ user, onLogout }) => {
   const navigate = useNavigate();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Tutup dropdown saat klik di luar
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -50,16 +47,13 @@ const TopNavBar = ({ user, onLogout }) => {
           <span className="material-symbols-outlined">help</span>
         </button>
 
-        {/* Profile dropdown — pola sama seperti LandingPage */}
         <div className="admin-top-nav-profile-menu" ref={dropdownRef}>
           <button
             className="admin-top-nav-profile-btn"
             onClick={() => setShowProfileMenu((prev) => !prev)}
             title={displayName}
           >
-            <div className="admin-top-nav-avatar">
-              {getInitials(displayName)}
-            </div>
+            <div className="admin-top-nav-avatar">{getInitials(displayName)}</div>
             <span className="text-label-md admin-top-nav-profile-name">{displayName}</span>
             <span className="material-symbols-outlined admin-top-nav-chevron">
               {showProfileMenu ? 'expand_less' : 'expand_more'}
@@ -101,14 +95,17 @@ const TopNavBar = ({ user, onLogout }) => {
   );
 };
 
-const SideNavBar = () => (
+// ─────────────────────────────────────────────
+// SideNavBar
+// ─────────────────────────────────────────────
+const SideNavBar = ({ onLogout, isLoggingOut }) => (
   <aside className="admin-side-nav">
     <div className="admin-side-nav-header">
-      <img
-        alt="KostHub Admin"
-        className="admin-side-nav-profile-img"
-        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBGYjeqX8fHQwiwWoGM55Tn_S265O77UcwSQ3I9oxzC6VEKAGOGmw5DlCMtPIJOrkS8hlluH2N6Qkd9h0nhOGuzQTCOngYr6OBPYGqHFog3-ALhupmVMNuC--NVRSQPHp8G-TJ-jLE02ulMXaS2ung3sH358WWxnDijTa7VKK4-dL2vI0n3-wrlT8unw7tsQcrAR7c_SPpSumAqsqPGAVMj9n0qzdPFCSJclO3iNv06yRgnW9bD94wiVS0wjKVWW3u-uJJ22gppitU"
-      />
+      <div className="admin-side-nav-avatar-placeholder">
+        <span className="material-symbols-outlined" style={{ fontSize: 28, color: 'var(--color-primary)' }}>
+          admin_panel_settings
+        </span>
+      </div>
       <div className="admin-side-nav-title text-label-md">Admin Panel</div>
       <div className="admin-side-nav-subtitle text-label-sm">System Control</div>
     </div>
@@ -139,11 +136,70 @@ const SideNavBar = () => (
       </Link>
     </nav>
     <div className="admin-side-nav-footer">
-      <button className="admin-support-btn text-label-md">Quick Support</button>
+      <button
+        className="admin-support-btn text-label-md"
+        onClick={onLogout}
+        disabled={isLoggingOut}
+      >
+        {isLoggingOut ? (
+          <>
+            <span className="material-symbols-outlined admin-logout-spinner">progress_activity</span>
+            Logging out...
+          </>
+        ) : (
+          <>
+            <span className="material-symbols-outlined admin-side-nav-icon">logout</span>
+            Logout
+          </>
+        )}
+      </button>
     </div>
   </aside>
 );
 
+// ─────────────────────────────────────────────
+// LogoutConfirmModal
+// ─────────────────────────────────────────────
+const LogoutConfirmModal = ({ onConfirm, onCancel, isLoggingOut }) => (
+  <div className="admin-modal-overlay" onClick={onCancel}>
+    <div className="admin-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="admin-modal-icon">
+        <span className="material-symbols-outlined">logout</span>
+      </div>
+      <h2 className="text-headline-sm admin-modal-title">Konfirmasi Logout</h2>
+      <p className="text-body-sm admin-modal-desc">
+        Apakah Anda yakin ingin keluar dari sesi admin ini?
+      </p>
+      <div className="admin-modal-actions">
+        <button
+          className="admin-modal-btn-cancel text-label-md"
+          onClick={onCancel}
+          disabled={isLoggingOut}
+        >
+          Batal
+        </button>
+        <button
+          className="admin-modal-btn-confirm text-label-md"
+          onClick={onConfirm}
+          disabled={isLoggingOut}
+        >
+          {isLoggingOut ? (
+            <>
+              <span className="material-symbols-outlined admin-logout-spinner">progress_activity</span>
+              Keluar...
+            </>
+          ) : (
+            'Ya, Logout'
+          )}
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
+// ─────────────────────────────────────────────
+// Footer
+// ─────────────────────────────────────────────
 const Footer = () => (
   <footer className="admin-footer">
     <div className="admin-footer-left">
@@ -160,28 +216,22 @@ const Footer = () => (
   </footer>
 );
 
-<<<<<<< Updated upstream
-// --- Helper ---
-
+// ─────────────────────────────────────────────
+// Helper
+// ─────────────────────────────────────────────
 const SERVICE_TYPE_LABEL = {
   galon_gas: 'Gas & Galon',
   laundry: 'Laundry',
   daily_cleaning: 'Daily Cleaning',
 };
 
-// --- Detail Modal ---
-
+// ─────────────────────────────────────────────
+// DetailModal
+// ─────────────────────────────────────────────
 const DetailModal = ({ mitraId, onClose, onActionSuccess }) => {
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
-=======
-// --- Detail Modal ---
-
-const DetailModal = ({ mitraId, onClose }) => {
-  const [detail, setDetail] = useState(null);
-  const [loading, setLoading] = useState(true);
->>>>>>> Stashed changes
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -189,11 +239,7 @@ const DetailModal = ({ mitraId, onClose }) => {
       try {
         setLoading(true);
         setError(null);
-<<<<<<< Updated upstream
-        const response = await axios.get(`/api/v1/dashboard/admin/mitra/${mitraId}`);
-=======
-        const response = await axios.get(`/v1/dashboard/admin/mitra/${mitraId}`);
->>>>>>> Stashed changes
+        const response = await api.get(`/v1/dashboard/admin/mitra/${mitraId}`);
         setDetail(response.data.data);
       } catch (err) {
         setError('Gagal memuat detail mitra.');
@@ -204,15 +250,10 @@ const DetailModal = ({ mitraId, onClose }) => {
     fetchDetail();
   }, [mitraId]);
 
-<<<<<<< Updated upstream
-=======
-  // Close on backdrop click
->>>>>>> Stashed changes
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) onClose();
   };
 
-<<<<<<< Updated upstream
   useEffect(() => {
     const handleKeyDown = (e) => { if (e.key === 'Escape') onClose(); };
     document.addEventListener('keydown', handleKeyDown);
@@ -222,7 +263,7 @@ const DetailModal = ({ mitraId, onClose }) => {
   const handleAction = async (action) => {
     try {
       setActionLoading(true);
-      const response = await axios.patch('v1/dashboard/admin/mitra/action', {
+      const response = await api.patch('/v1/dashboard/admin/mitra/action', {
         id_mitra: mitraId,
         action,
       });
@@ -243,19 +284,10 @@ const DetailModal = ({ mitraId, onClose }) => {
         <div className="modal-header">
           <h2 className="text-headline-sm modal-title">Detail Mitra</h2>
           <button className="modal-close-btn" onClick={onClose} aria-label="Tutup modal">
-=======
-  return (
-    <div className="admin-modal-backdrop" onClick={handleBackdropClick}>
-      <div className="admin-modal">
-        <div className="admin-modal-header">
-          <h2 className="text-headline-sm admin-modal-title">Detail Mitra</h2>
-          <button className="admin-modal-close-btn" onClick={onClose}>
->>>>>>> Stashed changes
             <span className="material-symbols-outlined">close</span>
           </button>
         </div>
 
-<<<<<<< Updated upstream
         {/* Modal Body */}
         <div className="modal-body">
           {loading && (
@@ -345,73 +377,6 @@ const DetailModal = ({ mitraId, onClose }) => {
               >
                 {actionLoading ? 'Memproses...' : 'Aktifkan Mitra'}
               </button>
-=======
-        {loading && (
-          <div className="admin-modal-loading">
-            <span className="material-symbols-outlined admin-spinner">progress_activity</span>
-          </div>
-        )}
-
-        {error && (
-          <div className="admin-modal-error text-body-sm">{error}</div>
-        )}
-
-        {!loading && !error && detail && (
-          <div className="admin-modal-body">
-            <div className="admin-modal-info-grid">
-              <div className="admin-modal-info-item">
-                <span className="material-symbols-outlined admin-modal-info-icon">store</span>
-                <div>
-                  <div className="text-label-sm admin-modal-info-label">Nama Mitra</div>
-                  <div className="text-body-md admin-modal-info-value">{detail.nama_mitra}</div>
-                </div>
-              </div>
-              <div className="admin-modal-info-item">
-                <span className="material-symbols-outlined admin-modal-info-icon">phone</span>
-                <div>
-                  <div className="text-label-sm admin-modal-info-label">Nomor Telepon</div>
-                  <div className="text-body-md admin-modal-info-value">{detail.nomor_telepon}</div>
-                </div>
-              </div>
-              <div className="admin-modal-info-item">
-                <span className="material-symbols-outlined admin-modal-info-icon">location_on</span>
-                <div>
-                  <div className="text-label-sm admin-modal-info-label">Alamat</div>
-                  <div className="text-body-md admin-modal-info-value">{detail.alamat_lengkap}</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="admin-modal-services-section">
-              <h3 className="text-label-md admin-modal-services-title">Daftar Layanan</h3>
-              <div className="admin-modal-services-list">
-                {detail.list_layanan?.map((layanan) => (
-                  <div key={layanan.id_layanan} className="admin-modal-service-card">
-                    <div className="admin-modal-service-header">
-                      <span className="text-body-sm admin-modal-service-name">{layanan.nama_layanan}</span>
-                    </div>
-                    <div className="admin-modal-order-stats">
-                      <div className="admin-modal-order-stat">
-                        <span className="text-label-sm admin-modal-order-label">Pending</span>
-                        <span className="text-body-sm admin-modal-order-val pending">{layanan.jumlah_pesanan.pending}</span>
-                      </div>
-                      <div className="admin-modal-order-stat">
-                        <span className="text-label-sm admin-modal-order-label">Proses</span>
-                        <span className="text-body-sm admin-modal-order-val proses">{layanan.jumlah_pesanan.proses}</span>
-                      </div>
-                      <div className="admin-modal-order-stat">
-                        <span className="text-label-sm admin-modal-order-label">Selesai</span>
-                        <span className="text-body-sm admin-modal-order-val selesai">{layanan.jumlah_pesanan.selesai}</span>
-                      </div>
-                      <div className="admin-modal-order-stat">
-                        <span className="text-label-sm admin-modal-order-label">Batal</span>
-                        <span className="text-body-sm admin-modal-order-val batal">{layanan.jumlah_pesanan.dibatalkan}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
->>>>>>> Stashed changes
             </div>
           </div>
         )}
@@ -420,12 +385,9 @@ const DetailModal = ({ mitraId, onClose }) => {
   );
 };
 
-<<<<<<< Updated upstream
-// --- Stats Cards ---
-=======
-// --- Partner Components ---
->>>>>>> Stashed changes
-
+// ─────────────────────────────────────────────
+// StatsCards
+// ─────────────────────────────────────────────
 const StatsCards = ({ stats }) => {
   if (!stats) return null;
 
@@ -442,13 +404,9 @@ const StatsCards = ({ stats }) => {
           <span className="material-symbols-outlined admin-stat-icon primary">verified_user</span>
         </div>
         <div className="text-headline-lg admin-stat-value">{stats.total_mitra_aktif}</div>
-<<<<<<< Updated upstream
         <div className="text-label-sm admin-stat-desc success" style={{ color: 'var(--color-primary)' }}>
           Beroperasi normal
         </div>
-=======
-        <div className="text-label-sm admin-stat-desc success" style={{color: 'var(--color-primary)'}}>Beroperasi normal</div>
->>>>>>> Stashed changes
       </div>
       <div className="admin-stat-card critical">
         <div className="admin-stat-header">
@@ -464,48 +422,19 @@ const StatsCards = ({ stats }) => {
           <span className="material-symbols-outlined admin-stat-icon critical">block</span>
         </div>
         <div className="text-headline-lg admin-stat-value critical">{stats.mitra_disuspend}</div>
-<<<<<<< Updated upstream
         <div className="text-label-sm admin-stat-desc critical">Tindakan diperlukan</div>
-=======
-        <div className="text-label-sm admin-stat-desc critical">
-          Tindakan diperlukan
-        </div>
->>>>>>> Stashed changes
       </div>
     </div>
   );
 };
 
-<<<<<<< Updated upstream
-// --- Partners Table ---
-
+// ─────────────────────────────────────────────
+// PartnersTable
+// ─────────────────────────────────────────────
 const PartnersTable = ({ data, pagination, filters, onFilterChange, onPageChange, onViewDetail, onAction }) => {
   if (!data) return null;
 
   const { search, jenis_layanan, status } = filters;
-=======
-// Helper to map jenis_layanan API value to display label
-const jenisLayananLabel = {
-  galon_gas: 'Gas & Galon',
-  laundry: 'Laundry',
-  daily_cleaning: 'Daily Cleaning',
-};
-
-const PartnersTable = ({ data, pagination, filters, onFilterChange, onPageChange, onViewDetail, onToggleStatus, actionLoading }) => {
-  if (!data) return null;
-
-  const handleSearchChange = (e) => {
-    onFilterChange({ search: e.target.value, page: 1 });
-  };
-
-  const handleJenisLayananChange = (e) => {
-    onFilterChange({ jenis_layanan: e.target.value || null, page: 1 });
-  };
-
-  const handleStatusChange = (e) => {
-    onFilterChange({ status: e.target.value || null, page: 1 });
-  };
->>>>>>> Stashed changes
 
   return (
     <section className="admin-table-section">
@@ -519,7 +448,6 @@ const PartnersTable = ({ data, pagination, filters, onFilterChange, onPageChange
               className="admin-search-input text-label-md"
               placeholder="Cari mitra..."
               type="text"
-<<<<<<< Updated upstream
               value={search}
               onChange={(e) => onFilterChange({ search: e.target.value, page: 1 })}
             />
@@ -542,26 +470,6 @@ const PartnersTable = ({ data, pagination, filters, onFilterChange, onPageChange
             className="admin-filter-btn text-label-md"
             value={status || ''}
             onChange={(e) => onFilterChange({ status: e.target.value || null, page: 1 })}
-=======
-              value={filters.search || ''}
-              onChange={handleSearchChange}
-            />
-          </div>
-          <select
-            className="admin-filter-btn text-label-md"
-            value={filters.jenis_layanan || ''}
-            onChange={handleJenisLayananChange}
-          >
-            <option value="">Semua Layanan</option>
-            <option value="galon_gas">Gas & Galon</option>
-            <option value="laundry">Laundry</option>
-            <option value="daily_cleaning">Daily Cleaning</option>
-          </select>
-          <select
-            className="admin-filter-btn text-label-md"
-            value={filters.status || ''}
-            onChange={handleStatusChange}
->>>>>>> Stashed changes
           >
             <option value="">Semua Status</option>
             <option value="aktif">Aktif</option>
@@ -585,33 +493,19 @@ const PartnersTable = ({ data, pagination, filters, onFilterChange, onPageChange
           <tbody className="text-body-sm">
             {data.length === 0 ? (
               <tr>
-<<<<<<< Updated upstream
                 <td colSpan={6} style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-on-surface-variant)' }}>
                   Tidak ada data mitra ditemukan.
-=======
-                <td colSpan={6} style={{ textAlign: 'center', color: 'var(--color-on-surface-variant)', padding: '2rem' }}>
-                  Tidak ada mitra ditemukan.
->>>>>>> Stashed changes
                 </td>
               </tr>
             ) : (
               data.map((item) => {
                 const isActive = item.status === true;
-<<<<<<< Updated upstream
-=======
-                const isActionLoading = actionLoading === item.id_mitra;
-
->>>>>>> Stashed changes
                 return (
                   <tr key={item.id_mitra}>
                     <td className={`admin-td-font-medium ${!isActive ? 'admin-td-muted' : ''}`}>
                       {item.nama_mitra}
                     </td>
-<<<<<<< Updated upstream
                     <td>{SERVICE_TYPE_LABEL[item.jenis_layanan] ?? item.jenis_layanan}</td>
-=======
-                    <td>{jenisLayananLabel[item.jenis_layanan] || item.jenis_layanan}</td>
->>>>>>> Stashed changes
                     <td className="admin-td-muted">{item.alamat_lengkap}</td>
                     <td>
                       <span className={`admin-status-badge text-label-sm ${isActive ? 'active' : 'suspend'}`}>
@@ -624,11 +518,7 @@ const PartnersTable = ({ data, pagination, filters, onFilterChange, onPageChange
                         {item.avg_rating}
                       </div>
                     </td>
-<<<<<<< Updated upstream
                     <td className="right">
-=======
-                    <td>
->>>>>>> Stashed changes
                       <div className="admin-actions-group">
                         <button
                           className="admin-action-btn text-label-md"
@@ -636,7 +526,6 @@ const PartnersTable = ({ data, pagination, filters, onFilterChange, onPageChange
                         >
                           Lihat Detail
                         </button>
-<<<<<<< Updated upstream
                         {isActive ? (
                           <button
                             className="admin-action-btn text-label-md"
@@ -653,17 +542,6 @@ const PartnersTable = ({ data, pagination, filters, onFilterChange, onPageChange
                             Aktifkan
                           </button>
                         )}
-=======
-                        <button
-                          className={`admin-action-btn text-label-md ${isActive ? 'suspend-action' : 'activate-action'}`}
-                          disabled={isActionLoading}
-                          onClick={() => onToggleStatus(item.id_mitra, isActive ? 'suspend' : 'activate')}
-                        >
-                          {isActionLoading
-                            ? '...'
-                            : isActive ? 'Suspend' : 'Activate'}
-                        </button>
->>>>>>> Stashed changes
                       </div>
                     </td>
                   </tr>
@@ -678,7 +556,6 @@ const PartnersTable = ({ data, pagination, filters, onFilterChange, onPageChange
       {pagination && pagination.last_page > 1 && (
         <div className="admin-pagination">
           <span className="text-label-sm admin-pagination-info">
-<<<<<<< Updated upstream
             Halaman {pagination.current_page} dari {pagination.last_page} &nbsp;·&nbsp; Total {pagination.total} mitra
           </span>
           <div className="admin-pagination-btns">
@@ -697,33 +574,6 @@ const PartnersTable = ({ data, pagination, filters, onFilterChange, onPageChange
             >
               Selanjutnya
               <span className="material-symbols-outlined" style={{ fontSize: 16 }}>chevron_right</span>
-=======
-            Halaman {pagination.current_page} dari {pagination.last_page} ({pagination.total} mitra)
-          </span>
-          <div className="admin-pagination-controls">
-            <button
-              className="admin-pagination-btn"
-              disabled={pagination.current_page <= 1}
-              onClick={() => onPageChange(pagination.current_page - 1)}
-            >
-              <span className="material-symbols-outlined">chevron_left</span>
-            </button>
-            {Array.from({ length: pagination.last_page }, (_, i) => i + 1).map((page) => (
-              <button
-                key={page}
-                className={`admin-pagination-btn ${page === pagination.current_page ? 'active' : ''}`}
-                onClick={() => onPageChange(page)}
-              >
-                {page}
-              </button>
-            ))}
-            <button
-              className="admin-pagination-btn"
-              disabled={pagination.current_page >= pagination.last_page}
-              onClick={() => onPageChange(pagination.current_page + 1)}
-            >
-              <span className="material-symbols-outlined">chevron_right</span>
->>>>>>> Stashed changes
             </button>
           </div>
         </div>
@@ -732,27 +582,27 @@ const PartnersTable = ({ data, pagination, filters, onFilterChange, onPageChange
   );
 };
 
-// --- Main Component ---
-
+// ─────────────────────────────────────────────
+// Main Component
+// ─────────────────────────────────────────────
 const AdminPartner = () => {
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
   const [statsData, setStatsData] = useState(null);
   const [partnersData, setPartnersData] = useState(null);
   const [pagination, setPagination] = useState(null);
   const [loading, setLoading] = useState(true);
   const [tableLoading, setTableLoading] = useState(false);
-<<<<<<< Updated upstream
   const [selectedMitraId, setSelectedMitraId] = useState(null);
+
+  // ── logout ──
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [logoutError, setLogoutError] = useState(null);
 
   const [filters, setFilters] = useState({
     search: '',
-=======
-  const [actionLoading, setActionLoading] = useState(null); // id_mitra being actioned
-  const [selectedMitraId, setSelectedMitraId] = useState(null);
-  const [toast, setToast] = useState(null); // { message, type }
-
-  const [filters, setFilters] = useState({
-    search: null,
->>>>>>> Stashed changes
     jenis_layanan: null,
     status: null,
     rating: null,
@@ -760,19 +610,12 @@ const AdminPartner = () => {
     per_page: 5,
   });
 
-<<<<<<< Updated upstream
   const fetchStats = useCallback(async () => {
     try {
-      const response = await axios.get('/v1/dashboard/admin/statistic/mitra-summary');
+      const response = await api.get('/v1/dashboard/admin/statistic/mitra-summary');
       setStatsData(response.data);
     } catch (err) {
-      console.warn('Stats fetch failed, using dummy data', err);
-      setStatsData({
-        total_mitra: 342,
-        total_mitra_aktif: 328,
-        jumlah_mitra_baru: 5,
-        mitra_disuspend: 9,
-      });
+      console.warn('Stats fetch failed', err);
     }
   }, []);
 
@@ -787,78 +630,20 @@ const AdminPartner = () => {
         page: currentFilters.page,
         per_page: currentFilters.per_page,
       };
-      const response = await axios.get('/v1/dashboard/admin/mitra/list', { params });
+      const response = await api.get('/v1/dashboard/admin/mitra/list', { params });
       setPartnersData(response.data.list_mitra);
       setPagination(response.data.pagination);
     } catch (err) {
-      console.warn('Partners fetch failed, using dummy data', err);
-      setPartnersData([
-        { id_mitra: 1, nama_mitra: 'Kost Sejahtera Raya', jenis_layanan: 'galon_gas', alamat_lengkap: 'Sukabirus', status: true, avg_rating: 4.8 },
-        { id_mitra: 2, nama_mitra: 'Laundry Bersih Selalu', jenis_layanan: 'laundry', alamat_lengkap: 'PGA', status: true, avg_rating: 4.9 },
-        { id_mitra: 3, nama_mitra: 'Kost Amanah', jenis_layanan: 'daily_cleaning', alamat_lengkap: 'Sukapura', status: false, avg_rating: 3.2 },
-        { id_mitra: 4, nama_mitra: 'Galon Cepat Budi', jenis_layanan: 'galon_gas', alamat_lengkap: 'Cikoneng', status: true, avg_rating: 4.5 },
-      ]);
+      console.warn('Partners fetch failed', err);
+      setPartnersData([]);
       setPagination(null);
     } finally {
-=======
-  // Show toast notification
-  const showToast = (message, type = 'success') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3500);
-  };
-
-  // Fetch stats (once)
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const response = await axios.get('/v1/dashboard/admin/statistic/mitra-summary');
-        setStatsData(response.data);
-      } catch (error) {
-        console.warn('Failed to fetch stats, using dummy data', error);
-        setStatsData({
-          total_mitra: 342,
-          total_mitra_aktif: 328,
-          jumlah_mitra_baru: 5,
-          mitra_disuspend: 9,
-        });
-      }
-    };
-    fetchStats();
-  }, []);
-
-  // Fetch partners list (on filter/page change)
-  const fetchPartners = useCallback(async (currentFilters, isInitial = false) => {
-    try {
-      isInitial ? setLoading(true) : setTableLoading(true);
-
-      // Build query params, omitting null values
-      const params = {};
-      Object.entries(currentFilters).forEach(([key, val]) => {
-        if (val !== null && val !== '') params[key] = val;
-      });
-
-      const response = await axios.get('/v1/dashboard/admin/mitra/list', { params });
-      setPartnersData(response.data.list_mitra);
-      setPagination(response.data.pagination);
-    } catch (error) {
-      console.warn('Failed to fetch partners, using dummy data', error);
-      setPartnersData([
-        { id_mitra: 1, nama_mitra: 'Kost Sejahtera Raya', jenis_layanan: 'galon_gas', alamat_lengkap: 'Sukabirus, Bandung', status: true, avg_rating: 4.8 },
-        { id_mitra: 2, nama_mitra: 'Laundry Bersih Selalu', jenis_layanan: 'laundry', alamat_lengkap: 'PGA, Bandung', status: true, avg_rating: 4.9 },
-        { id_mitra: 3, nama_mitra: 'Kost Amanah', jenis_layanan: 'daily_cleaning', alamat_lengkap: 'Sukapura, Bandung', status: false, avg_rating: 3.2 },
-        { id_mitra: 4, nama_mitra: 'Galon Cepat Budi', jenis_layanan: 'galon_gas', alamat_lengkap: 'Cikoneng, Bandung', status: true, avg_rating: 4.5 },
-      ]);
-      setPagination({ current_page: 1, per_page: 5, total: 4, last_page: 1 });
-    } finally {
-      setLoading(false);
->>>>>>> Stashed changes
       setTableLoading(false);
     }
   }, []);
 
   // Initial load
   useEffect(() => {
-<<<<<<< Updated upstream
     const init = async () => {
       setLoading(true);
       await Promise.all([fetchStats(), fetchPartners(filters)]);
@@ -876,30 +661,15 @@ const AdminPartner = () => {
 
   const handleFilterChange = (newFilter) => {
     setFilters((prev) => ({ ...prev, ...newFilter }));
-=======
-    fetchPartners(filters, true);
-  }, []); // eslint-disable-line
-
-  // On filter/page change (skip first render)
-  const isFirstRender = React.useRef(true);
-  useEffect(() => {
-    if (isFirstRender.current) { isFirstRender.current = false; return; }
-    fetchPartners(filters, false);
-  }, [filters, fetchPartners]);
-
-  const handleFilterChange = (changes) => {
-    setFilters((prev) => ({ ...prev, ...changes }));
->>>>>>> Stashed changes
   };
 
   const handlePageChange = (page) => {
     setFilters((prev) => ({ ...prev, page }));
   };
 
-<<<<<<< Updated upstream
   const handleAction = async (id, action) => {
     try {
-      const response = await axios.patch('v1/dashboard/admin/mitra/action', { id_mitra: id, action });
+      const response = await api.patch('/v1/dashboard/admin/mitra/action', { id_mitra: id, action });
       alert(response.data.message);
       fetchStats();
       fetchPartners(filters);
@@ -913,35 +683,45 @@ const AdminPartner = () => {
     fetchPartners(filters);
   };
 
-=======
-  const handleViewDetail = (id) => {
-    setSelectedMitraId(id);
-  };
-
-  const handleToggleStatus = async (id, action) => {
-    setActionLoading(id);
+  // ── Logout handlers ──
+  const handleLogoutClick   = () => { setLogoutError(null); setShowLogoutModal(true); };
+  const handleLogoutCancel  = () => { if (!isLoggingOut) setShowLogoutModal(false); };
+  const handleLogoutConfirm = async () => {
+    setIsLoggingOut(true);
+    setLogoutError(null);
     try {
-      const response = await axios.patch('/v1/dashboard/admin/mitra/action', {
-        id_mitra: id,
-        action,
-      });
-      showToast(response.data.message || `Berhasil ${action === 'activate' ? 'mengaktifkan' : 'men-suspend'} mitra.`, 'success');
-      // Refresh both stats and table
-      fetchPartners(filters, false);
-      const statsRes = await axios.get('/v1/dashboard/admin/statistic/mitra-summary');
-      setStatsData(statsRes.data);
-    } catch (error) {
-      showToast(`Gagal ${action === 'activate' ? 'mengaktifkan' : 'men-suspend'} mitra. Coba lagi.`, 'error');
-    } finally {
-      setActionLoading(null);
+      await logout();
+      navigate('/login');
+    } catch (err) {
+      setIsLoggingOut(false);
+      setLogoutError('Logout gagal. Silakan coba lagi.');
     }
   };
 
->>>>>>> Stashed changes
   return (
     <div className="admin-partner-page">
-      <TopNavBar />
-      <SideNavBar />
+      <TopNavBar user={user} onLogout={handleLogoutClick} />
+      <SideNavBar onLogout={handleLogoutClick} isLoggingOut={isLoggingOut} />
+
+      {/* Logout modal */}
+      {showLogoutModal && (
+        <LogoutConfirmModal
+          onConfirm={handleLogoutConfirm}
+          onCancel={handleLogoutCancel}
+          isLoggingOut={isLoggingOut}
+        />
+      )}
+
+      {/* Toast error logout */}
+      {logoutError && (
+        <div className="admin-toast admin-toast-error text-label-sm">
+          <span className="material-symbols-outlined">error</span>
+          {logoutError}
+          <button onClick={() => setLogoutError(null)} className="admin-toast-close">
+            <span className="material-symbols-outlined">close</span>
+          </button>
+        </div>
+      )}
 
       <main className="admin-main-content">
         <div className="admin-container">
@@ -962,13 +742,9 @@ const AdminPartner = () => {
               <div style={{ position: 'relative' }}>
                 {tableLoading && (
                   <div className="admin-table-overlay">
-<<<<<<< Updated upstream
                     <span className="material-symbols-outlined admin-spinner" style={{ fontSize: 32 }}>
                       progress_activity
                     </span>
-=======
-                    <span className="material-symbols-outlined admin-spinner" style={{ fontSize: 32 }}>progress_activity</span>
->>>>>>> Stashed changes
                   </div>
                 )}
                 <PartnersTable
@@ -977,14 +753,8 @@ const AdminPartner = () => {
                   filters={filters}
                   onFilterChange={handleFilterChange}
                   onPageChange={handlePageChange}
-<<<<<<< Updated upstream
                   onViewDetail={setSelectedMitraId}
                   onAction={handleAction}
-=======
-                  onViewDetail={handleViewDetail}
-                  onToggleStatus={handleToggleStatus}
-                  actionLoading={actionLoading}
->>>>>>> Stashed changes
                 />
               </div>
             </>
@@ -994,7 +764,6 @@ const AdminPartner = () => {
 
       <Footer />
 
-<<<<<<< Updated upstream
       {selectedMitraId !== null && (
         <DetailModal
           mitraId={selectedMitraId}
@@ -1002,25 +771,6 @@ const AdminPartner = () => {
           onActionSuccess={handleModalActionSuccess}
         />
       )}
-=======
-      {/* Detail Modal */}
-      {selectedMitraId && (
-        <DetailModal
-          mitraId={selectedMitraId}
-          onClose={() => setSelectedMitraId(null)}
-        />
-      )}
-
-      {/* Toast */}
-      {toast && (
-        <div className={`admin-toast admin-toast-${toast.type}`}>
-          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
-            {toast.type === 'success' ? 'check_circle' : 'error'}
-          </span>
-          <span className="text-label-md">{toast.message}</span>
-        </div>
-      )}
->>>>>>> Stashed changes
     </div>
   );
 };
