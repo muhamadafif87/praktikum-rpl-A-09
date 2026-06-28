@@ -567,11 +567,7 @@ const AdminStock = () => {
         page,
         per_page: 5,
       };
-<<<<<<< Updated upstream
-      const res = await api.get('/v1/dashboard/admin/inventory/list', payload);
-=======
       const res = await api.post('/v1/dashboard/admin/inventory/list', payload);
->>>>>>> Stashed changes
       setListMitra(res.data.list_mitra ?? []);
       setPagination(res.data.pagination ?? null);
 
