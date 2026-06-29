@@ -55,7 +55,7 @@ Route::prefix('v1')->group(function () {
         Route::delete('/address', [UserAddressController::class, 'destroy']);
     });
 
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware('auth:sanctum,mitra-api,admin-api')->group(function () {
 
         Route::prefix('auth')->name('auth.')->group(function () {
             Route::post('/logout', [AuthController::class, 'logout'])->name('logout');

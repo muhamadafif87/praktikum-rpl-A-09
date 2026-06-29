@@ -158,8 +158,8 @@ class MitraProfileService
     private function resolveJadwalKey(string $jenisJasa): string
     {
         return match (strtolower($jenisJasa)) {
-            'gas_galon', 'gas'  => 'jadwal_pengiriman',
-            default             => 'jadwal_penjemputan',  // laundry, cleaning, dll.
+            'gas_galon', 'gas', 'galon_gas' => 'jadwal_pengiriman',
+            default                         => 'jadwal_penjemputan',  // laundry, cleaning, dll.
         };
     }
 

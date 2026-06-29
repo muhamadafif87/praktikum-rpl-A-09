@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link, useLocation } from 'react-router-dom';
 import api from '../../../services/api';
+import MitraLayout from '../../../components/MitraLayout/MitraLayout';
 import './PengaturanMitra.css';
 
 // ---------------------------------------------------------------------------
@@ -70,10 +70,6 @@ const ModalUbahPassword = ({ onClose, onSubmit, loading }) => {
 // Komponen utama
 // ---------------------------------------------------------------------------
 const PengaturanMitra = () => {
-  const location = useLocation();
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const mitraName = user.name || user.nama_usaha || 'Mitra';
-
   // State loading & feedback
   const [loading, setLoading]                     = useState(true);
   const [savingProfil, setSavingProfil]           = useState(false);
@@ -133,6 +129,19 @@ const PengaturanMitra = () => {
           setJenisJasa(data.jenis_jasa ?? '');
           setJadwalKey(data.jadwal_key ?? 'jadwal_penjemputan');
           setJadwalDipilih(data.jadwal ?? []);
+
+          // Sinkronkan localStorage agar navbar/sidebar konsisten
+          try {
+            const existingUser = JSON.parse(localStorage.getItem('user') || '{}');
+            const updatedUser = {
+              ...existingUser,
+              nama_mitra:    data.profilBisnis.nama_mitra,
+              nama_usaha:    data.profilBisnis.nama_mitra,
+              nomor_telepon: data.profilBisnis.nomor_telepon,
+              jenis_jasa:    data.jenis_jasa,
+            };
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+          } catch (_) { /* ignore localStorage errors */ }
         }
       } catch (error) {
         console.warn('Gagal mengambil pengaturan:', error);
@@ -169,6 +178,18 @@ const PengaturanMitra = () => {
 
       if (response.data?.success) {
         showToast('success', response.data.message || 'Profil berhasil diperbarui.');
+
+        // Update localStorage setelah save berhasil
+        try {
+          const existingUser = JSON.parse(localStorage.getItem('user') || '{}');
+          const updatedUser = {
+            ...existingUser,
+            nama_mitra:    profilBisnis.nama_mitra,
+            nama_usaha:    profilBisnis.nama_mitra,
+            nomor_telepon: profilBisnis.nomor_telepon,
+          };
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+        } catch (_) { /* ignore */ }
       }
     } catch (error) {
       if (error.response?.status === 422) {
@@ -248,15 +269,17 @@ const PengaturanMitra = () => {
   // Label jadwal berdasarkan jenis jasa
   // ---------------------------------------------------------------------------
   const jadwalLabel =
-    jenisJasa === 'gas_galon' || jenisJasa === 'gas'
+    jenisJasa === 'gas_galon' || jenisJasa === 'gas' || jenisJasa === 'galon_gas'
       ? 'Slot Waktu Pengiriman'
-      : 'Slot Waktu Penjemputan';
+      : (jenisJasa === 'cleaning' || jenisJasa === 'daily_cleaning' 
+         ? 'Slot Waktu Pelayanan' 
+         : 'Slot Waktu Penjemputan');
 
   // ---------------------------------------------------------------------------
   // Render
   // ---------------------------------------------------------------------------
   return (
-    <div className="pengaturan-mitra-container">
+    <MitraLayout activePage="settings">
 
       {/* Toast Notification */}
       {toast && (
@@ -277,312 +300,224 @@ const PengaturanMitra = () => {
         />
       )}
 
-      {/* TopNavBar */}
-      <nav className="pengaturan-mitra-navbar">
-        <div className="pengaturan-mitra-brand">
-          <Link to="/dashboard/mitra" className="pengaturan-mitra-brand-link">
-            KostHub<span className="pengaturan-mitra-brand-dot">.</span>
-          </Link>
+      {loading ? (
+        <div className="pengaturan-mitra-loading-container">
+          <span className="material-symbols-outlined pengaturan-mitra-spinner">progress_activity</span>
         </div>
-        <div className="pengaturan-mitra-nav-actions">
-          <button className="pengaturan-mitra-icon-btn">
-            <span className="material-symbols-outlined">notifications</span>
-          </button>
-          <button className="pengaturan-mitra-icon-btn">
-            <span className="material-symbols-outlined">help</span>
-          </button>
-          <div className="pengaturan-mitra-user-profile">
-            <img
-              alt="Partner Profile"
-              className="pengaturan-mitra-avatar"
-              src={`https://ui-avatars.com/api/?name=${encodeURIComponent(mitraName)}&background=004ac6&color=fff`}
-            />
-            <span className="pengaturan-mitra-user-name">{mitraName}</span>
-          </div>
-        </div>
-      </nav>
+      ) : (
+        <div className="pengaturan-mitra-wrapper">
+          <header className="pengaturan-mitra-header">
+            <h1 className="pengaturan-mitra-title">Pengaturan Mitra</h1>
+            <p className="pengaturan-mitra-description">
+              Kelola profil bisnis, jadwal operasional, dan keamanan akun Anda.
+            </p>
+          </header>
 
-      {/* SideNavBar */}
-      <aside className="pengaturan-mitra-sidebar">
-        <div className="pengaturan-mitra-sidebar-header">
-          <div className="pengaturan-mitra-admin-info">
-            <img
-              alt="KostHub Admin"
-              className="pengaturan-mitra-admin-avatar"
-              src={`https://ui-avatars.com/api/?name=${encodeURIComponent(mitraName)}&background=004ac6&color=fff`}
-            />
-            <div style={{ textAlign: 'center' }}>
-              <h2 className="pengaturan-mitra-admin-title">Admin Panel</h2>
-              <p className="pengaturan-mitra-admin-subtitle">System Control</p>
-              <div className="pengaturan-mitra-status-badge">
-                <span className="pengaturan-mitra-status-dot"></span>
-                <span className="pengaturan-mitra-status-text">System Status: Operational</span>
+          <div className="pengaturan-mitra-sections">
+
+            {/* ----------------------------------------------------------------
+                SECTION 1 — Profil Bisnis
+            ---------------------------------------------------------------- */}
+            <section className="pengaturan-mitra-section-card">
+              <h2 className="pengaturan-mitra-section-title">Profil Bisnis</h2>
+
+              <div className="pengaturan-mitra-grid-2">
+                {/* Nama Mitra */}
+                <div className="pengaturan-mitra-form-group">
+                  <label>Nama Mitra <span className="required-mark">*</span></label>
+                  <input
+                    type="text"
+                    value={profilBisnis.nama_mitra}
+                    onChange={e => handleProfilChange('nama_mitra', e.target.value)}
+                    className={profilErrors.nama_mitra ? 'input-error' : ''}
+                  />
+                  {profilErrors.nama_mitra && (
+                    <span className="field-error">{profilErrors.nama_mitra[0]}</span>
+                  )}
+                </div>
+
+                {/* Nomor Telepon */}
+                <div className="pengaturan-mitra-form-group">
+                  <label>Nomor Telepon / WhatsApp <span className="required-mark">*</span></label>
+                  <input
+                    type="text"
+                    value={profilBisnis.nomor_telepon}
+                    onChange={e => handleProfilChange('nomor_telepon', e.target.value)}
+                    placeholder="contoh: 08123456789"
+                    className={profilErrors.nomor_telepon ? 'input-error' : ''}
+                  />
+                  {profilErrors.nomor_telepon && (
+                    <span className="field-error">{profilErrors.nomor_telepon[0]}</span>
+                  )}
+                </div>
+
+                {/* Alamat */}
+                <div className="pengaturan-mitra-form-group" style={{ gridColumn: '1 / -1' }}>
+                  <label>Alamat <span className="required-mark">*</span></label>
+                  <input
+                    type="text"
+                    value={profilBisnis.alamat_mitra}
+                    onChange={e => handleProfilChange('alamat_mitra', e.target.value)}
+                    className={profilErrors.alamat_mitra ? 'input-error' : ''}
+                  />
+                  {profilErrors.alamat_mitra && (
+                    <span className="field-error">{profilErrors.alamat_mitra[0]}</span>
+                  )}
+                </div>
+
+                {/* Deskripsi */}
+                <div className="pengaturan-mitra-form-group" style={{ gridColumn: '1 / -1' }}>
+                  <label>Deskripsi</label>
+                  <textarea
+                    rows={3}
+                    value={profilBisnis.deskripsi}
+                    onChange={e => handleProfilChange('deskripsi', e.target.value)}
+                    placeholder="Ceritakan sedikit tentang usaha Anda..."
+                    className={profilErrors.deskripsi ? 'input-error' : ''}
+                  />
+                  {profilErrors.deskripsi && (
+                    <span className="field-error">{profilErrors.deskripsi[0]}</span>
+                  )}
+                </div>
+
+                {/* Koordinat */}
+                <div className="pengaturan-mitra-form-group">
+                  <label>Latitude</label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={profilBisnis.latitude}
+                    onChange={e => handleProfilChange('latitude', e.target.value)}
+                    placeholder="-7.123456"
+                    className={profilErrors.latitude ? 'input-error' : ''}
+                  />
+                  {profilErrors.latitude && (
+                    <span className="field-error">{profilErrors.latitude[0]}</span>
+                  )}
+                </div>
+
+                <div className="pengaturan-mitra-form-group">
+                  <label>Longitude</label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={profilBisnis.longitude}
+                    onChange={e => handleProfilChange('longitude', e.target.value)}
+                    placeholder="110.123456"
+                    className={profilErrors.longitude ? 'input-error' : ''}
+                  />
+                  {profilErrors.longitude && (
+                    <span className="field-error">{profilErrors.longitude[0]}</span>
+                  )}
+                </div>
+
+                {/* Radius Layanan */}
+                <div className="pengaturan-mitra-form-group">
+                  <label>Radius Layanan (meter)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={profilBisnis.radius_layanan}
+                    onChange={e => handleProfilChange('radius_layanan', e.target.value)}
+                    placeholder="contoh: 3000"
+                    className={profilErrors.radius_layanan ? 'input-error' : ''}
+                  />
+                  {profilErrors.radius_layanan && (
+                    <span className="field-error">{profilErrors.radius_layanan[0]}</span>
+                  )}
+                </div>
+
+                {/* Jenis Jasa (read-only) */}
+                <div className="pengaturan-mitra-form-group">
+                  <label>Jenis Jasa</label>
+                  <input
+                    type="text"
+                    value={jenisJasa}
+                    readOnly
+                    className="input-readonly"
+                    title="Jenis jasa hanya dapat diubah oleh admin."
+                  />
+                  <span className="field-hint">Hanya admin yang dapat mengubah jenis jasa.</span>
+                </div>
               </div>
-            </div>
-          </div>
-        </div>
-        <nav className="pengaturan-mitra-sidebar-nav">
-          {[
-            { to: '/dashboard/mitra', icon: 'dashboard', label: 'Overview' },
-            { to: '/dashboard/mitra/orders', icon: 'receipt_long', label: 'Orders' },
-            { to: '/dashboard/mitra/inventory', icon: 'inventory_2', label: 'Inventory' },
-            { to: '/dashboard/mitra/chat', icon: 'chat', label: 'Chat' },
-            { to: '/dashboard/mitra/finance', icon: 'payments', label: 'Finance' },
-            { to: '/dashboard/mitra/reviews', icon: 'star', label: 'Reviews & Performance' },
-            { to: '/dashboard/mitra/support', icon: 'support_agent', label: 'Help & Support' },
-            { to: '/dashboard/mitra/settings', icon: 'settings', label: 'Settings' },
-          ].map(({ to, icon, label }) => (
-            <Link
-              key={to}
-              to={to}
-              className={`pengaturan-mitra-nav-link ${location.pathname === to ? 'active' : ''}`}
-            >
-              <span className="material-symbols-outlined">{icon}</span>
-              <span>{label}</span>
-            </Link>
-          ))}
-        </nav>
-        <div className="pengaturan-mitra-sidebar-footer">
-          <button className="pengaturan-mitra-quick-support-btn">Quick Support</button>
-        </div>
-      </aside>
 
-      {/* Main Content */}
-      <main className="pengaturan-mitra-main-content">
-        {loading ? (
-          <div className="pengaturan-mitra-loading-container">
-            <span className="material-symbols-outlined pengaturan-mitra-spinner">progress_activity</span>
-          </div>
-        ) : (
-          <>
-            <header className="pengaturan-mitra-header">
-              <h1 className="pengaturan-mitra-title">Pengaturan Mitra</h1>
-              <p className="pengaturan-mitra-description">
-                Kelola profil bisnis, jadwal operasional, dan keamanan akun Anda.
+              <div className="section-action-row">
+                <button className="pengaturan-mitra-primary-btn" onClick={() => {}}>
+                  Unggah Logo Baru
+                </button>
+                <button
+                  className="pengaturan-mitra-btn-primary"
+                  onClick={handleSaveProfil}
+                  disabled={savingProfil}
+                >
+                  {savingProfil ? 'Menyimpan...' : 'Simpan Profil'}
+                </button>
+              </div>
+            </section>
+
+            {/* ----------------------------------------------------------------
+                SECTION 2 — Jadwal Operasional
+            ---------------------------------------------------------------- */}
+            <section className="pengaturan-mitra-section-card">
+              <h2 className="pengaturan-mitra-section-title">{jadwalLabel}</h2>
+              <p className="pengaturan-mitra-description" style={{ marginBottom: '1rem' }}>
+                Pilih slot waktu yang tersedia. Slot yang dipilih akan ditampilkan kepada pelanggan saat memesan.
               </p>
-            </header>
 
-            <div className="pengaturan-mitra-sections">
+              <div className="jadwal-slot-grid">
+                {SLOT_OPTIONS.map(slot => {
+                  const isSelected = jadwalDipilih.includes(slot);
+                  return (
+                    <button
+                      key={slot}
+                      type="button"
+                      className={`jadwal-slot-btn ${isSelected ? 'jadwal-slot-active' : ''}`}
+                      onClick={() => toggleSlotJadwal(slot)}
+                    >
+                      {slot}
+                    </button>
+                  );
+                })}
+              </div>
 
-              {/* ----------------------------------------------------------------
-                  SECTION 1 — Profil Bisnis
-              ---------------------------------------------------------------- */}
-              <section className="pengaturan-mitra-section-card">
-                <h2 className="pengaturan-mitra-section-title">Profil Bisnis</h2>
+              <div className="section-action-row" style={{ marginTop: '1.25rem' }}>
+                <span className="field-hint">
+                  {jadwalDipilih.length} slot dipilih
+                  {jadwalDipilih.length > 0 && `: ${jadwalDipilih.join(', ')}`}
+                </span>
+                <button
+                  className="pengaturan-mitra-btn-primary"
+                  onClick={handleSaveJadwal}
+                  disabled={savingJadwal}
+                >
+                  {savingJadwal ? 'Menyimpan...' : 'Simpan Jadwal'}
+                </button>
+              </div>
+            </section>
 
-                <div className="pengaturan-mitra-grid-2">
-                  {/* Nama Mitra */}
-                  <div className="pengaturan-mitra-form-group">
-                    <label>Nama Mitra <span className="required-mark">*</span></label>
-                    <input
-                      type="text"
-                      value={profilBisnis.nama_mitra}
-                      onChange={e => handleProfilChange('nama_mitra', e.target.value)}
-                      className={profilErrors.nama_mitra ? 'input-error' : ''}
-                    />
-                    {profilErrors.nama_mitra && (
-                      <span className="field-error">{profilErrors.nama_mitra[0]}</span>
-                    )}
+            {/* ----------------------------------------------------------------
+                SECTION 3 — Keamanan & Akun
+            ---------------------------------------------------------------- */}
+            <section className="pengaturan-mitra-section-card">
+              <h2 className="pengaturan-mitra-section-title">Keamanan & Akun</h2>
+              <div className="pengaturan-mitra-security-list">
+                <button
+                  className="pengaturan-mitra-change-pwd-btn"
+                  onClick={() => setShowPasswordModal(true)}
+                >
+                  <div className="pengaturan-mitra-flex-center">
+                    <span className="material-symbols-outlined">lock</span>
+                    <span>Ubah Kata Sandi</span>
                   </div>
+                  <span className="material-symbols-outlined">chevron_right</span>
+                </button>
+              </div>
+            </section>
 
-                  {/* Nomor Telepon */}
-                  <div className="pengaturan-mitra-form-group">
-                    <label>Nomor Telepon / WhatsApp <span className="required-mark">*</span></label>
-                    <input
-                      type="text"
-                      value={profilBisnis.nomor_telepon}
-                      onChange={e => handleProfilChange('nomor_telepon', e.target.value)}
-                      placeholder="contoh: 08123456789"
-                      className={profilErrors.nomor_telepon ? 'input-error' : ''}
-                    />
-                    {profilErrors.nomor_telepon && (
-                      <span className="field-error">{profilErrors.nomor_telepon[0]}</span>
-                    )}
-                  </div>
-
-                  {/* Alamat */}
-                  <div className="pengaturan-mitra-form-group" style={{ gridColumn: '1 / -1' }}>
-                    <label>Alamat <span className="required-mark">*</span></label>
-                    <input
-                      type="text"
-                      value={profilBisnis.alamat_mitra}
-                      onChange={e => handleProfilChange('alamat_mitra', e.target.value)}
-                      className={profilErrors.alamat_mitra ? 'input-error' : ''}
-                    />
-                    {profilErrors.alamat_mitra && (
-                      <span className="field-error">{profilErrors.alamat_mitra[0]}</span>
-                    )}
-                  </div>
-
-                  {/* Deskripsi */}
-                  <div className="pengaturan-mitra-form-group" style={{ gridColumn: '1 / -1' }}>
-                    <label>Deskripsi</label>
-                    <textarea
-                      rows={3}
-                      value={profilBisnis.deskripsi}
-                      onChange={e => handleProfilChange('deskripsi', e.target.value)}
-                      placeholder="Ceritakan sedikit tentang usaha Anda..."
-                      className={profilErrors.deskripsi ? 'input-error' : ''}
-                    />
-                    {profilErrors.deskripsi && (
-                      <span className="field-error">{profilErrors.deskripsi[0]}</span>
-                    )}
-                  </div>
-
-                  {/* Koordinat */}
-                  <div className="pengaturan-mitra-form-group">
-                    <label>Latitude</label>
-                    <input
-                      type="number"
-                      step="any"
-                      value={profilBisnis.latitude}
-                      onChange={e => handleProfilChange('latitude', e.target.value)}
-                      placeholder="-7.123456"
-                      className={profilErrors.latitude ? 'input-error' : ''}
-                    />
-                    {profilErrors.latitude && (
-                      <span className="field-error">{profilErrors.latitude[0]}</span>
-                    )}
-                  </div>
-
-                  <div className="pengaturan-mitra-form-group">
-                    <label>Longitude</label>
-                    <input
-                      type="number"
-                      step="any"
-                      value={profilBisnis.longitude}
-                      onChange={e => handleProfilChange('longitude', e.target.value)}
-                      placeholder="110.123456"
-                      className={profilErrors.longitude ? 'input-error' : ''}
-                    />
-                    {profilErrors.longitude && (
-                      <span className="field-error">{profilErrors.longitude[0]}</span>
-                    )}
-                  </div>
-
-                  {/* Radius Layanan */}
-                  <div className="pengaturan-mitra-form-group">
-                    <label>Radius Layanan (meter)</label>
-                    <input
-                      type="number"
-                      min="0"
-                      value={profilBisnis.radius_layanan}
-                      onChange={e => handleProfilChange('radius_layanan', e.target.value)}
-                      placeholder="contoh: 3000"
-                      className={profilErrors.radius_layanan ? 'input-error' : ''}
-                    />
-                    {profilErrors.radius_layanan && (
-                      <span className="field-error">{profilErrors.radius_layanan[0]}</span>
-                    )}
-                  </div>
-
-                  {/* Jenis Jasa (read-only) */}
-                  <div className="pengaturan-mitra-form-group">
-                    <label>Jenis Jasa</label>
-                    <input
-                      type="text"
-                      value={jenisJasa}
-                      readOnly
-                      className="input-readonly"
-                      title="Jenis jasa hanya dapat diubah oleh admin."
-                    />
-                    <span className="field-hint">Hanya admin yang dapat mengubah jenis jasa.</span>
-                  </div>
-                </div>
-
-                <div className="section-action-row">
-                  <button className="pengaturan-mitra-primary-btn" onClick={() => {}}>
-                    Unggah Logo Baru
-                  </button>
-                  <button
-                    className="pengaturan-mitra-btn-primary"
-                    onClick={handleSaveProfil}
-                    disabled={savingProfil}
-                  >
-                    {savingProfil ? 'Menyimpan...' : 'Simpan Profil'}
-                  </button>
-                </div>
-              </section>
-
-              {/* ----------------------------------------------------------------
-                  SECTION 2 — Jadwal Operasional
-              ---------------------------------------------------------------- */}
-              <section className="pengaturan-mitra-section-card">
-                <h2 className="pengaturan-mitra-section-title">{jadwalLabel}</h2>
-                <p className="pengaturan-mitra-description" style={{ marginBottom: '1rem' }}>
-                  Pilih slot waktu yang tersedia. Slot yang dipilih akan ditampilkan kepada pelanggan saat memesan.
-                </p>
-
-                <div className="jadwal-slot-grid">
-                  {SLOT_OPTIONS.map(slot => {
-                    const isSelected = jadwalDipilih.includes(slot);
-                    return (
-                      <button
-                        key={slot}
-                        type="button"
-                        className={`jadwal-slot-btn ${isSelected ? 'jadwal-slot-active' : ''}`}
-                        onClick={() => toggleSlotJadwal(slot)}
-                      >
-                        {slot}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <div className="section-action-row" style={{ marginTop: '1.25rem' }}>
-                  <span className="field-hint">
-                    {jadwalDipilih.length} slot dipilih
-                    {jadwalDipilih.length > 0 && `: ${jadwalDipilih.join(', ')}`}
-                  </span>
-                  <button
-                    className="pengaturan-mitra-btn-primary"
-                    onClick={handleSaveJadwal}
-                    disabled={savingJadwal}
-                  >
-                    {savingJadwal ? 'Menyimpan...' : 'Simpan Jadwal'}
-                  </button>
-                </div>
-              </section>
-
-              {/* ----------------------------------------------------------------
-                  SECTION 3 — Keamanan & Akun
-              ---------------------------------------------------------------- */}
-              <section className="pengaturan-mitra-section-card">
-                <h2 className="pengaturan-mitra-section-title">Keamanan & Akun</h2>
-                <div className="pengaturan-mitra-security-list">
-                  <button
-                    className="pengaturan-mitra-change-pwd-btn"
-                    onClick={() => setShowPasswordModal(true)}
-                  >
-                    <div className="pengaturan-mitra-flex-center">
-                      <span className="material-symbols-outlined">lock</span>
-                      <span>Ubah Kata Sandi</span>
-                    </div>
-                    <span className="material-symbols-outlined">chevron_right</span>
-                  </button>
-                </div>
-              </section>
-
-            </div>
-          </>
-        )}
-      </main>
-
-      {/* Footer */}
-      <footer className="pengaturan-mitra-footer">
-        <div className="pengaturan-mitra-footer-brand">
-          <span className="pengaturan-mitra-brand-text">
-            KostHub<span className="pengaturan-mitra-brand-dot">.</span>
-          </span>
-          <p className="pengaturan-mitra-copyright">© 2024 KostHub Hyperlocal Marketplace</p>
+          </div>
         </div>
-        <div className="pengaturan-mitra-footer-links">
-          <a href="#">Privacy Policy</a>
-          <a href="#">Terms of Service</a>
-          <a href="#">Partner Support</a>
-        </div>
-      </footer>
-    </div>
+      )}
+    </MitraLayout>
   );
 };
 
