@@ -40,12 +40,13 @@ const MitraDashboard = ({ initialTab = 'overview' }) => {
     const fetchDashboardData = useCallback(async () => {
         setLoading(true);
         try {
-            const [statsRes, ordersRes, inventoryRes, perfRes, financeRes] = await Promise.allSettled([
+            const [statsRes, ordersRes, inventoryRes, perfRes, financeRes, ringkasanRes] = await Promise.allSettled([
                 api.get('/v1/mitra/pesanan/stats'),
                 api.get('/v1/mitra/pesanan/', { params: { limit: 5 } }),
                 api.get('/v1/mitra/layanan/informasi-stok/'),
                 api.get('/v1/mitra/ulasan/statistik/'),
                 api.get('/v1/mitra/keuangan/pendapatan/'),
+                api.get('/v1/mitra/keuangan/ringkasan'),
             ]);
 
             // Stats
@@ -68,14 +69,20 @@ const MitraDashboard = ({ initialTab = 'overview' }) => {
                 setPerformance(prev => perfRes.value.data?.data || prev);
             }
 
-            // Finance / Chart Pendapatan
+            // Finance / Chart Pendapatan (for weekly chart only)
             if (financeRes.status === 'fulfilled') {
                 const fetchedFinanceData = financeRes.value.data?.data || {};
                 setChartData(fetchedFinanceData);
+            }
 
-                if (fetchedFinanceData.saldo !== undefined) {
-                    setStats(prev => ({ ...prev, saldo: prev.saldo || fetchedFinanceData.saldo }));
-                }
+            // Ringkasan Keuangan — saldo & total pendapatan (same source as Finance page)
+            if (ringkasanRes.status === 'fulfilled') {
+                const ringkasan = ringkasanRes.value.data?.data || ringkasanRes.value.data || {};
+                setStats(prev => ({
+                    ...prev,
+                    saldo: ringkasan.saldo_tersedia || 0,
+                    totalPendapatan: ringkasan.total_pendapatan || 0,
+                }));
             }
 
         } catch (err) {
