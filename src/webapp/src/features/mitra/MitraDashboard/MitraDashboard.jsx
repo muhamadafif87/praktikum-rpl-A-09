@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import api from '../../../services/api';
@@ -37,58 +37,60 @@ const MitraDashboard = ({ initialTab = 'overview' }) => {
     }, [initialTab]);
 
     // ── Fetch dashboard data ──
-    useEffect(() => {
-        const fetchDashboardData = async () => {
-            setLoading(true);
-            try {
-                const [statsRes, ordersRes, inventoryRes, perfRes, financeRes] = await Promise.allSettled([
-                    api.get('/v1/mitra/pesanan/stats'),
-                    api.get('/v1/mitra/pesanan/', { params: { status: 'pending' } }),
-                    api.get('/v1/mitra/layanan/informasi-stok/'),
-                    api.get('/v1/mitra/ulasan/statistik/'),
-                    api.get('/v1/mitra/keuangan/pendapatan/'),
-                ]);
+    const fetchDashboardData = useCallback(async () => {
+        setLoading(true);
+        try {
+            const [statsRes, ordersRes, inventoryRes, perfRes, financeRes] = await Promise.allSettled([
+                api.get('/v1/mitra/pesanan/stats'),
+                api.get('/v1/mitra/pesanan/', { params: { limit: 5 } }),
+                api.get('/v1/mitra/layanan/informasi-stok/'),
+                api.get('/v1/mitra/ulasan/statistik/'),
+                api.get('/v1/mitra/keuangan/pendapatan/'),
+            ]);
 
-                // Stats
-                if (statsRes.status === 'fulfilled') {
-                    setStats(statsRes.value.data?.data || statsRes.value.data || stats);
-                }
-
-                // Orders
-                if (ordersRes.status === 'fulfilled') {
-                    setOrders(ordersRes.value.data?.data || []);
-                }
-
-                // Inventory
-                if (inventoryRes.status === 'fulfilled') {
-                    setInventory(inventoryRes.value.data?.data || []);
-                }
-
-                // Performance / Ulasan
-                if (perfRes.status === 'fulfilled') {
-                    setPerformance(perfRes.value.data?.data || performance);
-                }
-
-                // Finance / Chart Pendapatan
-                if (financeRes.status === 'fulfilled') {
-                    const fetchedFinanceData = financeRes.value.data?.data || {};
-                    setChartData(fetchedFinanceData);
-
-                    if (fetchedFinanceData.saldo !== undefined && !stats.saldo) {
-                        setStats(prev => ({ ...prev, saldo: fetchedFinanceData.saldo }));
-                    }
-                }
-
-            } catch (err) {
-                console.log('Dashboard API not yet fully available:', err.message);
-            } finally {
-                setLoading(false);
+            // Stats
+            if (statsRes.status === 'fulfilled') {
+                setStats(prev => statsRes.value.data?.data || statsRes.value.data || prev);
             }
-        };
 
-        fetchDashboardData();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+            // Orders (all recent, no status filter)
+            if (ordersRes.status === 'fulfilled') {
+                setOrders(ordersRes.value.data?.data || []);
+            }
+
+            // Inventory
+            if (inventoryRes.status === 'fulfilled') {
+                setInventory(inventoryRes.value.data?.data || []);
+            }
+
+            // Performance / Ulasan
+            if (perfRes.status === 'fulfilled') {
+                setPerformance(prev => perfRes.value.data?.data || prev);
+            }
+
+            // Finance / Chart Pendapatan
+            if (financeRes.status === 'fulfilled') {
+                const fetchedFinanceData = financeRes.value.data?.data || {};
+                setChartData(fetchedFinanceData);
+
+                if (fetchedFinanceData.saldo !== undefined) {
+                    setStats(prev => ({ ...prev, saldo: prev.saldo || fetchedFinanceData.saldo }));
+                }
+            }
+
+        } catch (err) {
+            console.log('Dashboard API not yet fully available:', err.message);
+        } finally {
+            setLoading(false);
+        }
     }, []);
+
+    // Fetch on mount and refetch when switching back to overview
+    useEffect(() => {
+        if (activeSidebar === 'overview') {
+            fetchDashboardData();
+        }
+    }, [activeSidebar, fetchDashboardData]);
 
     const formatCurrency = (amount) => {
         return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount || 0);
@@ -185,7 +187,7 @@ const MitraDashboard = ({ initialTab = 'overview' }) => {
                             {/* Orders Table */}
                             <div className="md-orders-panel">
                                 <div className="md-panel-header">
-                                    <h2 className="md-panel-title">Incoming Orders</h2>
+                                    <h2 className="md-panel-title">Pesanan Terbaru</h2>
                                     <button className="md-panel-action" onClick={() => setActiveSidebar('orders')}>View All</button>
                                 </div>
                                 <div className="md-table-wrap">
