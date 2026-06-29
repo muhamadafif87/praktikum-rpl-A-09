@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import api from '../../../services/api';
 import './PengaturanMitra.css';
+import '../MitraDashboard/MitraDashboard.css';
 
 // ---------------------------------------------------------------------------
 // Helper: format slot jadwal jadi label yang mudah dibaca
@@ -72,7 +73,28 @@ const ModalUbahPassword = ({ onClose, onSubmit, loading }) => {
 const PengaturanMitra = () => {
   const location = useLocation();
   const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const mitraName = user.name || user.nama_usaha || 'Mitra';
+  const mitraName = user.nama_mitra || user.nama_usaha || 'Mitra';
+  const profilePictureUrl = user.foto_profil ? `http://localhost:8000/storage/${user.foto_profil}` : `https://ui-avatars.com/api/?name=${encodeURIComponent(mitraName)}&background=004ac6&color=fff`;
+
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [photoModalOpen, setPhotoModalOpen] = useState(false);
+
+  useEffect(() => {
+      const handleOutsideClick = () => setProfileMenuOpen(false);
+      if (profileMenuOpen) {
+          window.addEventListener('click', handleOutsideClick);
+      }
+      return () => window.removeEventListener('click', handleOutsideClick);
+  }, [profileMenuOpen]);
+
+  const handleLogout = async () => {
+      try {
+          await api.post('/v1/auth/logout');
+      } catch (err) {}
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+  };
 
   // State loading & feedback
   const [loading, setLoading]                     = useState(true);
@@ -291,13 +313,45 @@ const PengaturanMitra = () => {
           <button className="pengaturan-mitra-icon-btn">
             <span className="material-symbols-outlined">help</span>
           </button>
-          <div className="pengaturan-mitra-user-profile">
-            <img
-              alt="Partner Profile"
-              className="pengaturan-mitra-avatar"
-              src={`https://ui-avatars.com/api/?name=${encodeURIComponent(mitraName)}&background=004ac6&color=fff`}
-            />
-            <span className="pengaturan-mitra-user-name">{mitraName}</span>
+          <div className="md-topbar-profile-container" onClick={(e) => e.stopPropagation()}>
+            <div className="md-topbar-profile" onClick={() => setProfileMenuOpen(!profileMenuOpen)}>
+              <img
+                className="md-topbar-avatar"
+                src={profilePictureUrl}
+                alt="Partner Profile"
+              />
+              <span className="md-topbar-name">{mitraName}</span>
+              <span className="material-symbols-outlined md-profile-arrow">
+                {profileMenuOpen ? 'expand_less' : 'expand_more'}
+              </span>
+            </div>
+
+            {profileMenuOpen && (
+              <div className="md-profile-dropdown">
+                <div className="md-dropdown-info">
+                  <img
+                    className="md-dropdown-avatar"
+                    src={profilePictureUrl}
+                    alt="Partner Profile"
+                  />
+                  <div className="md-dropdown-meta">
+                    <h4 className="md-dropdown-name">{mitraName}</h4>
+                    <p className="md-dropdown-sub">{user.nomor_telepon || 'mitra@kosthub.com'}</p>
+                    <span className="md-dropdown-badge">Mitra Aktif</span>
+                  </div>
+                </div>
+                <div className="md-dropdown-actions">
+                  <button className="md-dropdown-btn" onClick={() => { setPhotoModalOpen(true); setProfileMenuOpen(false); }}>
+                    <span className="material-symbols-outlined">visibility</span>
+                    Lihat Foto Profil
+                  </button>
+                  <button className="md-dropdown-btn md-btn-logout" onClick={handleLogout}>
+                    <span className="material-symbols-outlined">logout</span>
+                    Keluar / Logout
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </nav>
@@ -567,6 +621,26 @@ const PengaturanMitra = () => {
           </>
         )}
       </main>
+
+      {/* ═══ Detail Photo Modal ═══ */}
+      {photoModalOpen && (
+          <div className="md-photo-modal-overlay" onClick={() => setPhotoModalOpen(false)}>
+              <div className="md-photo-modal-content" onClick={(e) => e.stopPropagation()}>
+                  <button className="md-photo-modal-close" onClick={() => setPhotoModalOpen(false)}>
+                      <span className="material-symbols-outlined">close</span>
+                  </button>
+                  <img
+                      className="md-photo-modal-img"
+                      src={profilePictureUrl}
+                      alt="Partner Profile Detail"
+                  />
+                  <div className="md-photo-modal-footer">
+                      <h3>{mitraName}</h3>
+                      <p>{user.nomor_telepon || 'mitra@kosthub.com'}</p>
+                  </div>
+              </div>
+          </div>
+      )}
 
       {/* Footer */}
       <footer className="pengaturan-mitra-footer">

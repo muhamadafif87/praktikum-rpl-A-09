@@ -52,7 +52,7 @@ const MitraDashboard = ({ initialTab = 'overview' }) => {
     // ── User data from localStorage ──
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const mitraName = user.nama_mitra || user.nama_usaha || 'Mitra';
-    const profilePictureUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuBXDSLI8t_TddSXUzc0JpwmwLVgSFHMX7eykXqusfKy0xpTgzVWHyZW1sxVKCbB5ENVzD_r9CpRbEpQ9AVVnSKRu29mGBft182WoOAL9lcpDHutvijdU1kgKE-QppY99g72pWEm8auOcm3QNn4edGo_TbWxIWeA7uyk4rkk_JGL26XOZTcCUFLdl2N8fvNRrE5Lmt34Lo6brIfQOIug_NHBPg2AfBYBir8K8jG4d_yG8sZL7DTh-_RBnzNqASvypzzj-los_r-yEXA";
+    const profilePictureUrl = user.foto_profil ? `http://localhost:8000/storage/${user.foto_profil}` : `https://ui-avatars.com/api/?name=${encodeURIComponent(mitraName)}&background=004ac6&color=fff`;
 
     // ── Fetch dashboard data ──
     useEffect(() => {
