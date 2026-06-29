@@ -48,41 +48,62 @@ const MitraFinance = () => {
 
     // ── UI State ──
     const [searchQuery, setSearchQuery] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
 
-    // ── Fetch finance data ──
+    // ── Debounce search input only ──
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            setDebouncedSearch(searchQuery);
+        }, 300);
+        return () => clearTimeout(timeoutId);
+    }, [searchQuery]);
+
+    // Reset page to 1 on filter/search change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [debouncedSearch, statusFilter]);
+
+    // ── Fetch finance data (parallel ringkasan + transaksi) ──
     const fetchFinanceData = useCallback(async () => {
         setLoading(true);
         try {
-            // Fetch Ringkasan
-            const summaryRes = await api.get('/v1/mitra/keuangan/ringkasan');
-            const summaryData = summaryRes.data?.data || summaryRes.data;
-
-            if (summaryData) {
-                setStats({
-                    totalPendapatan: summaryData.total_pendapatan || 0,
-                    saldoTersedia: summaryData.saldo_tersedia || 0,
-                    pesananSelesai: summaryData.pesanan_selesai || 0,
-                    saldoTertahan: summaryData.saldo_tertahan || 0,
-                });
-            }
-
-            // Fetch Transaksi
-            const params = {
+            const txParams = {
                 page: currentPage,
                 limit: ITEMS_PER_PAGE,
-                ...(searchQuery && { search: searchQuery }),
+                ...(debouncedSearch && { search: debouncedSearch }),
                 ...(statusFilter && statusFilter !== 'all' && { status_dana: statusFilter }),
             };
-            const txRes = await api.get('/v1/mitra/keuangan/transaksi', { params });
-            const txData = txRes.data;
 
-            setTransactions(txData.data || []);
-            setTotalPages(txData.last_page || txData.meta?.last_page || txData.meta?.total_pages || 1);
-            setTotalItems(txData.total || txData.meta?.total || txData.meta?.total_items || 0);
+            // Parallel fetch — both requests fire simultaneously
+            const [summaryRes, txRes] = await Promise.allSettled([
+                api.get('/v1/mitra/keuangan/ringkasan'),
+                api.get('/v1/mitra/keuangan/transaksi', { params: txParams }),
+            ]);
+
+            // Process ringkasan
+            if (summaryRes.status === 'fulfilled') {
+                const summaryData = summaryRes.value.data?.data || summaryRes.value.data;
+                if (summaryData) {
+                    setStats({
+                        totalPendapatan: summaryData.total_pendapatan || 0,
+                        saldoTersedia: summaryData.saldo_tersedia || 0,
+                        pesananSelesai: summaryData.pesanan_selesai || 0,
+                        saldoTertahan: summaryData.saldo_tertahan || 0,
+                    });
+                }
+            }
+
+            // Process transaksi
+            if (txRes.status === 'fulfilled') {
+                const txData = txRes.value.data;
+                setTransactions(txData.data || []);
+                setTotalPages(txData.last_page || txData.meta?.last_page || txData.meta?.total_pages || 1);
+                setTotalItems(txData.total || txData.meta?.total || txData.meta?.total_items || 0);
+            }
 
         } catch (err) {
             console.log('Finance API error:', err.message);
@@ -90,19 +111,12 @@ const MitraFinance = () => {
         } finally {
             setLoading(false);
         }
-    }, [currentPage, searchQuery, statusFilter]);
+    }, [currentPage, debouncedSearch, statusFilter]);
 
+    // Fetch data immediately (no extra setTimeout)
     useEffect(() => {
-        const timeoutId = setTimeout(() => {
-            fetchFinanceData();
-        }, 300);
-        return () => clearTimeout(timeoutId);
+        fetchFinanceData();
     }, [fetchFinanceData]);
-
-    // Reset page to 1 on filter change
-    useEffect(() => {
-        setCurrentPage(1);
-    }, [searchQuery, statusFilter]);
 
 
 
