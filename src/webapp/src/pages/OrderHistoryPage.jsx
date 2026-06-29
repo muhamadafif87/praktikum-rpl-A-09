@@ -17,8 +17,38 @@ const OrderHistoryPage = () => {
     const [page, setPage] = useState(1);
     const [meta, setMeta] = useState(null);
 
+    // Cek autentikasi dan guard saat mount
     useEffect(() => {
-        fetchOrders(page);
+        const token = localStorage.getItem('token');
+        const guard = localStorage.getItem('guard');
+
+        if (!token) {
+            // Belum login — redirect ke halaman login
+            sessionStorage.setItem('redirectAfterLogin', '/pesanan-saya');
+            navigate('/login');
+            return;
+        }
+
+        if (guard === 'mitra') {
+            // Mitra tidak bisa akses halaman pesanan user — redirect ke dashboard mitra
+            navigate('/dashboard/mitra');
+            return;
+        }
+
+        if (guard === 'admin') {
+            // Admin tidak bisa akses halaman pesanan user — redirect ke dashboard admin
+            navigate('/dashboard/admin');
+            return;
+        }
+    }, [navigate]);
+
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        const guard = localStorage.getItem('guard');
+        // Hanya fetch jika user biasa yang sudah login
+        if (token && guard !== 'mitra' && guard !== 'admin') {
+            fetchOrders(page);
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page, statusFilter, tglDari, tglSampai]);
 
@@ -27,8 +57,6 @@ const OrderHistoryPage = () => {
         setError('');
 
         try {
-            // Kita tidak perlu lagi axios murni dan set header manual.
-            // Instance 'api' akan otomatis menambahkan baseURL dan header Authorization.
             const response = await api.get('/v1/landing-page/pesanan/riwayat', {
                 params: {
                     page: currentPage,
@@ -46,14 +74,23 @@ const OrderHistoryPage = () => {
                     setMeta(response.data.meta);
                 }
             } else {
-                setError('Gagal mengambil riwayat pesanan');
+                setError(response.data.message || 'Gagal mengambil riwayat pesanan');
             }
         } catch (err) {
-            // Meniru penanganan error, jika 401 Unauthorized, lempar ke login
             if (err.response?.status === 401) {
+                // Token expired atau invalid — redirect ke login
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                localStorage.removeItem('guard');
+                sessionStorage.setItem('redirectAfterLogin', '/pesanan-saya');
                 navigate('/login');
+            } else if (err.response?.status === 403) {
+                setError('Anda tidak memiliki akses untuk melihat halaman ini.');
+            } else if (!err.response) {
+                // Network error — tidak bisa terhubung ke server
+                setError('Tidak dapat terhubung ke server. Periksa koneksi internet Anda dan coba lagi.');
             } else {
-                setError(err.response?.data?.message || 'Terjadi kesalahan pada server');
+                setError(err.response?.data?.message || 'Terjadi kesalahan pada server. Silakan coba lagi nanti.');
             }
         } finally {
             setLoading(false);

@@ -160,7 +160,7 @@
 }
 
 /* Core Variables based on the provided design system */
-.pengaturan-mitra-container {
+.pengaturan-mitra-wrapper {
   --pm-primary: #004ac6;
   --pm-primary-container: #2563eb;
   --pm-on-surface: #0b1c30;
@@ -173,11 +173,7 @@
   --pm-primary-fixed: #dbe1ff;
 
   font-family: 'Inter', sans-serif;
-  background-color: var(--pm-background);
   color: var(--pm-on-surface);
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
 }
 
 /* Typography Helpers */
@@ -294,13 +290,15 @@
 
 .pengaturan-mitra-form-group { display: flex; flex-direction: column; gap: 8px; }
 .pengaturan-mitra-form-group label { font-size: 14px; font-weight: 700; color: var(--pm-on-surface-variant); }
-.pengaturan-mitra-form-group input {
+.pengaturan-mitra-form-group input,
+.pengaturan-mitra-form-group textarea {
   width: 100%; padding: 8px; border: 1px solid var(--pm-outline-variant);
   border-radius: 8px; background-color: var(--pm-surface-container-low);
   font-family: inherit; font-size: 16px; color: var(--pm-on-surface);
   box-sizing: border-box; outline: none; transition: border-color 0.2s;
 }
-.pengaturan-mitra-form-group input:focus { border-color: var(--pm-primary); }
+.pengaturan-mitra-form-group input:focus,
+.pengaturan-mitra-form-group textarea:focus { border-color: var(--pm-primary); }
 
 .pengaturan-mitra-primary-btn {
   padding: 8px 16px; background-color: var(--pm-primary); color: white;

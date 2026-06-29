@@ -23,7 +23,7 @@ class MitraProfileController extends Controller
      */
     public function getSettings(Request $request): JsonResponse
     {
-        $mitra  = $request->user();  // guard mitra-api
+        $mitra  = $request->user();
         $result = $this->profileService->getSettings($mitra);
 
         $status = $result['success'] ? 200 : 500;
