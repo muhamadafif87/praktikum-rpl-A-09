@@ -1,6 +1,6 @@
 # Internal Retrospective
 **Proyek:** KostHub (praktikum-rpl-A-09)
-**Tanggal:** [Isi Tanggal]
+**Tanggal:** 06-07-2026
 
 ---
 
