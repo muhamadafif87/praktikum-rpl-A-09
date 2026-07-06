@@ -87,7 +87,7 @@ php artisan migrate:fresh --seed
 # Catatan: Gunakan host 0.0.0.0 agar dapat diakses dari Emulator / Perangkat Fisik
 php artisan serve --host=0.0.0.0 --port=8000
 ```
-> 💡 **API Server akan berjalan di:** `http://localhost:8000`.
+> **API Server akan berjalan di:** `http://localhost:8000`.
 
 ### 3️⃣ Setup Frontend (React Web App)
 
@@ -106,7 +106,7 @@ echo "VITE_API_URL=http://localhost:8000/api" > .env
 # 4. Jalankan Development Server Vite
 npm run dev
 ```
-> 💡 **Web Dashboard akan berjalan di:** `http://localhost:5173`
+> **Web Dashboard akan berjalan di:** `http://localhost:5173`
 
 ### 4️⃣ Setup Aplikasi Mobile (Android)
 
@@ -115,8 +115,8 @@ npm run dev
 3. Tunggu hingga proses **Gradle Sync** selesai sepenuhnya (indikator *loading* di pojok kanan bawah hilang).
 4. **Penting! Konfigurasi URL API:**
    Buka berkas konfigurasi *network* (misalnya `NetworkModule.kt` atau setara) dan ubah nilai `BASE_URL` sesuai lingkungan Anda:
-   - 💻 Jika menggunakan **Emulator (AVD)**: Gunakan `http://10.0.2.2:8000/api/v1/`
-   - 📱 Jika menggunakan **Perangkat Fisik**: Gunakan IP Address jaringan komputer Anda (contoh: `http://192.168.1.5:8000/api/v1/`). Pastikan HP dan PC terhubung di WiFi yang sama.
+   - Jika menggunakan **Emulator (AVD)**: Gunakan `http://10.0.2.2:8000/api/v1/`
+   - Jika menggunakan **Perangkat Fisik**: Gunakan IP Address jaringan komputer Anda (contoh: `http://192.168.1.5:8000/api/v1/`). Pastikan HP dan PC terhubung di WiFi yang sama.
 5. Klik tombol **Run** atau tekan `Shift + F10` untuk memasang (*deploy*) aplikasi ke perangkat/emulator Anda.
 
 ---
@@ -141,6 +141,41 @@ npm run dev
 
 ---
 
+---
+
+## Screenshot Aplikasi (USER)
+### Landing Page Utama
+![Landing Page Utama 1](/resources/asset/landing_page/1.png)
+![Landing Page Utama 2](/resources/asset/landing_page/2.png)
+![Landing Page Utama 3](/resources/asset/landing_page/3.png)
+
+### Halaman Login
+![Halaman Login](/resources/asset/authentication/1.png)
+
+### Halaman Register
+![Halaman Register](/resources/asset/authentication/2.png)
+
+### Halaman Profile
+![Halaman Profile](/resources/asset/profile/1.png)
+
+### Halaman Daftar Mitra
+![Halaman Daftar Mitra 1](/resources/asset/daftar_layanan/1.png)
+![Halaman Daftar Mitra 2](/resources/asset/daftar_layanan/2.png)
+![Halaman Daftar Mitra 3](/resources/asset/daftar_layanan/3.png)
+
+### Halaman Buat dan Detail Pesanan
+![Halaman Detail Pesanan 1](/resources/asset/buat_detail_pesanan/1.png)
+![Halaman Detail Pesanan 2](/resources/asset/buat_detail_pesanan/2.png)
+![Halaman Detail Pesanan 3](/resources/asset/buat_detail_pesanan/3.png)
+
+### Halaman Pembayaran
+![Halaman Pembayaran](/resources/asset/pembayaran/1.png)
+
+### Halaman Riwayat Pesanan
+![Halaman Riwayat Pesanan](/resources/asset/riwayat_pesanan/1.png)
+
+---
+
 ## Tech Stack
 
 | Layer / Komponen | Teknologi Utama | Keterangan Tambahan |
@@ -156,11 +191,11 @@ npm run dev
 ## Dokumentasi Lanjutan
 
 Dokumentasi lengkap *Software Engineering* proyek ini dapat dieksplorasi di dalam direktori `docs/`:
-- 📄 [Software Requirements Specification (SRS)](srs.md)
-- 👤 [User Stories & Acceptance Criteria](user-stories.md)
-- 🗄️ [Data Dictionary (Skema DB)](data-dictonary.md)
-- 📊 [UML Diagrams (Use Case, Sequence, Class)](uml/)
-- 🌐 [API Documentation](api/)
+- [Software Requirements Specification (SRS)](srs.md)
+- [User Stories & Acceptance Criteria](user-stories.md)
+- [Data Dictionary (Skema DB)](data-dictonary.md)
+- [UML Diagrams (Use Case, Sequence, Class)](uml/)
+- [API Documentation](api/)
 
 ---
 
