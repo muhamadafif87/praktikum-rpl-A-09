@@ -67,20 +67,27 @@ class TransaksiKeuanganService
             ->first();
 
         $statusSelesai = 'selesai';
+        $currentMonth = Carbon::now()->month;
+        $currentYear = Carbon::now()->year;
 
         $totalsPesanan = DB::table('pesanan') // atau Pesanan::where(...) jika menggunakan Model
             ->where('id_mitra', $idMitra)
+            ->whereMonth('tgl_pesanan', $currentMonth)
+            ->whereYear('tgl_pesanan', $currentYear)
             ->selectRaw("
-                SUM(CASE WHEN status_pesanan = ? THEN (catatan->>'total_pembayaran')::numeric ELSE 0 END) as total_pendapatan,
                 COUNT(CASE WHEN status_pesanan = ? THEN 1 END) as pesanan_selesai
-            ", [$statusSelesai, $statusSelesai])
+            ", [$statusSelesai])
             ->first();
 
+        $saldoTersedia = (float) ($totalsKeuangan->saldo_tersedia ?? 0);
+        $saldoTertahan = (float) ($totalsKeuangan->saldo_tertahan ?? 0);
+        $totalPendapatan = $saldoTersedia + $saldoTertahan;
+
         return [
-            'total_pendapatan' => (float) ($totalsPesanan->total_pendapatan ?? 0),
-            'saldo_tersedia'   => (float) ($totalsKeuangan->saldo_tersedia ?? 0),
+            'total_pendapatan' => $totalPendapatan,
+            'saldo_tersedia'   => $saldoTersedia,
             'pesanan_selesai'  => (int)   ($totalsPesanan->pesanan_selesai ?? 0),
-            'saldo_tertahan'   => (float) ($totalsKeuangan->saldo_tertahan ?? 0),
+            'saldo_tertahan'   => $saldoTertahan,
         ];
     }
 

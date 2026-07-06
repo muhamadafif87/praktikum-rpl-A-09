@@ -336,6 +336,10 @@ const MitraOrders = () => {
         setTimeout(() => setToast(null), 3500);
     }, []);
 
+    // Stable ref for showToast to avoid triggering fetchOrders re-creation
+    const showToastRef = useRef(showToast);
+    showToastRef.current = showToast;
+
     // ── Fetch orders ──────────────────────────────────────────────────────────
     const fetchOrders = useCallback(async () => {
         setLoading(true);
@@ -361,11 +365,11 @@ const MitraOrders = () => {
         } catch (err) {
             console.error('Gagal memuat pesanan:', err);
             setOrders([]);
-            showToast('error', 'Gagal memuat daftar pesanan.');
+            showToastRef.current('error', 'Gagal memuat daftar pesanan.');
         } finally {
             setLoading(false);
         }
-    }, [currentPage, searchQuery, statusFilter, showToast]);
+    }, [currentPage, searchQuery, statusFilter]);
 
     // ── Fetch stats ───────────────────────────────────────────────────────────
     const fetchStats = useCallback(async () => {

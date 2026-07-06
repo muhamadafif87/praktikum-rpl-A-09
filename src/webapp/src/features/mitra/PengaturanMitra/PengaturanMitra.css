@@ -1,7 +1,166 @@
 /* PengaturanMitra.css */
 
+.toast-notification {
+  position: fixed;
+  top: 1.25rem;
+  right: 1.25rem;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  animation: slideInRight 0.3s ease;
+}
+
+.toast-success {
+  background: #16a34a;
+  color: #fff;
+}
+
+.toast-error {
+  background: #dc2626;
+  color: #fff;
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* --------------------------------------------------------------------------
+   Input states
+   -------------------------------------------------------------------------- */
+.input-error {
+  border-color: #dc2626 !important;
+  outline-color: #dc2626 !important;
+}
+
+.input-readonly {
+  background: #f3f4f6;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
+.field-error {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.78rem;
+  color: #dc2626;
+}
+
+.field-hint {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.78rem;
+  color: #6b7280;
+}
+
+.required-mark {
+  color: #dc2626;
+  margin-left: 2px;
+}
+
+/* --------------------------------------------------------------------------
+   Section action row (tombol di ujung kanan)
+   -------------------------------------------------------------------------- */
+.section-action-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1.25rem;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* --------------------------------------------------------------------------
+   Jadwal Slot Grid
+   -------------------------------------------------------------------------- */
+.jadwal-slot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.jadwal-slot-btn {
+  padding: 0.45rem 0.5rem;
+  border: 1.5px solid #d1d5db;
+  border-radius: 6px;
+  background: #fff;
+  color: #374151;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+}
+
+.jadwal-slot-btn:hover {
+  border-color: #004ac6;
+  color: #004ac6;
+}
+
+.jadwal-slot-active {
+  background: #004ac6;
+  border-color: #004ac6;
+  color: #fff;
+}
+
+.jadwal-slot-active:hover {
+  background: #0039a6;
+  border-color: #0039a6;
+  color: #fff;
+}
+
+/* --------------------------------------------------------------------------
+   Modal Overlay & Card
+   -------------------------------------------------------------------------- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modal-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  animation: fadeInScale 0.2s ease;
+}
+
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.modal-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 1.25rem;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
 /* Core Variables based on the provided design system */
-.pengaturan-mitra-container {
+.pengaturan-mitra-wrapper {
   --pm-primary: #004ac6;
   --pm-primary-container: #2563eb;
   --pm-on-surface: #0b1c30;
@@ -12,13 +171,9 @@
   --pm-outline-variant: #c3c6d7;
   --pm-background: #f8f9ff;
   --pm-primary-fixed: #dbe1ff;
-  
+
   font-family: 'Inter', sans-serif;
-  background-color: var(--pm-background);
   color: var(--pm-on-surface);
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
 }
 
 /* Typography Helpers */
@@ -135,13 +290,15 @@
 
 .pengaturan-mitra-form-group { display: flex; flex-direction: column; gap: 8px; }
 .pengaturan-mitra-form-group label { font-size: 14px; font-weight: 700; color: var(--pm-on-surface-variant); }
-.pengaturan-mitra-form-group input {
+.pengaturan-mitra-form-group input,
+.pengaturan-mitra-form-group textarea {
   width: 100%; padding: 8px; border: 1px solid var(--pm-outline-variant);
   border-radius: 8px; background-color: var(--pm-surface-container-low);
   font-family: inherit; font-size: 16px; color: var(--pm-on-surface);
   box-sizing: border-box; outline: none; transition: border-color 0.2s;
 }
-.pengaturan-mitra-form-group input:focus { border-color: var(--pm-primary); }
+.pengaturan-mitra-form-group input:focus,
+.pengaturan-mitra-form-group textarea:focus { border-color: var(--pm-primary); }
 
 .pengaturan-mitra-primary-btn {
   padding: 8px 16px; background-color: var(--pm-primary); color: white;

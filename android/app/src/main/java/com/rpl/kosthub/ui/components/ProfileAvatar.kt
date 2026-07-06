@@ -16,18 +16,24 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+import androidx.compose.ui.graphics.Color
+
 @Composable
 fun ProfileAvatar(
     initials: String,
     modifier: Modifier = Modifier,
+    isLoading: Boolean = false,
     onClick: (() -> Unit)? = null
 ) {
     var boxModifier = modifier
         .size(32.dp)
         .clip(RoundedCornerShape(16.dp))
-        .background(MaterialTheme.colorScheme.primaryContainer)
+        .background(
+            if (isLoading) Color(0xFFE2E8F0) // Skeleton color
+            else MaterialTheme.colorScheme.primaryContainer
+        )
 
-    if (onClick != null) {
+    if (onClick != null && !isLoading) {
         boxModifier = boxModifier.clickable { onClick() }
     }
 
@@ -35,11 +41,13 @@ fun ProfileAvatar(
         modifier = boxModifier,
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = initials,
-            color = MaterialTheme.colorScheme.onPrimaryContainer,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold
-        )
+        if (!isLoading) {
+            Text(
+                text = initials,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
     }
 }

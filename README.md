@@ -2,380 +2,213 @@
   <img src="https://img.shields.io/badge/KostHub-Platform-667eea?style=for-the-badge&logoColor=white" alt="KostHub" />
 </p>
 
-<h1 align="center">🏠 KostHub</h1>
+<h1 align="center">KostHub - Platform Layanan Kos Terintegrasi</h1>
 
 <p align="center">
-  <a href="https://git.io/typing-svg"><img src="https://readme-typing-svg.herokuapp.com?font=Inter&weight=600&size=20&pause=1000&color=667EEA&center=true&vCenter=true&width=550&lines=Layanan+Kos+Instan,+Aman+%26+Anti-Cemas;Laundry+Express,+Gas+%26+Galon,+Cleaning;Solusi+Cerdas+Mahasiswa+Surakarta" alt="Typing SVG" /></a>
-</p>
-
-<p align="center">
-  <em>Platform layanan harian terintegrasi untuk penghuni kos yang menghubungkan mahasiswa dengan mitra penyedia jasa secara digital, aman, dan transparan.</em>
+  <em>Solusi Cerdas Mahasiswa Surakarta: Layanan Kos Instan, Aman & Anti-Cemas (Laundry Express, Gas & Galon, Daily Cleaning)</em>
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/Laravel-12-FF2D20?style=flat-square&logo=laravel&logoColor=white" alt="Laravel 12" />
   <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black" alt="React 19" />
-  <img src="https://img.shields.io/badge/Vite-8-646CFF?style=flat-square&logo=vite&logoColor=white" alt="Vite 8" />
-  <img src="https://img.shields.io/badge/TailwindCSS-4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white" alt="Tailwind 4" />
-  <img src="https://img.shields.io/badge/Sanctum-4-FF2D20?style=flat-square&logo=laravel&logoColor=white" alt="Sanctum 4" />
+  <img src="https://img.shields.io/badge/Android-Kotlin-3DDC84?style=flat-square&logo=android&logoColor=white" alt="Android Kotlin" />
   <img src="https://img.shields.io/badge/PHP-8.2+-777BB4?style=flat-square&logo=php&logoColor=white" alt="PHP 8.2+" />
-</p>
-
-<p align="center">
-  <a href="#-fitur-utama"><img src="https://img.shields.io/badge/✨_Fitur-212121?style=for-the-badge" alt="Fitur" /></a>
-  <a href="#%EF%B8%8F-arsitektur"><img src="https://img.shields.io/badge/🏗️_Arsitektur-212121?style=for-the-badge" alt="Arsitektur" /></a>
-  <a href="#-quick-start"><img src="https://img.shields.io/badge/🚀_Quick_Start-212121?style=for-the-badge" alt="Quick Start" /></a>
-  <a href="#-tech-stack"><img src="https://img.shields.io/badge/💻_Tech_Stack-212121?style=for-the-badge" alt="Tech Stack" /></a>
-  <a href="#-dokumentasi"><img src="https://img.shields.io/badge/📚_Docs-212121?style=for-the-badge" alt="Docs" /></a>
-  <a href="#-tim-pengembang"><img src="https://img.shields.io/badge/👥_Tim-212121?style=for-the-badge" alt="Tim" /></a>
+  <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square" alt="License" />
 </p>
 
 ---
 
-## 📋 Tentang Proyek
+## Tentang Proyek
 
-> **KostHub** adalah platform B2B2C berbasis web yang dirancang untuk memecahkan masalah operasional harian penghuni kos (mahasiswa). 
+**KostHub** adalah platform *B2B2C* komprehensif yang dirancang untuk mendigitalisasi dan mempermudah operasional harian penghuni kos. Sistem ini mengintegrasikan tiga entitas utama dalam satu ekosistem:
 
-Platform ini menghubungkan **3 aktor utama** dalam satu ekosistem yang terintegrasi:
+1. **Customer (Aplikasi Android & Web)**: Mahasiswa yang mencari kemudahan pemesanan layanan harian dari genggaman *smartphone*.
+2. **Mitra (Web Dashboard)**: Penyedia jasa lokal (Laundry, Galon, Daily Cleaning) untuk manajemen pesanan dan operasional.
+3. **Admin (Web Dashboard)**: Pengelola platform untuk monitoring transaksi dan verifikasi mitra.
 
-- 🧑‍🎓 **Customer** : Penghuni kos yang mencari kemudahan memesan layanan harian (laundry, galon, cleaning).
-- 🏪 **Mitra** : Penyedia jasa lokal yang membutuhkan digitalisasi untuk memperluas jangkauan & manajemen pesanan.
-- 🛡️ **Admin** : Tim operasional yang menjaga kualitas platform melalui verifikasi mitra & pemantauan transaksi.
-
-<p align="center">
-  <img src="https://img.shields.io/badge/Cakupan_Area-Surakarta-2ea44f?style=for-the-badge&logo=google-maps" alt="Location" />
-</p>
+Proyek ini mengadopsi arsitektur **API-Driven (Headless)**, di mana *backend* (Laravel) menyediakan RESTful API yang dikonsumsi secara paralel oleh *frontend web* (React) dan aplikasi *mobile* (Android Kotlin).
 
 ---
 
-## ✨ Fitur Utama
+## Struktur Repositori
 
-<details>
-<summary><strong>🧑‍🎓 Sisi Customer</strong> <em>(Klik untuk melihat)</em></summary>
-
-<br>
-
-- 🔍 **Pencarian & Kategori Layanan** — Filter berdasarkan *Laundry, Gas & Galon, atau Daily Cleaning*.
-- 📍 **Location-Based Search** — Temukan mitra terdekat secara akurat via peta interaktif (Leaflet).
-- 🛒 **Pemesanan Online** — Formulir pesanan yang lengkap dengan detail lokasi kamar, catatan khusus, hingga foto.
-- 💳 **Checkout & Pembayaran** — Fleksibilitas memilih metode *COD* (Cash on Delivery) atau Transfer.
-- 📊 **Tracking Status** — Pantau perkembangan pesanan secara *real-time* (Pending → Diproses → Selesai).
-- ⭐ **Rating & Ulasan** — Berikan bintang dan komentar terhadap kualitas layanan mitra.
-- ❌ **Pembatalan Pesanan** — Opsi pembatalan mudah selama pesanan belum diproses oleh mitra.
-- 📜 **Riwayat Pesanan** — Pantau seluruh histori transaksi kamu kapan saja.
-</details>
-
-<details>
-<summary><strong>🏪 Sisi Mitra (Dashboard)</strong> <em>(Klik untuk melihat)</em></summary>
-
-<br>
-
-- 📦 **Manajemen Pesanan** — Terima, tolak, dan update *progress* pengerjaan dengan satu klik.
-- 🧾 **Katalog Layanan** — Fleksibilitas menambah (CRUD) layanan beserta harga, satuan, dan stok.
-- 📈 **Keuangan & Transaksi** — Visualisasi ringkasan pendapatan harian/bulanan dan riwayat transaksi.
-- 📊 **Inventori Pintar** — Kelola dan pantau pergerakan stok barang agar tidak kehabisan.
-- 💬 **Pusat Ulasan** — Baca respons dan *feedback* dari pelanggan untuk meningkatkan kualitas.
-</details>
-
-<details>
-<summary><strong>🛡️ Sisi Admin (Dashboard)</strong> <em>(Klik untuk melihat)</em></summary>
-
-<br>
-
-- 📊 **Overview & Statistik** — *Bird-eye view* untuk jumlah user aktif, mitra tergabung, dan tren transaksi.
-- ✅ **Verifikasi Mitra** — Sistem *approval/rejection* untuk menjamin kredibilitas mitra yang mendaftar.
-- 📦 **Global Inventory** — Visibilitas menyeluruh terhadap stok dari seluruh mitra yang beroperasi.
-- 🤝 **Partner Management** — Pantau aktivitas dan status *suspend/active* seluruh mitra di platform.
-</details>
-
----
-
-## 🏗️ Arsitektur
-
-Platform KostHub dirancang dengan memisahkan *frontend* dan *backend* (API-Driven Architecture) untuk kemudahan *maintenance*:
+Proyek utama kami terletak pada direktori `src/`, dengan keterangan sebagai berikut:
 
 ```text
-┌─────────────────────────────────────────────────────────┐
-│                    CLIENT (Browser)                     │
-│  ┌───────────────────────────────────────────────────┐  │
-│  │         React 19 + Vite 8 + TailwindCSS 4         │  │
-│  │  ┌────────────┐  ┌────────────┐  ┌────────────┐   │  │
-│  │  │  Customer  │  │   Mitra    │  │   Admin    │   │  │
-│  │  │   Pages    │  │ Dashboard  │  │ Dashboard  │   │  │
-│  │  └────────────┘  └────────────┘  └────────────┘   │  │
-│  └───────────────────────────────────────────────────┘  │
-│                           │ Axios                       │
-│                           ▼                             │
-│  ┌───────────────────────────────────────────────────┐  │
-│  │          Vite Dev Proxy (:5173 → :8000)           │  │
-│  └───────────────────────────────────────────────────┘  │
-└───────────────────────────┬─────────────────────────────┘
-                            │ REST API (JSON)
-                            ▼
-┌─────────────────────────────────────────────────────────┐
-│                   SERVER (Laravel 12)                   │
-│  ┌───────────────────────────────────────────────────┐  │
-│  │              API Routes (/api/v1/*)               │  │
-│  │  ┌──────┐   ┌───────┐   ┌───────┐   ┌─────────┐   │  │
-│  │  │ Auth │   │ Order │   │ Mitra │   │  Admin  │   │  │
-│  │  └──────┘   └───────┘   └───────┘   └─────────┘   │  │
-│  ├───────────────────────────────────────────────────┤  │
-│  │           Sanctum Token Authentication            │  │
-│  ├───────────────────────────────────────────────────┤  │
-│  │   Service Layer  →  Eloquent ORM  → SQLite/MySQL  │  │
-│  └───────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────┘
-```
-
-### 📁 Struktur Proyek
-
-```
-praktikum-rpl-A-09/
-├── docs/                          # Dokumentasi proyek
-│   ├── api/                       # API documentation
-│   ├── uml/                       # UML diagrams (use-case, class, sequence)
-│   ├── wireframes/                # Wireframes & Figma links
-│   ├── erd.png                    # Entity Relationship Diagram
-│   ├── srs.md                     # Software Requirements Specification
-│   ├── user-stories.md            # User Stories dengan Acceptance Criteria
-│   ├── data-dictonary.md          # Data Dictionary (skema database)
-│   └── backlog.md                 # Product Backlog (MoSCoW)
-│
-├── src/
-│   ├── backend/                   # Laravel 12 REST API
-│   │   ├── app/
-│   │   │   ├── Http/Controllers/  # API Controllers (V1)
-│   │   │   ├── Models/            # Eloquent Models
-│   │   │   ├── Services/          # Business Logic Layer
-│   │   │   └── Providers/         # Service Providers
-│   │   ├── database/migrations/   # Database schema migrations
-│   │   ├── routes/api.php         # API route definitions
-│   │   └── config/                # App, CORS, Sanctum config
-│   │
-│   └── webapp/                    # React 19 SPA (Vite)
-│       └── src/
-│           ├── features/          # Feature-based modules
-│           │   ├── admin/         #   Admin dashboard components
-│           │   ├── auth/          #   Login & Register
-│           │   ├── landing/       #   Landing page
-│           │   ├── location/      #   Map & geolocation
-│           │   ├── mitra/         #   Mitra dashboard components
-│           │   ├── orders/        #   Order flow & rating
-│           │   └── profile/       #   User profile management
-│           ├── pages/             # Route page containers
-│           ├── components/        # Shared/reusable components
-│           ├── context/           # React Context (Auth, Toast, Location)
-│           ├── hooks/             # Custom React hooks
-│           ├── services/          # API client (Axios)
-│           └── utils/             # Utility functions
-│
-└── README.md
+📦 praktikum-rpl-A-09
+ ┣ 📂 src/
+ ┃ ┣ 📂 backend/       # RESTful API (Laravel 12, PHP 8.2)
+ ┃ ┗ 📂 webapp/        # Halaman Utama, dan Dashboard Mitra & Admin (React 19, Vite)
+ ┣ 📂 android/         # Aplikasi Mobile Customer (Kotlin, Jetpack Compose)
+ ┣ 📂 docs/            # Dokumentasi Sistem (SRS, UML, ERD, API)
+ ┗ 📜 README.md
 ```
 
 ---
 
-## 🛠️ Tech Stack
+## Panduan Instalasi
 
-| Layer | Teknologi |
-|---|---|
-| **Frontend** | React 19, Vite 8, TailwindCSS 4, React Router 7 |
-| **Backend** | PHP 8.2+, Laravel 12, Laravel Sanctum 4 |
-| **Database** | SQLite (dev) / MySQL (prod) |
-| **Maps** | Leaflet + React-Leaflet |
-| **Charts** | Recharts |
-| **HTTP Client** | Axios |
-| **Auth** | Token-based (Laravel Sanctum) |
-| **API Pattern** | RESTful API v1 (`/api/v1/*`) |
-| **Version Control** | Git & GitHub |
-| **Tools Desain** | Figma |
-| **Task Management** | ClickUp |
+Panduan ini ditujukan bagi *user* yang baru pertama kali menjalankan proyek KostHub di lingkungan lokal (*development environment*).
 
----
+### Prasyarat Sistem
+Pastikan perangkat Anda telah memenuhi prasyarat berikut:
+- **PHP** (v8.2 atau lebih baru)
+- **Composer** (v2.x)
+- **Node.js** (v18.x atau lebih baru) & **npm** (v9.x)
+- **Database** PostgreSQL
+- **Android Studio**
 
-## 🚀 Quick Start
-
-### Prasyarat
-
-| Tool | Versi Minimum |
-|---|---|
-| PHP | 8.2+ |
-| Composer | 2.x |
-| Node.js | 18+ |
-| npm | 9+ |
-
-### 1️⃣ Clone Repository
+### 1️⃣ Clone Repositori
 
 ```bash
 git clone https://github.com/muhamadafif87/praktikum-rpl-A-09.git
 cd praktikum-rpl-A-09
 ```
 
-### 2️⃣ Setup Backend (Laravel — Port 8000)
+### 2️⃣ Setup Backend (Laravel API)
+*Backend* **wajib** dijalankan terlebih dahulu karena Web dan Android sangat bergantung padanya untuk autentikasi dan data.
 
 ```bash
+# 1. Masuk ke direktori backend
 cd src/backend
 
-# Install PHP dependencies
+# 2. Install dependensi PHP
 composer install
 
-# Setup environment
+# 3. Konfigurasi Environment
 cp .env.example .env
 php artisan key:generate
 
-# Setup database (SQLite by default)
-php artisan migrate
+# 4. Jalankan Migrasi Database dan Seeder (Data Awal)
+# Sesuaikan pengaturan database di file .env terlebih dahulu jika menggunakan MySQL.
+php artisan migrate:fresh --seed
 
-# Jalankan server
-php artisan serve
+# 5. Jalankan Development Server
+# Catatan: Gunakan host 0.0.0.0 agar dapat diakses dari Emulator / Perangkat Fisik
+php artisan serve --host=0.0.0.0 --port=8000
 ```
+> **API Server akan berjalan di:** `http://localhost:8000`.
 
-### 3️⃣ Setup Frontend (React — Port 5173)
+### 3️⃣ Setup Frontend (React Web App)
+
+Buka tab terminal baru dan jalankan perintah berikut:
 
 ```bash
+# 1. Pastikan Anda berada di root proyek, lalu masuk ke webapp
 cd src/webapp
 
-# Install npm dependencies
+# 2. Install dependensi JavaScript
 npm install
 
-# Setup environment (buat file .env)
+# 3. Konfigurasi Environment URL API
 echo "VITE_API_URL=http://localhost:8000/api" > .env
 
-# Jalankan development server
+# 4. Jalankan Development Server Vite
 npm run dev
 ```
+> **Web Dashboard akan berjalan di:** `http://localhost:5173`
 
-### 4️⃣ Akses Aplikasi
+### 4️⃣ Setup Aplikasi Mobile (Android)
 
-| Halaman | URL |
-|---|---|
-| 🌐 Landing Page | `http://localhost:5173` |
-| 🔑 Login | `http://localhost:5173/login` |
-| 📝 Register | `http://localhost:5173/register` |
-| 🏪 Mitra Dashboard | `http://localhost:5173/dashboard/mitra` |
-| 🛡️ Admin Dashboard | `http://localhost:5173/dashboard/admin` |
-| 📡 API Base | `http://localhost:8000/api/v1` |
-
----
-
-## 📡 API Overview
-
-API dibangun dengan arsitektur RESTful dan dilindungi oleh **Laravel Sanctum** token authentication.
-
-### Endpoints Utama
-
-```
-AUTH
-  POST   /api/v1/auth/register          # Registrasi user baru
-  POST   /api/v1/auth/login             # Login (User/Mitra/Admin)
-  POST   /api/v1/auth/logout            # Logout (auth required)
-  GET    /api/v1/auth/me                # Profil user yang login
-
-LANDING PAGE (Public)
-  GET    /api/v1/landing-page/statistic          # Statistik platform
-  GET    /api/v1/landing-page/laundry-express    # Daftar mitra laundry
-  GET    /api/v1/landing-page/galon-gas          # Daftar mitra gas/galon
-  GET    /api/v1/landing-page/daily-cleaning     # Daftar mitra cleaning
-
-PESANAN (Customer, auth required)
-  POST   /api/v1/landing-page/pesanan            # Buat pesanan baru
-  GET    /api/v1/landing-page/pesanan/riwayat    # Riwayat pesanan
-  GET    /api/v1/landing-page/pesanan/:id        # Detail pesanan
-  PATCH  /api/v1/landing-page/pesanan/:id/cancel # Batalkan pesanan
-  POST   /api/v1/landing-page/pesanan/:id/ulasan # Tambah ulasan
-
-MITRA DASHBOARD (Mitra auth required)
-  GET    /api/v1/mitra/pesanan                   # Daftar pesanan mitra
-  PATCH  /api/v1/mitra/pesanan/:id/status        # Update status pesanan
-  GET    /api/v1/mitra/layanan                   # Daftar layanan mitra
-  POST   /api/v1/mitra/layanan                   # Tambah layanan baru
-  GET    /api/v1/mitra/keuangan/ringkasan        # Ringkasan keuangan
-  GET    /api/v1/mitra/ulasan                    # Ulasan dari customer
-
-ADMIN DASHBOARD (Admin auth required)
-  GET    /api/v1/dashboard/admin/statistic/summary     # Overview statistik
-  GET    /api/v1/dashboard/admin/mitra/list             # Daftar semua mitra
-  PATCH  /api/v1/dashboard/admin/mitra/action           # Approve/reject mitra
-  GET    /api/v1/dashboard/admin/inventory/list         # Inventori global
-```
-
-> 📄 Dokumentasi API lengkap tersedia di folder [`docs/api/`](docs/api/)
+1. Buka **Android Studio**.
+2. Pilih **Open an existing project** dan arahkan ke folder `android/` di dalam repositori ini.
+3. Tunggu hingga proses **Gradle Sync** selesai sepenuhnya (indikator *loading* di pojok kanan bawah hilang).
+4. **Penting! Konfigurasi URL API:**
+   Buka berkas konfigurasi *network* (misalnya `NetworkModule.kt` atau setara) dan ubah nilai `BASE_URL` sesuai lingkungan Anda:
+   - Jika menggunakan **Emulator (AVD)**: Gunakan `http://10.0.2.2:8000/api/v1/`
+   - Jika menggunakan **Perangkat Fisik**: Gunakan IP Address jaringan komputer Anda (contoh: `http://192.168.1.5:8000/api/v1/`). Pastikan HP dan PC terhubung di WiFi yang sama.
+5. Klik tombol **Run** atau tekan `Shift + F10` untuk memasang (*deploy*) aplikasi ke perangkat/emulator Anda.
 
 ---
 
-## 📄 Dokumentasi
+## Fitur Utama Platform
 
-| Dokumen | Deskripsi |
-|---|---|
-| [`docs/srs.md`](docs/srs.md) | Software Requirements Specification |
-| [`docs/user-stories.md`](docs/user-stories.md) | User Stories + Acceptance Criteria (Given-When-Then) |
-| [`docs/data-dictonary.md`](docs/data-dictonary.md) | Data Dictionary (skema tabel database) |
-| [`docs/backlog.md`](docs/backlog.md) | Product Backlog (prioritas MoSCoW) |
-| [`docs/team-contract.md`](docs/team-contract.md) | Team Contract & Working Agreement |
-| [`docs/erd.png`](docs/erd.png) | Entity Relationship Diagram |
-| [`docs/uml/`](docs/uml/) | UML Diagrams (Use Case, Class, Sequence) |
-| [`docs/api/`](docs/api/) | API Documentation |
+### Customer App (Web & Android)
+- **Location-Based Search:** Temukan mitra terdekat secara akurat memanfaatkan integrasi Google Maps.
+- **Order Management:** Pemesanan *seamless* dengan detail alamat kost, catatan khusus, lampiran foto, serta pemilihan metode pembayaran (COD / Transfer).
+- **Live Tracking:** Pemantauan status pesanan secara *real-time* (Pending ➔ Proses ➔ Selesai).
+- **Review System:** Sistem ulasan dan *rating* yang transparan bagi mitra.
 
----
+### Mitra Dashboard (Web)
+- **Order Management:** Menerima, menolak, dan memperbarui alur status pesanan masuk.
+- **Catalog Management:** Pengaturan daftar layanan, variasi harga, metrik satuan, dan ketersediaan stok barang.
+- **Financial Dashboard:** Metrik dan ringkasan performa pendapatan harian hingga bulanan.
 
-## 🗄️ Database Schema
-
-Platform ini menggunakan **8 tabel utama** yang saling terelasi:
-
-```mermaid
-erDiagram
-    USERS ||--o{ PESANAN : "membuat"
-    MITRA ||--o{ PESANAN : "mengerjakan"
-    MITRA ||--o{ LAYANAN : "menyediakan"
-    MITRA ||--|| MITRA_LOGIN_ACCESS : "memiliki"
-    PESANAN ||--o{ DETAIL_PESANAN : "berisi"
-    PESANAN ||--|| PEMBAYARAN : "memiliki"
-    PESANAN ||--o| ULASAN : "memiliki"
-    LAYANAN ||--o{ DETAIL_PESANAN : "termasuk"
-    ADMIN ||--o{ MITRA : "memverifikasi"
-```
+### Admin Dashboard (Web)
+- **Global Overview:** Statistik komprehensif mengenai pengguna aktif dan arus transaksi platform.
+- **Partner Verification:** Proses verifikasi kelayakan (*approval* / *rejection*) pendaftar mitra baru.
+- **Account Management:** Pengendalian penuh akun (*suspend* / *activate*) guna menjaga standar *Service Level Agreement* (SLA).
 
 ---
 
-## 👥 Tim Pengembang
+---
 
-<table width="100%">
-  <thead>
-    <tr>
-      <th align="center" valign="top">👨‍💻 Muhammad Daffa Ade Nugraha<br><img src="https://upload.wikimedia.org/wikipedia/commons/c/ce/Transparent.gif" width="225" height="1" /></th>
-      <th align="center" valign="top">🚀 Aerio Ade Putra<br><img src="https://upload.wikimedia.org/wikipedia/commons/c/ce/Transparent.gif" width="225" height="1" /></th>
-      <th align="center" valign="top">⚙️ Muhamad Afif Aji Putra<br><img src="https://upload.wikimedia.org/wikipedia/commons/c/ce/Transparent.gif" width="225" height="1" /></th>
-      <th align="center" valign="top">🎨 Valentino Joan Cesar<br><img src="https://upload.wikimedia.org/wikipedia/commons/c/ce/Transparent.gif" width="225" height="1" /></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td align="center" valign="top">
-        <code>[ L0124127 ]</code><br/><br/>
-        <em>✨ Lead Software Engineer & Quality Assurance</em>
-      </td>
-      <td align="center" valign="top">
-        <code>[ L0124128 ]</code><br/><br/>
-        <em>⚡ Full Stack Developer</em>
-      </td>
-      <td align="center" valign="top">
-        <code>[ L0124134 ]</code><br/><br/>
-        <em>🔧 Lead Backend Engineer & System Architect</em>
-      </td>
-      <td align="center" valign="top">
-        <code>[ L0124121 ]</code><br/><br/>
-        <em>🖌️ UI/UX Designer & Frontend Engineer</em>
-      </td>
-    </tr>
-  </tbody>
-</table>
+## Screenshot Aplikasi (USER)
+### Landing Page Utama
+![Landing Page Utama 1](/resources/asset/landing_page/1.png)
+![Landing Page Utama 2](/resources/asset/landing_page/2.png)
+![Landing Page Utama 3](/resources/asset/landing_page/3.png)
 
+### Halaman Login
+![Halaman Login](/resources/asset/authentication/1.png)
+
+### Halaman Register
+![Halaman Register](/resources/asset/authentication/2.png)
+
+### Halaman Profile
+![Halaman Profile](/resources/asset/profile/1.png)
+
+### Halaman Daftar Mitra
+![Halaman Daftar Mitra 1](/resources/asset/daftar_layanan/1.png)
+![Halaman Daftar Mitra 2](/resources/asset/daftar_layanan/2.png)
+![Halaman Daftar Mitra 3](/resources/asset/daftar_layanan/3.png)
+
+### Halaman Buat dan Detail Pesanan
+![Halaman Detail Pesanan 1](/resources/asset/buat_detail_pesanan/1.png)
+![Halaman Detail Pesanan 2](/resources/asset/buat_detail_pesanan/2.png)
+![Halaman Detail Pesanan 3](/resources/asset/buat_detail_pesanan/3.png)
+
+### Halaman Pembayaran
+![Halaman Pembayaran](/resources/asset/pembayaran/1.png)
+
+### Halaman Riwayat Pesanan
+![Halaman Riwayat Pesanan](/resources/asset/riwayat_pesanan/1.png)
+
+---
+
+## Tech Stack
+
+| Layer / Komponen | Teknologi Utama | Keterangan Tambahan |
+| :--- | :--- | :--- |
+| **Backend API** | Laravel 12 (PHP) | Laravel Sanctum (Token Auth), RESTful Architecture |
+| **Frontend Web** | React 19, Vite 8 | TailwindCSS 4, React Router 7, Axios, Leaflet Map |
+| **Mobile App** | Kotlin | Jetpack Compose / XML, Retrofit, Google Maps SDK |
+| **Database** | PostgreSQL | Relational Database Management System |
+| **Deployment** | Vercel, Railway, Supabase | Platform Deployment Cloud |
+
+---
+
+## Dokumentasi Lanjutan
+
+Dokumentasi lengkap *Software Engineering* proyek ini dapat dieksplorasi di dalam direktori `docs/`:
+- [Software Requirements Specification (SRS)](srs.md)
+- [User Stories & Acceptance Criteria](user-stories.md)
+- [Data Dictionary (Skema DB)](data-dictonary.md)
+- [UML Diagrams (Use Case, Sequence, Class)](uml/)
+- [API Documentation](api/)
+
+---
+
+## Tim Pengembang (Kelompok A-09)
+
+Sistem ini dikembangkan secara kolaboratif sebagai bagian dari proyek **Praktikum Rekayasa Perangkat Lunak - S1 Informatika - Universitas Sebelas Maret**.
+
+- **Muhammad Daffa Ade Nugraha** `[L0124127]` — *Lead Software Engineer & QA*
+- **Aerio Ade Putra** `[L0124128]` — *Full Stack Developer*
+- **Muhamad Afif Aji Putra** `[L0124134]` — *Lead Backend Engineer & System Architect*
+- **Valentino Joan Cesar** `[L0124121]` — *UI/UX Designer & Frontend Engineer*
+
+---
 <p align="center">
-  <strong>Praktikum Rekayasa Perangkat Lunak — Kelompok A-09</strong><br/>
-  <em>Universitas Sebelas Maret (UNS), Solo</em>
-</p>
-
----
-
-<p align="center">
-  Built with ❤️ by <strong>Kelompok A-09-KostHUB</strong> — UNS 2026
+  <em>Dibuat dengan ❤️ untuk produktivitas mahasiswa yang lebih baik.</em>
 </p>

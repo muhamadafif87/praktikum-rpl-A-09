@@ -28,7 +28,6 @@ Route::prefix('v1')->group(function () {
     Route::prefix('landing-page')->name('landing-page.')->group(function () {
         Route::get('/statistic', [LandingPageController::class, 'statistic'])->name('statistic');
         Route::get('/search',    [LandingPageController::class, 'searchLayanan'])->name('search');
-        Route::get('/terpopuler', [LandingPageController::class, 'terpopuler'])->name('terpopuler');
 
         Route::prefix('laundry-express')->name('laundry-express.')->group(function () {
             Route::get('/', [LandingPageController::class, 'laundryExpress'])->name('index');
@@ -56,7 +55,7 @@ Route::prefix('v1')->group(function () {
         Route::delete('/address', [UserAddressController::class, 'destroy']);
     });
 
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware('auth:sanctum,mitra-api,admin-api')->group(function () {
 
         Route::prefix('auth')->name('auth.')->group(function () {
             Route::post('/logout', [AuthController::class, 'logout'])->name('logout');

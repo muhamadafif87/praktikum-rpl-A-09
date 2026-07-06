@@ -18,6 +18,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
+import com.rpl.kosthub.data.remote.AuthEventBus
 import com.rpl.kosthub.ui.screens.auth.LoginScreen
 import com.rpl.kosthub.ui.screens.auth.RegisterScreen
 import com.rpl.kosthub.ui.screens.home.HomeScreen
@@ -38,6 +40,7 @@ class MainActivity : ComponentActivity() {
                     val locationViewModel: com.rpl.kosthub.ui.screens.map.LocationViewModel = androidx.lifecycle.viewmodel.compose.viewModel {
                         com.rpl.kosthub.ui.screens.map.LocationViewModel(applicationContext)
                     }
+                    val orderViewModel: com.rpl.kosthub.ui.screens.order.OrderViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
                     
                     // Load actual auth state from shared preferences
                     val context = androidx.compose.ui.platform.LocalContext.current
@@ -48,8 +51,23 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
+                    // Auto-redirect ke Login saat menerima event HTTP 401 dari mana pun
+                    LaunchedEffect(Unit) {
+                        AuthEventBus.unauthorizedEvent.collect {
+                            // Bersihkan token dari SharedPreferences
+                            context.getSharedPreferences("auth_prefs", android.content.Context.MODE_PRIVATE)
+                                .edit().remove("token").apply()
+                            isLoggedIn = false
+                            locationViewModel.clearLocation()
+                            // Navigasi ke login dan bersihkan seluruh back stack
+                            navController.navigate("login") {
+                                popUpTo(0) { inclusive = true }
+                            }
+                        }
+                    }
+
                     // Sync location profile if logged in
-                    androidx.compose.runtime.LaunchedEffect(isLoggedIn) {
+                    LaunchedEffect(isLoggedIn) {
                         if (isLoggedIn) {
                             locationViewModel.syncWithUserProfile()
                         }
@@ -88,43 +106,70 @@ class MainActivity : ComponentActivity() {
                                 isLoggedIn = isLoggedIn,
                                 onNavigateToLogin = { navController.navigate("login") },
                                 	onNavigateToRegister = { navController.navigate("register") },
-                                onNavigateToGasGalon = { navController.navigate("gas_galon_detail") },
-                                onNavigateToLaundry = { navController.navigate("laundry_detail") },
-                                onNavigateToDailyCleaning = { navController.navigate("daily_cleaning_detail") },
+                                onNavigateToGasGalon = { mitraId -> navController.navigate("gas_galon_detail/$mitraId") },
+                                onNavigateToLaundry = { mitraId -> navController.navigate("laundry_detail/$mitraId") },
+                                onNavigateToDailyCleaning = { mitraId -> navController.navigate("daily_cleaning_detail/$mitraId") },
                                 onNavigateToMap = { navController.navigate("map_picker") },
                                 locationViewModel = locationViewModel,
                                 onLogout = {
                                     isLoggedIn = false
                                     context.getSharedPreferences("auth_prefs", android.content.Context.MODE_PRIVATE)
-                                        .edit().remove("token").apply()
+                                        .edit().remove("token").remove("user_name").apply()
                                     locationViewModel.clearLocation()
                                 }
                             )
                         }
-                        composable("gas_galon_detail") {
+                        composable(
+                            "gas_galon_detail/{id_mitra}",
+                            arguments = listOf(navArgument("id_mitra") { type = NavType.IntType })
+                        ) { backStackEntry ->
+                            val mitraId = backStackEntry.arguments?.getInt("id_mitra") ?: 0
                             com.rpl.kosthub.ui.screens.order.GasGalonDetailScreen(
+                                mitraId = mitraId,
+                                orderViewModel = orderViewModel,
+                                locationViewModel = locationViewModel,
                                 onNavigateBack = { navController.popBackStack() },
-                                onNavigateToPayment = { navController.navigate("payment") }
+                                onNavigateToPayment = { idPesanan -> navController.navigate("payment/$idPesanan") }
                             )
                         }
-                        composable("payment") {
+                        composable(
+                            "payment/{id_pesanan}",
+                            arguments = listOf(navArgument("id_pesanan") { type = NavType.StringType })
+                        ) { backStackEntry ->
+                            val idPesanan = backStackEntry.arguments?.getString("id_pesanan") ?: ""
                             com.rpl.kosthub.ui.screens.payment.PaymentScreen(
+                                idPesanan = idPesanan,
+                                orderViewModel = orderViewModel,
                                 onNavigateBack = { navController.popBackStack() },
                                 onPaymentSuccess = { navController.navigate("home") {
                                     popUpTo("home") { inclusive = true }
                                 } }
                             )
                         }
-                        composable("laundry_detail") {
+                        composable(
+                            "laundry_detail/{id_mitra}",
+                            arguments = listOf(navArgument("id_mitra") { type = NavType.IntType })
+                        ) { backStackEntry ->
+                            val mitraId = backStackEntry.arguments?.getInt("id_mitra") ?: 0
                             com.rpl.kosthub.ui.screens.order.LaundryDetailScreen(
+                                mitraId = mitraId,
+                                orderViewModel = orderViewModel,
+                                locationViewModel = locationViewModel,
                                 onNavigateBack = { navController.popBackStack() },
-                                onNavigateToPayment = { navController.navigate("payment") }
+                                onNavigateToPayment = { idPesanan -> navController.navigate("payment/$idPesanan") }
                             )
                         }
-                        composable("daily_cleaning_detail") {
+                        composable(
+                            "daily_cleaning_detail/{id_mitra}",
+                            arguments = listOf(navArgument("id_mitra") { type = NavType.IntType })
+                        ) { backStackEntry ->
+                            val mitraId = backStackEntry.arguments?.getInt("id_mitra") ?: 0
                             com.rpl.kosthub.ui.screens.order.DailyCleaningDetailScreen(
+                                mitraId = mitraId,
+                                orderViewModel = orderViewModel,
+                                locationViewModel = locationViewModel,
                                 onNavigateBack = { navController.popBackStack() },
-                                onNavigateToPayment = { navController.navigate("payment") }
+                                onNavigateToPayment = { idPesanan -> navController.navigate("payment/$idPesanan") }
                             )
                         }
                         composable("map_picker") {

@@ -156,7 +156,10 @@ fun RegisterScreen(
                             val authData = response.data
                             if (authData != null) {
                                 val prefs = context.getSharedPreferences("auth_prefs", android.content.Context.MODE_PRIVATE)
-                                prefs.edit().putString("token", authData.token).apply()
+                                prefs.edit()
+                                    .putString("token", authData.token)
+                                    .putString("user_name", authData.user.namaLengkap)
+                                    .apply()
                                 
                                 Toast.makeText(context, "Registrasi berhasil!", Toast.LENGTH_SHORT).show()
                                 onRegisterSuccess()

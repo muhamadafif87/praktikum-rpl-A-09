@@ -1,43 +1,111 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Link } from 'react-router-dom';
-import axios from 'axios';
+import { Link, useNavigate } from 'react-router-dom';
 import './AdminPartner.css';
+import { useAuth } from '../../../context/AuthContext';
+import api from '../../../services/api';
 
-// --- Sub-components ---
+// ─────────────────────────────────────────────
+// TopNavBar
+// ─────────────────────────────────────────────
+const TopNavBar = ({ user, onLogout }) => {
+  const navigate = useNavigate();
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const dropdownRef = useRef(null);
 
-const TopNavBar = () => (
-  <nav className="admin-top-nav">
-    <div className="flex items-center space-x-4">
-      <Link className="admin-top-nav-logo" to="/dashboard/admin">
-        KostHub<span>.</span>
-      </Link>
-    </div>
-    <div className="admin-top-nav-actions">
-      <button className="admin-top-nav-icon-btn">
-        <span className="material-symbols-outlined">notifications</span>
-      </button>
-      <button className="admin-top-nav-icon-btn">
-        <span className="material-symbols-outlined">help</span>
-      </button>
-      <div className="admin-top-nav-profile">
-        <img
-          alt="Partner Profile"
-          src="https://lh3.googleusercontent.com/aida-public/AB6AXuDT0AdV5Z5MUcPbHK72cL-plOTymvr7uuBk_yFfOKmFw6N8eFX5bLkJvVmL36BnchaNyQQvKniLE6v3dRpZ9fGAII4TxeHz_SQr9qp5-Ozy-EvMWWxwAVJlQJjVI8PgAwxi4iKwYgjuIwrgOIF89jQag9GTQwZNhx50L8lKH2qCyr_AKiZ9sxJ3Mw2dzts4Glv4-kKTMPrDGQJMBGYptN6XAlTDbWX7y2MPHrMDHiI4Vq573jjkeF_4shWpCCn2_9J1WE7UPgVAHOw"
-        />
-        <span className="text-label-md admin-top-nav-profile-name">Admin Central</span>
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setShowProfileMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const getInitials = (name = '') => {
+    const parts = name.trim().split(' ');
+    return parts.length >= 2
+      ? (parts[0][0] + parts[1][0]).toUpperCase()
+      : name.substring(0, 2).toUpperCase();
+  };
+
+  const displayName = user?.nama_lengkap || user?.nama || 'Admin';
+  const displayEmail = user?.email || '';
+
+  return (
+    <nav className="admin-top-nav">
+      <div className="flex items-center space-x-4">
+        <a className="admin-top-nav-logo" href="#">
+          KostHub<span>.</span>
+        </a>
       </div>
-    </div>
-  </nav>
-);
+      <div className="admin-top-nav-actions">
+        <button className="admin-top-nav-icon-btn">
+          <span className="material-symbols-outlined">notifications</span>
+        </button>
+        <button className="admin-top-nav-icon-btn">
+          <span className="material-symbols-outlined">help</span>
+        </button>
 
-const SideNavBar = () => (
+        <div className="admin-top-nav-profile-menu" ref={dropdownRef}>
+          <button
+            className="admin-top-nav-profile-btn"
+            onClick={() => setShowProfileMenu((prev) => !prev)}
+            title={displayName}
+          >
+            <div className="admin-top-nav-avatar">{getInitials(displayName)}</div>
+            <span className="text-label-md admin-top-nav-profile-name">{displayName}</span>
+            <span className="material-symbols-outlined admin-top-nav-chevron">
+              {showProfileMenu ? 'expand_less' : 'expand_more'}
+            </span>
+          </button>
+
+          {showProfileMenu && (
+            <div className="admin-top-nav-dropdown">
+              <div className="admin-top-nav-dropdown-info">
+                <p className="admin-top-nav-dropdown-name">{displayName}</p>
+                <p className="admin-top-nav-dropdown-email">{displayEmail}</p>
+              </div>
+              <hr className="admin-top-nav-dropdown-divider" />
+              <button
+                className="admin-top-nav-dropdown-link"
+                onClick={() => {
+                  navigate('/dashboard/admin/settings');
+                  setShowProfileMenu(false);
+                }}
+              >
+                <span className="material-symbols-outlined">manage_accounts</span>
+                Pengaturan Akun
+              </button>
+              <button
+                className="admin-top-nav-dropdown-link admin-top-nav-dropdown-logout"
+                onClick={() => {
+                  setShowProfileMenu(false);
+                  onLogout();
+                }}
+              >
+                <span className="material-symbols-outlined">logout</span>
+                Keluar
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </nav>
+  );
+};
+
+// ─────────────────────────────────────────────
+// SideNavBar
+// ─────────────────────────────────────────────
+const SideNavBar = ({ onLogout, isLoggingOut }) => (
   <aside className="admin-side-nav">
     <div className="admin-side-nav-header">
-      <img
-        alt="KostHub Admin"
-        className="admin-side-nav-profile-img"
-        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBGYjeqX8fHQwiwWoGM55Tn_S265O77UcwSQ3I9oxzC6VEKAGOGmw5DlCMtPIJOrkS8hlluH2N6Qkd9h0nhOGuzQTCOngYr6OBPYGqHFog3-ALhupmVMNuC--NVRSQPHp8G-TJ-jLE02ulMXaS2ung3sH358WWxnDijTa7VKK4-dL2vI0n3-wrlT8unw7tsQcrAR7c_SPpSumAqsqPGAVMj9n0qzdPFCSJclO3iNv06yRgnW9bD94wiVS0wjKVWW3u-uJJ22gppitU"
-      />
+      <div className="admin-side-nav-avatar-placeholder">
+        <span className="material-symbols-outlined" style={{ fontSize: 28, color: 'var(--color-primary)' }}>
+          admin_panel_settings
+        </span>
+      </div>
       <div className="admin-side-nav-title text-label-md">Admin Panel</div>
       <div className="admin-side-nav-subtitle text-label-sm">System Control</div>
     </div>
@@ -68,11 +136,70 @@ const SideNavBar = () => (
       </Link>
     </nav>
     <div className="admin-side-nav-footer">
-      <button className="admin-support-btn text-label-md">Quick Support</button>
+      <button
+        className="admin-support-btn text-label-md"
+        onClick={onLogout}
+        disabled={isLoggingOut}
+      >
+        {isLoggingOut ? (
+          <>
+            <span className="material-symbols-outlined admin-logout-spinner">progress_activity</span>
+            Logging out...
+          </>
+        ) : (
+          <>
+            <span className="material-symbols-outlined admin-side-nav-icon">logout</span>
+            Logout
+          </>
+        )}
+      </button>
     </div>
   </aside>
 );
 
+// ─────────────────────────────────────────────
+// LogoutConfirmModal
+// ─────────────────────────────────────────────
+const LogoutConfirmModal = ({ onConfirm, onCancel, isLoggingOut }) => (
+  <div className="admin-modal-overlay" onClick={onCancel}>
+    <div className="admin-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="admin-modal-icon">
+        <span className="material-symbols-outlined">logout</span>
+      </div>
+      <h2 className="text-headline-sm admin-modal-title">Konfirmasi Logout</h2>
+      <p className="text-body-sm admin-modal-desc">
+        Apakah Anda yakin ingin keluar dari sesi admin ini?
+      </p>
+      <div className="admin-modal-actions">
+        <button
+          className="admin-modal-btn-cancel text-label-md"
+          onClick={onCancel}
+          disabled={isLoggingOut}
+        >
+          Batal
+        </button>
+        <button
+          className="admin-modal-btn-confirm text-label-md"
+          onClick={onConfirm}
+          disabled={isLoggingOut}
+        >
+          {isLoggingOut ? (
+            <>
+              <span className="material-symbols-outlined admin-logout-spinner">progress_activity</span>
+              Keluar...
+            </>
+          ) : (
+            'Ya, Logout'
+          )}
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
+// ─────────────────────────────────────────────
+// Footer
+// ─────────────────────────────────────────────
 const Footer = () => (
   <footer className="admin-footer">
     <div className="admin-footer-left">
@@ -89,16 +216,18 @@ const Footer = () => (
   </footer>
 );
 
-// --- Helper ---
-
+// ─────────────────────────────────────────────
+// Helper
+// ─────────────────────────────────────────────
 const SERVICE_TYPE_LABEL = {
   galon_gas: 'Gas & Galon',
   laundry: 'Laundry',
   daily_cleaning: 'Daily Cleaning',
 };
 
-// --- Detail Modal ---
-
+// ─────────────────────────────────────────────
+// DetailModal
+// ─────────────────────────────────────────────
 const DetailModal = ({ mitraId, onClose, onActionSuccess }) => {
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -110,7 +239,7 @@ const DetailModal = ({ mitraId, onClose, onActionSuccess }) => {
       try {
         setLoading(true);
         setError(null);
-        const response = await axios.get(`/api/v1/dashboard/admin/mitra/${mitraId}`);
+        const response = await api.get(`/v1/dashboard/admin/mitra/${mitraId}`);
         setDetail(response.data.data);
       } catch (err) {
         setError('Gagal memuat detail mitra.');
@@ -134,7 +263,7 @@ const DetailModal = ({ mitraId, onClose, onActionSuccess }) => {
   const handleAction = async (action) => {
     try {
       setActionLoading(true);
-      const response = await axios.patch('v1/dashboard/admin/mitra/action', {
+      const response = await api.patch('/v1/dashboard/admin/mitra/action', {
         id_mitra: mitraId,
         action,
       });
@@ -256,8 +385,9 @@ const DetailModal = ({ mitraId, onClose, onActionSuccess }) => {
   );
 };
 
-// --- Stats Cards ---
-
+// ─────────────────────────────────────────────
+// StatsCards
+// ─────────────────────────────────────────────
 const StatsCards = ({ stats }) => {
   if (!stats) return null;
 
@@ -298,8 +428,9 @@ const StatsCards = ({ stats }) => {
   );
 };
 
-// --- Partners Table ---
-
+// ─────────────────────────────────────────────
+// PartnersTable
+// ─────────────────────────────────────────────
 const PartnersTable = ({ data, pagination, filters, onFilterChange, onPageChange, onViewDetail, onAction }) => {
   if (!data) return null;
 
@@ -451,15 +582,24 @@ const PartnersTable = ({ data, pagination, filters, onFilterChange, onPageChange
   );
 };
 
-// --- Main Component ---
-
+// ─────────────────────────────────────────────
+// Main Component
+// ─────────────────────────────────────────────
 const AdminPartner = () => {
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
   const [statsData, setStatsData] = useState(null);
   const [partnersData, setPartnersData] = useState(null);
   const [pagination, setPagination] = useState(null);
   const [loading, setLoading] = useState(true);
   const [tableLoading, setTableLoading] = useState(false);
   const [selectedMitraId, setSelectedMitraId] = useState(null);
+
+  // ── logout ──
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [logoutError, setLogoutError] = useState(null);
 
   const [filters, setFilters] = useState({
     search: '',
@@ -472,16 +612,10 @@ const AdminPartner = () => {
 
   const fetchStats = useCallback(async () => {
     try {
-      const response = await axios.get('/v1/dashboard/admin/statistic/mitra-summary');
+      const response = await api.get('/v1/dashboard/admin/statistic/mitra-summary');
       setStatsData(response.data);
     } catch (err) {
-      console.warn('Stats fetch failed, using dummy data', err);
-      setStatsData({
-        total_mitra: 342,
-        total_mitra_aktif: 328,
-        jumlah_mitra_baru: 5,
-        mitra_disuspend: 9,
-      });
+      console.warn('Stats fetch failed', err);
     }
   }, []);
 
@@ -496,17 +630,12 @@ const AdminPartner = () => {
         page: currentFilters.page,
         per_page: currentFilters.per_page,
       };
-      const response = await axios.get('/v1/dashboard/admin/mitra/list', { params });
+      const response = await api.get('/v1/dashboard/admin/mitra/list', { params });
       setPartnersData(response.data.list_mitra);
       setPagination(response.data.pagination);
     } catch (err) {
-      console.warn('Partners fetch failed, using dummy data', err);
-      setPartnersData([
-        { id_mitra: 1, nama_mitra: 'Kost Sejahtera Raya', jenis_layanan: 'galon_gas', alamat_lengkap: 'Sukabirus', status: true, avg_rating: 4.8 },
-        { id_mitra: 2, nama_mitra: 'Laundry Bersih Selalu', jenis_layanan: 'laundry', alamat_lengkap: 'PGA', status: true, avg_rating: 4.9 },
-        { id_mitra: 3, nama_mitra: 'Kost Amanah', jenis_layanan: 'daily_cleaning', alamat_lengkap: 'Sukapura', status: false, avg_rating: 3.2 },
-        { id_mitra: 4, nama_mitra: 'Galon Cepat Budi', jenis_layanan: 'galon_gas', alamat_lengkap: 'Cikoneng', status: true, avg_rating: 4.5 },
-      ]);
+      console.warn('Partners fetch failed', err);
+      setPartnersData([]);
       setPagination(null);
     } finally {
       setTableLoading(false);
@@ -540,7 +669,7 @@ const AdminPartner = () => {
 
   const handleAction = async (id, action) => {
     try {
-      const response = await axios.patch('v1/dashboard/admin/mitra/action', { id_mitra: id, action });
+      const response = await api.patch('/v1/dashboard/admin/mitra/action', { id_mitra: id, action });
       alert(response.data.message);
       fetchStats();
       fetchPartners(filters);
@@ -554,10 +683,45 @@ const AdminPartner = () => {
     fetchPartners(filters);
   };
 
+  // ── Logout handlers ──
+  const handleLogoutClick   = () => { setLogoutError(null); setShowLogoutModal(true); };
+  const handleLogoutCancel  = () => { if (!isLoggingOut) setShowLogoutModal(false); };
+  const handleLogoutConfirm = async () => {
+    setIsLoggingOut(true);
+    setLogoutError(null);
+    try {
+      await logout();
+      navigate('/login');
+    } catch (err) {
+      setIsLoggingOut(false);
+      setLogoutError('Logout gagal. Silakan coba lagi.');
+    }
+  };
+
   return (
     <div className="admin-partner-page">
-      <TopNavBar />
-      <SideNavBar />
+      <TopNavBar user={user} onLogout={handleLogoutClick} />
+      <SideNavBar onLogout={handleLogoutClick} isLoggingOut={isLoggingOut} />
+
+      {/* Logout modal */}
+      {showLogoutModal && (
+        <LogoutConfirmModal
+          onConfirm={handleLogoutConfirm}
+          onCancel={handleLogoutCancel}
+          isLoggingOut={isLoggingOut}
+        />
+      )}
+
+      {/* Toast error logout */}
+      {logoutError && (
+        <div className="admin-toast admin-toast-error text-label-sm">
+          <span className="material-symbols-outlined">error</span>
+          {logoutError}
+          <button onClick={() => setLogoutError(null)} className="admin-toast-close">
+            <span className="material-symbols-outlined">close</span>
+          </button>
+        </div>
+      )}
 
       <main className="admin-main-content">
         <div className="admin-container">

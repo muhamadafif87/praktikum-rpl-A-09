@@ -132,9 +132,12 @@ fun LoginScreen(
                             val response = RetrofitClient.instance.login(LoginRequest(emailOrWa.trim(), password))
                             val authData = response.data
                             if (authData != null) {
-                                // Save token in auth_prefs
+                                // Save token and user name in auth_prefs
                                 val prefs = context.getSharedPreferences("auth_prefs", android.content.Context.MODE_PRIVATE)
-                                prefs.edit().putString("token", authData.token).apply()
+                                prefs.edit()
+                                    .putString("token", authData.token)
+                                    .putString("user_name", authData.user.namaLengkap)
+                                    .apply()
                                 
                                 Toast.makeText(context, "Login berhasil!", Toast.LENGTH_SHORT).show()
                                 onLoginSuccess()

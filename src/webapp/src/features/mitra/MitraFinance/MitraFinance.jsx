@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import api from '../../../services/api';
 import './MitraFinance.css';
 
@@ -18,10 +18,9 @@ import './MitraFinance.css';
 const ITEMS_PER_PAGE = 10;
 
 const STATUS_OPTIONS = [
-    { value: '', label: 'Semua Status' },
-    { value: 'baru', label: 'BARU' },
-    { value: 'proses', label: 'PROSES' },
-    { value: 'selesai', label: 'SELESAI' },
+    { value: 'all', label: 'Semua Status' },
+    { value: 'tersedia', label: 'Tersedia' },
+    { value: 'tertahan', label: 'Tertahan' },
 ];
 
 /**
@@ -49,91 +48,77 @@ const MitraFinance = () => {
 
     // ── UI State ──
     const [searchQuery, setSearchQuery] = useState('');
-    const [statusFilter, setStatusFilter] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
+    const [statusFilter, setStatusFilter] = useState('all');
     const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalItems, setTotalItems] = useState(0);
 
-    // ── Fetch finance data ──
+    // ── Debounce search input only ──
     useEffect(() => {
-        const fetchFinanceData = async () => {
-            setLoading(true);
-            try {
-                const response = await api.get('/v1/mitra/keuangan/ringkasan');
-                // response.data merujuk pada root JSON, response.data.data merujuk pada object isi data
-                const data = response.data?.data || response.data;
+        const timeoutId = setTimeout(() => {
+            setDebouncedSearch(searchQuery);
+        }, 300);
+        return () => clearTimeout(timeoutId);
+    }, [searchQuery]);
 
-                // Perbaikan: Mengubah responseData menjadi data agar sesuai dengan variabel yang di-declare
-                if (data && data.total_pendapatan !== undefined) {
-                    setStats({
-                        totalPendapatan: data.total_pendapatan || 0,
-                        saldoTersedia: data.saldo_tersedia || 0,
-                        pesananSelesai: data.pesanan_selesai || 0,
-                        saldoTertahan: data.saldo_tertahan || 0,
-                    });
-                } else if (data && data.stats) {
-                    setStats({
-                        totalPendapatan: data.stats.total_pendapatan || 0,
-                        saldoTersedia: data.stats.saldo_tersedia || 0,
-                        pesananSelesai: data.stats.pesanan_selesai || 0,
-                        saldoTertahan: data.stats.saldo_tertahan || 0,
-                    });
-                }
-
-                // Ambil data transaksi secara aman dari properti potensial atau fallback ke array kosong
-                const txList = data?.transactions || data?.items || response.data?.transactions || [];
-                setTransactions(Array.isArray(txList) ? txList : []);
-            } catch (err) {
-                console.log('Finance API not yet available:', err.message);
-                // Set empty state jika endpoint tidak ditemukan atau error
-                setTransactions([]);
-                setStats({
-                    totalPendapatan: 0,
-                    saldoTersedia: 0,
-                    pesananSelesai: 0,
-                    saldoTertahan: 0,
-                });
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchFinanceData();
-    }, []);
-
-    // ── Computed: Filtered & Paginated Transactions ──
-    const filteredTransactions = useMemo(() => {
-        return transactions.filter((tx) => {
-            // Search logic (ID or Customer Name)
-            const query = searchQuery.toLowerCase();
-            const txId = String(tx.id || tx.transaction_id || '').toLowerCase();
-            const customerName = String(tx.customer || tx.pelanggan || '').toLowerCase();
-            const matchesSearch = !query || txId.includes(query) || customerName.includes(query);
-
-            // Status filter logic
-            const statusKey = String(tx.status || '').toLowerCase();
-            const matchesStatus = !statusFilter || statusKey === statusFilter;
-
-            return matchesSearch && matchesStatus;
-        });
-    }, [transactions, searchQuery, statusFilter]);
-
-    const totalPages = Math.max(1, Math.ceil(filteredTransactions.length / ITEMS_PER_PAGE));
-    const paginatedTransactions = filteredTransactions.slice(
-        (currentPage - 1) * ITEMS_PER_PAGE,
-        currentPage * ITEMS_PER_PAGE
-    );
-
-    // Reset page to 1 on filter change
+    // Reset page to 1 on filter/search change
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchQuery, statusFilter]);
+    }, [debouncedSearch, statusFilter]);
 
-    if (loading) {
-        return (
-            <div className="mf-loading">
-                <span className="material-symbols-outlined mf-loading-spinner">progress_activity</span>
-            </div>
-        );
-    }
+    // ── Fetch finance data (parallel ringkasan + transaksi) ──
+    const fetchFinanceData = useCallback(async () => {
+        setLoading(true);
+        try {
+            const txParams = {
+                page: currentPage,
+                limit: ITEMS_PER_PAGE,
+                ...(debouncedSearch && { search: debouncedSearch }),
+                ...(statusFilter && statusFilter !== 'all' && { status_dana: statusFilter }),
+            };
+
+            // Parallel fetch — both requests fire simultaneously
+            const [summaryRes, txRes] = await Promise.allSettled([
+                api.get('/v1/mitra/keuangan/ringkasan'),
+                api.get('/v1/mitra/keuangan/transaksi', { params: txParams }),
+            ]);
+
+            // Process ringkasan
+            if (summaryRes.status === 'fulfilled') {
+                const summaryData = summaryRes.value.data?.data || summaryRes.value.data;
+                if (summaryData) {
+                    setStats({
+                        totalPendapatan: summaryData.total_pendapatan || 0,
+                        saldoTersedia: summaryData.saldo_tersedia || 0,
+                        pesananSelesai: summaryData.pesanan_selesai || 0,
+                        saldoTertahan: summaryData.saldo_tertahan || 0,
+                    });
+                }
+            }
+
+            // Process transaksi
+            if (txRes.status === 'fulfilled') {
+                const txData = txRes.value.data;
+                setTransactions(txData.data || []);
+                setTotalPages(txData.last_page || txData.meta?.last_page || txData.meta?.total_pages || 1);
+                setTotalItems(txData.total || txData.meta?.total || txData.meta?.total_items || 0);
+            }
+
+        } catch (err) {
+            console.log('Finance API error:', err.message);
+            setTransactions([]);
+        } finally {
+            setLoading(false);
+        }
+    }, [currentPage, debouncedSearch, statusFilter]);
+
+    // Fetch data immediately (no extra setTimeout)
+    useEffect(() => {
+        fetchFinanceData();
+    }, [fetchFinanceData]);
+
+
 
     return (
         <>
@@ -239,7 +224,16 @@ const MitraFinance = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {paginatedTransactions.length === 0 ? (
+                            {loading ? (
+                                <tr>
+                                    <td colSpan="7">
+                                        <div className="mf-table-empty">
+                                            <span className="material-symbols-outlined mf-loading-spinner">progress_activity</span>
+                                            <p className="mf-table-empty-title">Memuat data...</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ) : transactions.length === 0 ? (
                                 <tr>
                                     <td colSpan="7">
                                         <div className="mf-table-empty">
@@ -252,20 +246,21 @@ const MitraFinance = () => {
                                     </td>
                                 </tr>
                             ) : (
-                                paginatedTransactions.map((tx) => {
-                                    const txId = tx.id || tx.transaction_id || '-';
-                                    const date = tx.date || tx.tanggal || '-';
+                                transactions.map((tx) => {
+                                    const txId = tx.id_transaksi || tx.id || tx.transaction_id || '-';
+                                    const dateStr = tx.tanggal_transaksi || tx.date || tx.tanggal;
+                                    const date = dateStr ? new Date(dateStr).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
                                     const service = tx.service || tx.layanan || '-';
-                                    const customer = tx.customer || tx.pelanggan || '-';
-                                    const amount = tx.amount || tx.jumlah || 0;
-                                    const status = String(tx.status || '').toLowerCase();
+                                    const customer = tx.nama_pelanggan || tx.customer || tx.pelanggan || '-';
+                                    const amount = tx.jumlah || tx.amount || 0;
+                                    const status = String(tx.status_dana || tx.status || '').toLowerCase();
 
                                     // Map status to badge modifier class
                                     let badgeModifier = 'proses';
-                                    if (status === 'selesai' || status === 'success') badgeModifier = 'selesai';
-                                    if (status === 'baru') badgeModifier = 'baru';
+                                    if (status.includes('tersedia') || status === 'success') badgeModifier = 'selesai';
+                                    if (status.includes('tertahan')) badgeModifier = 'baru';
 
-                                    const displayStatus = tx.status ? tx.status.toUpperCase() : 'PROSES';
+                                    const displayStatus = tx.status_dana ? tx.status_dana : 'PROSES';
 
                                     return (
                                         <tr key={txId}>
@@ -293,9 +288,9 @@ const MitraFinance = () => {
                 {/* ── Pagination ── */}
                 <div className="mf-pagination">
                     <span className="mf-pagination-info">
-                        {filteredTransactions.length === 0
+                        {totalItems === 0
                             ? 'Showing 0 of 0 transactions'
-                            : `Showing ${(currentPage - 1) * ITEMS_PER_PAGE + 1}-${Math.min(currentPage * ITEMS_PER_PAGE, filteredTransactions.length)} of ${filteredTransactions.length} transactions`
+                            : `Showing ${(currentPage - 1) * ITEMS_PER_PAGE + 1}-${Math.min(currentPage * ITEMS_PER_PAGE, totalItems)} of ${totalItems} transactions`
                         }
                     </span>
                     <div className="mf-pagination-btns">

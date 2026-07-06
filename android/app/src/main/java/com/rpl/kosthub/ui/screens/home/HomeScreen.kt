@@ -29,6 +29,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.rpl.kosthub.ui.components.AuthInterceptorDialog
 import com.rpl.kosthub.ui.components.ProfileAvatar
+import com.rpl.kosthub.ui.screens.profile.ProfileViewModel
+import com.rpl.kosthub.ui.screens.profile.ProfileState
 import com.rpl.kosthub.data.model.Mitra
 import com.rpl.kosthub.ui.screens.mitra.MitraListContent
 
@@ -38,19 +40,47 @@ fun HomeScreen(
     isLoggedIn: Boolean,
     onNavigateToLogin: () -> Unit,
     onNavigateToRegister: () -> Unit,
-    onNavigateToGasGalon: () -> Unit,
-    onNavigateToLaundry: () -> Unit,
-    onNavigateToDailyCleaning: () -> Unit,
+    onNavigateToGasGalon: (Int) -> Unit,
+    onNavigateToLaundry: (Int) -> Unit,
+    onNavigateToDailyCleaning: (Int) -> Unit,
     onNavigateToMap: () -> Unit,
     locationViewModel: com.rpl.kosthub.ui.screens.map.LocationViewModel,
     onLogout: () -> Unit,
-    viewModel: HomeViewModel = viewModel()
+    viewModel: HomeViewModel = viewModel(),
+    profileViewModel: ProfileViewModel = viewModel()
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     var selectedMitraFilter by remember { mutableStateOf("all") }
     var showAuthDialog by remember { mutableStateOf(false) }
 
     val terpopulerState by viewModel.terpopulerState.collectAsState()
+    val profileState by profileViewModel.profileState.collectAsState()
+
+    // Fetch user profile for avatar initials when logged in
+    val context = androidx.compose.ui.platform.LocalContext.current
+    LaunchedEffect(isLoggedIn) {
+        if (isLoggedIn) {
+            profileViewModel.fetchProfile(context)
+        }
+    }
+
+    // Extract user initials from profile or SharedPreferences
+    val userInitials = remember(profileState) {
+        val prefsName = context.getSharedPreferences("auth_prefs", android.content.Context.MODE_PRIVATE)
+            .getString("user_name", "User") ?: "User"
+            
+        val nameToUse = when (profileState) {
+            is ProfileState.Success -> (profileState as ProfileState.Success).user.namaLengkap
+            else -> prefsName
+        }
+        
+        val parts = nameToUse.trim().split(" ")
+        if (parts.size >= 2) {
+            "${parts[0].first().uppercase()}${parts[1].first().uppercase()}"
+        } else {
+            nameToUse.take(2).uppercase()
+        }
+    }
 
     if (showAuthDialog) {
         AuthInterceptorDialog(
@@ -85,9 +115,10 @@ fun HomeScreen(
                 actions = {
                     if (isLoggedIn) {
                         ProfileAvatar(
-                            initials = "VA",
+                            initials = userInitials,
+                            isLoading = profileState is ProfileState.Loading,
                             modifier = Modifier.padding(end = 16.dp),
-                            onClick = { selectedTab = 2 }
+                            onClick = { selectedTab = 3 }
                         )
                     } else {
                         Spacer(modifier = Modifier.width(48.dp))
@@ -189,12 +220,12 @@ fun HomeScreen(
                     isLoggedIn = isLoggedIn,
                     onNavigateToLogin = onNavigateToLogin,
                     onNavigateToRegister = onNavigateToRegister,
-                    onNavigateToOrderForm = { _, category ->
+                    onNavigateToOrderForm = { mitraId, category ->
                         when (category) {
-                            "gas_galon", "gas", "galon" -> onNavigateToGasGalon()
-                            "laundry", "laundry_express" -> onNavigateToLaundry()
-                            "cleaning", "daily_cleaning" -> onNavigateToDailyCleaning()
-                            else -> onNavigateToGasGalon()
+                            "gas_galon", "gas", "galon" -> onNavigateToGasGalon(mitraId)
+                            "laundry", "laundry_express" -> onNavigateToLaundry(mitraId)
+                            "cleaning", "daily_cleaning" -> onNavigateToDailyCleaning(mitraId)
+                            else -> onNavigateToGasGalon(mitraId)
                         }
                     },
                     onNavigateToMap = onNavigateToMap,
@@ -203,7 +234,10 @@ fun HomeScreen(
                 2 -> OrdersContent()
                 3 -> com.rpl.kosthub.ui.screens.profile.ProfileScreen(
                     onNavigateToLogin = onNavigateToLogin,
-                    onLogout = onLogout,
+                    onLogout = {
+                        selectedTab = 0
+                        onLogout()
+                    },
                     onNavigateToMap = onNavigateToMap,
                     locationViewModel = locationViewModel
                 )
